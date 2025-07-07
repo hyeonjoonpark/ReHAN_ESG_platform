@@ -1,6 +1,6 @@
-// 이 파일을 복사하여 config.js로 이름을 변경하고 사용하세요
-// 또는 .env 파일을 생성하여 환경 변수를 설정하세요
-
+/**
+ * 환경 변수 설정 예시
+ */
 module.exports = {
   database: {
     host: process.env.DB_HOST || 'mysql',

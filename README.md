@@ -43,8 +43,10 @@ docker-compose logs -f mysql
 ```
 
 4. **서비스 접속**
-- **Frontend**: http://localhost:3000
+- **Frontend**: http://localhost (포트 번호 없음!)
+- **Frontend (도메인)**: http://rehan.local (선택사항)
 - **Backend**: http://localhost:3001
+- **API**: http://localhost/api/
 - **MySQL**: localhost:3306
 
 ### 서비스 관리
@@ -68,10 +70,16 @@ docker-compose ps
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Backend       │    │   MySQL         │
-│   (Next.js)     │───▶│   (Express)     │───▶│   (Database)    │
-│   Port: 3000    │    │   Port: 3001    │    │   Port: 3306    │
+│   (nginx)       │───▶│   (Express)     │───▶│   (Database)    │
+│   Port: 80      │    │   Port: 3001    │    │   Port: 3306    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+### 주요 특징
+- **Frontend**: Next.js 정적 빌드 + nginx 배포
+- **Backend**: Express.js API 서버
+- **Database**: MySQL 8.0
+- **배포**: Docker Compose 기반 오케스트레이션
 
 ## 📁 프로젝트 구조
 
@@ -82,9 +90,11 @@ ReHAN_ESG_platform/
 │   ├── package.json
 │   ├── index.js
 │   └── config.example.js
-├── frontend/                # Next.js 프론트엔드
-│   ├── Dockerfile
+├── frontend/                # Next.js 프론트엔드 (nginx 배포)
+│   ├── Dockerfile           # Multi-stage build (Node.js → nginx)
+│   ├── nginx.conf           # nginx 설정 파일
 │   ├── package.json
+│   ├── next.config.ts       # 정적 빌드 설정
 │   └── src/
 ├── docker-compose.yaml      # Docker Compose 설정
 └── README.md
@@ -99,10 +109,32 @@ cd backend
 npm install
 npm run start
 
-# Frontend 개발 서버
+# Frontend 개발 서버 (개발 모드)
 cd frontend
 npm install
 npm run dev
+```
+
+### nginx 배포 특징
+- **정적 파일 서빙**: 빌드된 정적 파일을 nginx가 직접 서빙
+- **API 프록시**: `/api/*` 경로를 Backend로 자동 프록시
+- **SPA 라우팅**: 클라이언트 사이드 라우팅 지원
+- **성능 최적화**: gzip 압축, 캐싱 헤더 자동 설정
+- **보안 강화**: 보안 헤더 자동 추가
+
+### 빌드 과정
+1. **Node.js 빌드**: Next.js 프로젝트를 정적 파일로 빌드
+2. **nginx 배포**: 빌드된 파일을 nginx 컨테이너로 복사
+3. **설정 적용**: nginx.conf 설정 파일 적용
+
+### 도메인 설정 (선택사항)
+실제 도메인처럼 사용하고 싶다면 hosts 파일을 수정하세요:
+```bash
+# /etc/hosts 파일에 도메인 추가
+echo "127.0.0.1 rehan.local" | sudo tee -a /etc/hosts
+
+# 브라우저에서 접속
+# http://rehan.local
 ```
 
 ### 데이터베이스 설정
@@ -148,4 +180,15 @@ docker-compose up -d
 
 - 프로덕션 환경에서는 기본 비밀번호 변경 필수
 - JWT 시크릿 키 변경 필요
-- 환경 변수 파일(.env)은 Git에 커밋하지 않음 
+- 환경 변수 파일(.env)은 Git에 커밋하지 않음
+- **nginx 보안**: 보안 헤더 자동 적용 (X-Frame-Options, X-Content-Type-Options 등)
+- **정적 파일 캐싱**: 정적 리소스 캐싱으로 성능 최적화
+- **API 프록시**: CORS 문제 해결 및 백엔드 보안 강화
+
+## 🚀 성능 최적화
+
+### nginx 최적화 기능
+- **gzip 압축**: 텍스트 파일 압축 전송
+- **정적 파일 캐싱**: 1년간 캐싱 설정
+- **Keep-Alive**: 연결 재사용으로 성능 향상
+- **sendfile**: 효율적인 파일 전송 
