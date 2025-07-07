@@ -43,11 +43,13 @@ docker-compose logs -f mysql
 ```
 
 4. **서비스 접속**
-- **Frontend**: http://localhost (포트 번호 없음!)
-- **Frontend (도메인)**: http://rehan.local (선택사항)
+- **Frontend (HTTPS)**: https://localhost 🔒
+- **Frontend (도메인)**: https://rehan.local 🔒
 - **Backend**: http://localhost:3001
-- **API**: http://localhost/api/
+- **API (HTTPS)**: https://localhost/api/ 🔒
 - **MySQL**: localhost:3306
+
+> 📌 **HTTP 자동 리다이렉트**: http://localhost 접속 시 자동으로 https://localhost로 리다이렉트됩니다.
 
 ### 서비스 관리
 
@@ -134,7 +136,68 @@ npm run dev
 echo "127.0.0.1 rehan.local" | sudo tee -a /etc/hosts
 
 # 브라우저에서 접속
-# http://rehan.local
+# https://rehan.local
+```
+
+## 🔒 HTTPS 설정
+
+### 자체 서명 인증서 (현재 설정)
+- **개발/테스트 환경**에 적합
+- 브라우저에서 "안전하지 않음" 경고 표시 (정상)
+- 인증서 위치: `./ssl/server.crt`, `./ssl/server.key`
+
+### 브라우저 경고 해결(MacOS)
+
+#### 방법 1: mkcert로 신뢰할 수 있는 인증서 생성 (권장)
+```bash
+# 1. mkcert 설치
+brew install mkcert
+
+# 2. 로컬 CA 설치
+mkcert -install
+
+# 3. 인증서 생성
+mkcert localhost rehan.local
+
+# 4. 인증서 복사
+cp localhost+1.pem ssl/server.crt
+cp localhost+1-key.pem ssl/server.key
+
+# 5. 서비스 재시작
+docker-compose restart frontend
+
+# 6. 임시 파일 정리
+rm localhost+1.pem localhost+1-key.pem
+```
+
+#### 방법 2: 브라우저 경고 무시
+1. **Chrome/Safari**: "고급" → "안전하지 않은 사이트로 이동" 클릭
+2. **Firefox**: "고급" → "위험을 감수하고 계속" 클릭
+
+### 프로덕션 인증서 설정
+
+#### Let's Encrypt (무료, 권장)
+```bash
+# 1. Certbot 설치 및 인증서 발급
+sudo certbot certonly --standalone -d yourdomain.com
+
+# 2. 인증서를 ssl 디렉토리로 복사
+sudo cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem ./ssl/server.crt
+sudo cp /etc/letsencrypt/live/yourdomain.com/privkey.pem ./ssl/server.key
+
+# 3. 권한 설정
+sudo chown $USER:$USER ./ssl/server.*
+```
+
+#### 상용 인증서
+```bash
+# 1. 인증서 파일을 ssl 디렉토리에 배치
+cp your-certificate.crt ./ssl/server.crt
+cp your-private-key.key ./ssl/server.key
+
+# 2. 권한 설정
+chmod 600 ./ssl/server.key
+chmod 644 ./ssl/server.crt
 ```
 
 ### 데이터베이스 설정
@@ -178,12 +241,22 @@ docker-compose up -d
 
 ## 🔒 보안 고려사항
 
+### 기본 보안 설정
 - 프로덕션 환경에서는 기본 비밀번호 변경 필수
 - JWT 시크릿 키 변경 필요
 - 환경 변수 파일(.env)은 Git에 커밋하지 않음
-- **nginx 보안**: 보안 헤더 자동 적용 (X-Frame-Options, X-Content-Type-Options 등)
+
+### HTTPS 보안
+- **TLS 1.2/1.3**: 최신 보안 프로토콜 사용
+- **HSTS**: Strict-Transport-Security 헤더 적용
+- **자동 HTTP→HTTPS 리다이렉트**: 모든 HTTP 요청 자동 전환
+- **보안 헤더**: X-Frame-Options, X-Content-Type-Options, XSS-Protection 등
+
+### nginx 보안 최적화
 - **정적 파일 캐싱**: 정적 리소스 캐싱으로 성능 최적화
 - **API 프록시**: CORS 문제 해결 및 백엔드 보안 강화
+- **gzip 압축**: 데이터 전송 최적화
+- **보안 헤더 자동 적용**: 일반적인 웹 공격 방어
 
 ## 🚀 성능 최적화
 
