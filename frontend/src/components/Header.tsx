@@ -1,14 +1,27 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+
 interface HeaderProps {
   currentTime: string;
 }
 
 export default function Header({ currentTime }: HeaderProps) {
+  const router = useRouter();
+
+  const handleLogoClick = () => {
+    router.replace('/');
+  };
+
   return (
     <header className="flex justify-between items-center p-6 lg:p-8">
       <div className="flex items-center space-x-3">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+        <button 
+          onClick={handleLogoClick}
+          className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hover:from-blue-500 hover:to-cyan-500 transition-all duration-300 cursor-pointer"
+        >
           PETMON
-        </h1>
+        </button>
         <p className="text-sm text-gray-300">기기명(위치)</p>
       </div>
       <div className="text-right">

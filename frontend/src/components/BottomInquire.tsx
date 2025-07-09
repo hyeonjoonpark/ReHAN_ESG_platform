@@ -1,52 +1,59 @@
 interface BottomInquireProps {
   onInquireClick?: () => void;
-  rightButton: {
+  rightButtons: {
     text: string;
     className: string;
     onClick?: () => void;
-  };
+    disabled?: boolean;
+  }[];
 }
 
-export default function BottomInquire({ onInquireClick, rightButton }: BottomInquireProps) {
+export default function BottomInquire({ onInquireClick, rightButtons }: BottomInquireProps) {
   return (
-    <footer className="px-6 lg:px-8 pb-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">📞</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-300">고객센터</p>
-                <p className="text-white font-medium">1644-1224</p>
-              </div>
+    <footer className="px-8 py-4 bg-darkblue-800">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <span className="text-white text-lg">📞</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">📱</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-300">카카오 채널</p>
-                <p className="text-white font-medium">QR코드</p>
-              </div>
+            <div>
+              <p className="text-sm text-gray-300">고객센터</p>
+              <p className="text-white font-medium text-lg">1644-1224</p>
             </div>
-            {onInquireClick && (
-              <button 
-                onClick={onInquireClick}
-                className="bg-gradient-to-r from-purple-500 to-purple-500 hover:from-purple-600 hover:to-pink-600 px-6 py-3 rounded-xl text-white font-medium transition-all duration-300 hover:scale-105">
-                오류/고장 문의하기
-              </button>
-            )}
           </div>
-          <div className="relative">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 bg-white rounded grid grid-cols-3 gap-0.5 p-0.5">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} className={`w-1 h-1 ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-gray-300">카카오 채널</p>
+              <p className="text-white font-medium">QR코드</p>
+            </div>
+          </div>
+          {onInquireClick && (
             <button 
-              className={rightButton.className}
-              onClick={rightButton.onClick}
-            >
-              {rightButton.text}
+              onClick={onInquireClick}
+              className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 px-6 py-3 rounded-xl text-white font-medium transition-all duration-300">
+              오류/고장 문의하기
             </button>
-          </div>
+          )}
+        </div>
+        <div className="flex space-x-4">
+          {rightButtons.map((button, index) => (
+            <button 
+              key={index}
+              className={button.className}
+              onClick={button.onClick}
+              disabled={button.disabled}
+            >
+              {button.text}
+            </button>
+          ))}
         </div>
       </div>
     </footer>

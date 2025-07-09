@@ -45,18 +45,18 @@ export default function RepairPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-darkblue-950 text-white">
+    <div className="h-screen bg-darkblue-950 text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={currentTime} />
 
       {/* 메인 컨텐츠 */}
-      <main className="flex-1 px-6 lg:px-8 pb-8">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-7xl mx-auto h-full">
           {/* 좌우 분할 레이아웃 */}
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-8 h-full">
             {/* 왼쪽 - 지도 영역 */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl overflow-hidden h-96 relative">
+            <div className="lg:col-span-2 flex flex-col justify-center">
+              <div className="bg-white rounded-2xl overflow-hidden h-[400px] relative">
                 {/* 지도 배경 */}
                 <div className="w-full h-full bg-gradient-to-br from-green-200 via-green-300 to-green-100 relative">
                   {/* 도로 라인들 */}
@@ -110,10 +110,10 @@ export default function RepairPage() {
 
       {/* 하단 */}
       <BottomInquire 
-        rightButton={{
+        rightButtons={[{
           text: "수리 중",
           className: "bg-gray-600 hover:bg-gray-700 px-8 py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-        }}
+        }]}
       />
     </div>
   );
