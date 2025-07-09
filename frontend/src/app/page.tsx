@@ -20,16 +20,15 @@ export default function Home() {
       
       setCurrentTime(`${month}월 ${day}일(${weekday}) ${period} ${displayHour}:${minute.toString().padStart(2, '0')}`);
     };
+    
     updateTime();
     const timeInterval = setInterval(updateTime, 1000);
 
-    return () => {
-      clearInterval(timeInterval);
-    };
+    return () => clearInterval(timeInterval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white">
+    <div className="min-h-screen bg-darkblue-950 text-white">
       {/* 헤더 */}
       <header className="flex justify-between items-center p-6 lg:p-8">
         <div className="flex items-center space-x-3">
@@ -42,14 +41,14 @@ export default function Home() {
           <div className="text-lg font-medium text-gray-200">
             {currentTime}
           </div>
-          {/* <div className="flex justify-center mt-2">
+          <div className="flex justify-end mt-2">
             <div className="flex space-x-2">
               <div className="w-2 h-2 bg-white rounded-full"></div>
               <div className="w-2 h-2 bg-white/50 rounded-full"></div>
               <div className="w-2 h-2 bg-white/50 rounded-full"></div>
               <div className="w-2 h-2 bg-white/50 rounded-full"></div>
             </div>
-          </div> */}
+          </div>
           <div className="text-sm text-gray-400 mt-2">
             자원순환의 새로운 시작
           </div>
@@ -71,19 +70,20 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          {/* 좌우 분할 레이아웃 */}
+          <section className="grid lg:grid-cols-3 gap-8">
             {/* 왼쪽 - 기능 카드들 */}
-            <div className="lg:col-span-2">
-              <div className="grid md:grid-cols-2 gap-4 mb-8">
-                <button className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-8 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <section className="lg:col-span-2 flex flex-col justify-center">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <button className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-8 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   <h3 className="text-2xl font-bold text-white">회원가입하기</h3>
                 </button>
 
-                <button className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-8 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <button className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-8 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   <h3 className="text-2xl font-bold text-white">이용 방법</h3>
                 </button>
 
-                <button className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-8 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <button className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-8 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
                   <h3 className="text-2xl font-bold text-white">포인트 적립<br />안내</h3>
                 </button>
 
@@ -91,10 +91,10 @@ export default function Home() {
                   <h3 className="text-2xl font-bold text-white">투입 가능 물품</h3>
                 </button>
               </div>
-            </div>
+            </section>
 
-            {/* 오른쪽 - 상태 정보 */}
-            <div className="space-y-6">
+            {/* 오른쪽 - 사이드바 */}
+            <section className="space-y-6">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <h3 className="text-2xl font-bold text-white mb-2">
                   안녕하세요
@@ -117,24 +117,27 @@ export default function Home() {
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-xl flex items-center justify-center mr-3">
-                    <span className="text-white text-2xl">🏢</span>
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 2C8 1.45 8.45 1 9 1h6c0.55 0 1 0.45 1 1v1h1c0.55 0 1 0.45 1 1s-0.45 1-1 1h-1v14c0 1.1-0.9 2-2 2H10c-1.1 0-2-0.9-2-2V5H7C6.45 5 6 4.55 6 4s0.45-1 1-1h1V2zm2 3v14h4V5h-4zm1-2h2V2h-2v1z"/>
+                    </svg>
                   </div>
-                  투명생수병
-                  <br />
-                  투입 기기
+                  투명생수병<br />투입 기기
                 </h4>
                 <div className="mt-4 pt-4 border-t border-white/20">
-                                      <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-300 text-sm">용량</span>
-                      <span className="text-white text-sm font-medium">10%</span> {/* 나중에 실제 데이터로 변환 */}
-                    </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-300 text-sm">용량</span>
+                    <span className="text-white text-sm font-medium">10%</span>
+                  </div>
                   <div className="w-full bg-white/20 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-400 to-cyan-400 h-2 rounded-full transition-all duration-300" style={{width: '10%'}}></div>
+                    <div 
+                      className="bg-gradient-to-r from-blue-400 to-cyan-400 h-2 rounded-full transition-all duration-300" 
+                      style={{width: '10%'}}
+                    ></div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </section>
+          </section>
         </div>
       </main>
 
@@ -166,7 +169,7 @@ export default function Home() {
               </button>
             </div>
             <div className="relative">
-              <button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 px-8 py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              <button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-8 py-4 rounded-4xl text-white font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl">
                 시작하기
               </button>
             </div>
