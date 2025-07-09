@@ -9,14 +9,12 @@ interface ErrorInquireModalProps {
 }
 
 export default function ErrorInquireModal({ isOpen, onClose }: ErrorInquireModalProps) {
-  const [phoneNumber, setPhoneNumber] = useState('010-1234-1234');
   const [displayNumber, setDisplayNumber] = useState('010-1234-1234');
   const [modalStep, setModalStep] = useState<'phone-input' | 'confirmation'>('phone-input');
   const router = useRouter();
 
   useEffect(() => {
     if (isOpen) {
-      setPhoneNumber('010-1234-1234');
       setDisplayNumber('010-1234-1234');
       setModalStep('phone-input');
     }

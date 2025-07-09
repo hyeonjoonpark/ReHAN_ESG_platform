@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import RightSection from '../../components/RightSection';
 import BottomInquire from '../../components/BottomInquire';
@@ -9,7 +8,6 @@ import BottomInquire from '../../components/BottomInquire';
 export default function RepairPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [arrivalTime, setArrivalTime] = useState(3);
-  const router = useRouter();
 
   useEffect(() => {
     // 현재 시간 업데이트
