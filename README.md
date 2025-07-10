@@ -127,6 +127,7 @@ ReHAN_ESG_platform/
 │   │   │   ├── globals.css  # 글로벌 스타일
 │   │   │   └── favicon.ico  # 파비콘
 │   │   └── components/      # 재사용 가능한 컴포넌트
+│   │       ├── Keypad.tsx           # 키패드
 │   │       ├── Header.tsx           # 공통 헤더 (시간 표시, 로고)
 │   │       ├── RightSection.tsx     # 우측 사이드바
 │   │       ├── BottomInquire.tsx    # 하단 문의 영역
