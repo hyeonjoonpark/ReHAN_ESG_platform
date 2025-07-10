@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Header from '../../components/Header';
-import RightSection from '../../components/RightSection';
-import BottomInquire from '../../components/BottomInquire';
+import Header from '@/components/Header';
+import RightSection from '@/components/RightSection';
+import BottomInquire from '@/components/BottomInquire';
 
 export default function RepairPage() {
   const [currentTime, setCurrentTime] = useState<string>('');

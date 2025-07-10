@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import ErrorInquireModal from '../components/ErrorInquireModal';
-import Header from '../components/Header';
-import RightSection from '../components/RightSection';
-import BottomInquire from '../components/BottomInquire';
+import ErrorInquireModal from '@/components/ErrorInquireModal';
+import Header from '@/components/Header';
+import RightSection from '@/components/RightSection';
+import BottomInquire from '@/components/BottomInquire';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
