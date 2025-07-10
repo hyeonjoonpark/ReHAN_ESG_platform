@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import BottomInquire from '@/components/BottomInquire';
 import ErrorInquireModal from '@/components/ErrorInquireModal';
+import UserInfoModal from '@/components/UserInfoModal';
 import Keypad from '@/components/Keypad';
 
 export default function LoginPage() {
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -78,8 +80,13 @@ export default function LoginPage() {
 
   const handleConfirm = () => {
     if (phoneNumber && phoneNumber !== '') {
-      router.replace('/');
+      setIsUserInfoModalOpen(true);
     }
+  };
+
+  const handleUserInfoConfirm = () => {
+    setIsUserInfoModalOpen(false);
+    router.replace('/');
   };
 
   const handlePrevious = () => {
@@ -179,6 +186,14 @@ export default function LoginPage() {
       <ErrorInquireModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+      />
+      
+      {/* 회원정보 확인 모달 */}
+      <UserInfoModal
+        isOpen={isUserInfoModalOpen}
+        onClose={() => setIsUserInfoModalOpen(false)}
+        phoneNumber={phoneNumber}
+        onConfirm={handleUserInfoConfirm}
       />
     </div>
   );
