@@ -1,4 +1,9 @@
+"use client";
+import { useState } from "react";
+
 export default function RightSection() {
+  const [percent, setPercent] = useState<number>(0);
+
   return (
     <section className="space-y-6">
       <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
@@ -32,12 +37,12 @@ export default function RightSection() {
         <div className="mt-4 pt-4 border-t border-white/20">
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-300 text-sm">용량</span>
-            <span className="text-white text-sm font-medium">10%</span>
+            <span className="text-white text-sm font-medium">{percent}%</span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-blue-400 to-cyan-400 h-2 rounded-full transition-all duration-300" 
-              style={{width: '10%'}}
+              style={{width: `${percent}%`}}
             ></div>
           </div>
         </div>
