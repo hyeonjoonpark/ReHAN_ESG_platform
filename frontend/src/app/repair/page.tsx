@@ -8,6 +8,7 @@ import BottomInquire from '@/components/BottomInquire';
 export default function RepairPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [arrivalTime, setArrivalTime] = useState(3);
+  const [userAddress, setUserAddress] = useState<string>('위치를 찾을 수 없습니다.');
 
   useEffect(() => {
     // 현재 시간 업데이트
@@ -27,6 +28,12 @@ export default function RepairPage() {
     
     updateTime();
     const timeInterval = setInterval(updateTime, 1000);
+
+    // localStorage에서 주소 가져오기
+    const savedAddress = localStorage.getItem('address');
+    if (savedAddress) {
+      setUserAddress(savedAddress);
+    }
 
     // 도착 시간 카운트다운
     const arrivalInterval = setInterval(() => {
@@ -71,7 +78,7 @@ export default function RepairPage() {
                   {/* 내 위치 마커 */}
                   <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
                     <div className="bg-black text-white px-3 py-1 rounded-lg text-sm font-medium">
-                      내 위치
+                      {userAddress}
                     </div>
                   </div>
                   

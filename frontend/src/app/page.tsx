@@ -49,6 +49,11 @@ export default function Home() {
         const result = await getAddressFromCoords(lat, lng);
         setAddress(result.address);
         setAddressError(result.error);
+        
+        // localStorage에 주소 저장
+        if (result.address) {
+          localStorage.setItem('address', result.address);
+        }
       },
       (error) => {
         let errorMessage = '위치 정보를 가져올 수 없습니다.';
