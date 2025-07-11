@@ -9,6 +9,11 @@ import UserInfoModal from '@/components/UserInfoModal';
 import Keypad from '@/components/Keypad';
 import ErrorTypeSelect from '@/components/ErrorTypeSelect';
 import { getAddressFromCoords } from '../utils/getAddressFromCoords';
+import axios from 'axios';
+
+// axios 기본 설정
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = 'http://localhost:3001';
 
 export default function LoginPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -25,6 +30,11 @@ export default function LoginPage() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<{
+    phone_number: string;
+    user_name: string;
+    user_point: number;
+  } | null>(null);
   const router = useRouter();
 
   // 위치 정보 가져오기
@@ -143,10 +153,9 @@ export default function LoginPage() {
     }
   };
 
-  const handleConfirm = () => {
-    if (phoneNumber && phoneNumber !== '') {
-      setIsUserInfoModalOpen(true);
-    }
+  // 나중에 API 연동
+  const handleConfirm = async () => {
+    setIsUserInfoModalOpen(true); 
   };
 
   const handleUserInfoConfirm = () => {
@@ -279,7 +288,7 @@ export default function LoginPage() {
       <UserInfoModal
         isOpen={isUserInfoModalOpen}
         onClose={() => setIsUserInfoModalOpen(false)}
-        phoneNumber={phoneNumber}
+        userInfo={userInfo}
         onConfirm={handleUserInfoConfirm}
       />
     </div>

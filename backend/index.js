@@ -3,12 +3,27 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const { testConnection } = require("./src/database/sequelize");
+const authRoutes = require("./src/routes/auth");
+const seedUsers = require("./src/database/seedUsers");
+
 const app = express();
 
 // 미들웨어 설정
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie']
+}));
+
+// 라우터 설정
+app.use('/api/v1', authRoutes);
 
 // 기본 라우트
 app.get("/", (req, res) => {
@@ -26,6 +41,14 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// 데이터베이스 연결 테스트 및 시드 데이터 생성
+const initializeDatabase = async () => {
+  await testConnection();
+  await seedUsers();
+};
+
+initializeDatabase();
 
 // 서버 시작
 const PORT = process.env.PORT || 3001;

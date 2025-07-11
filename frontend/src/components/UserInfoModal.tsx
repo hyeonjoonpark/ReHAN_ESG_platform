@@ -3,11 +3,14 @@
 interface UserInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  phoneNumber: string;
+  userInfo: {
+    phone_number: string;
+    user_name: string;
+  };
   onConfirm: () => void;
 }
 
-export default function UserInfoModal({ isOpen, onClose, phoneNumber, onConfirm }: UserInfoModalProps) {
+export default function UserInfoModal({ isOpen, onClose, userInfo, onConfirm }: UserInfoModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -19,14 +22,14 @@ export default function UserInfoModal({ isOpen, onClose, phoneNumber, onConfirm 
             확인해주세요
           </h2>
           
-          <div className="text-left space-y-4 mb-6">
+          <div className="text-left flex flex-col justify-between mb-6 h-20">
             <div className="flex justify-between items-center">
               <span className="text-gray-700 font-medium">이름</span>
-              <span className="text-gray-900 font-semibold">OOO</span>
+              <span className="text-gray-900 font-semibold">{userInfo?.user_name || 'OOO'}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-700 font-medium">휴대번호</span>
-              <span className="text-gray-900 font-semibold">{phoneNumber}</span>
+              <span className="text-gray-900 font-semibold">{userInfo?.phone_number || '010-0000-0000'}</span>
             </div>
           </div>
         </div>
