@@ -288,7 +288,7 @@ export default function LoginPage() {
       <UserInfoModal
         isOpen={isUserInfoModalOpen}
         onClose={() => setIsUserInfoModalOpen(false)}
-        userInfo={userInfo}
+        userInfo={userInfo || { phone_number: '', user_name: '' }}
         onConfirm={handleUserInfoConfirm}
       />
     </div>
