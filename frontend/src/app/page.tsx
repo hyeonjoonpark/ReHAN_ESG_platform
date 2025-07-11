@@ -11,13 +11,67 @@ import PointGuide from '@/components/PointGuide';
 import ErrorTypeSelect from '@/components/ErrorTypeSelect';
 import { ScreenType } from '@/types/ScreenType';
 import { useRouter } from 'next/navigation';
+import { getAddressFromCoords } from './utils/getAddressFromCoords';
 
 export default function Home() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<ScreenType>(ScreenType.MAIN);
-  const [selectedErrorType, setSelectedErrorType] = useState<string>('');
+  const [selectedErrorType, setSelectedErrorType] = useState<string | undefined>();
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [address, setAddress] = useState<string | null>(null);
+  const [addressError, setAddressError] = useState<string | null>(null);
   const router = useRouter();
+
+  // 위치 정보 가져오기
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('위치 서비스를 지원하지 않습니다.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        setLocation({
+          latitude: lat,
+          longitude: lng
+        });
+        setLocationError(null);
+        
+        // 좌표를 주소로 변환
+        const result = await getAddressFromCoords(lat, lng);
+        setAddress(result.address);
+        setAddressError(result.error);
+      },
+      (error) => {
+        let errorMessage = '위치 정보를 가져올 수 없습니다.';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = '위치 권한이 거부되었습니다.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = '위치 정보를 사용할 수 없습니다.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = '위치 요청 시간이 초과되었습니다.';
+            break;
+        }
+        setLocationError(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5분 캐시
+      }
+    );
+  };
 
   useEffect(() => {
     // 현재 시간 업데이트
@@ -41,6 +95,10 @@ export default function Home() {
     return () => clearInterval(timeInterval);
   }, []);
 
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
   const handleErrorTypeSelect = (errorType: string) => {
     setSelectedErrorType(errorType);
     setCurrentScreen(ScreenType.MAIN);
@@ -48,9 +106,6 @@ export default function Home() {
   };
 
   const handleInquireClick = () => {
-    if(window.location.pathname === '/login' || window.location.pathname === '/login/') {
-      router.replace('/');
-    }
     setCurrentScreen(ScreenType.ERROR_TYPE_SELECT);
   };
 
@@ -145,6 +200,10 @@ export default function Home() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         errorType={selectedErrorType}
+        location={location}
+        locationError={locationError}
+        address={address}
+        addressError={addressError}
       />
     </div>
   );

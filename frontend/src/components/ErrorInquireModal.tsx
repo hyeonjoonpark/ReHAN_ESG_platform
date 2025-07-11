@@ -8,9 +8,24 @@ interface ErrorInquireModalProps {
   isOpen: boolean;
   onClose: () => void;
   errorType?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  } | null;
+  locationError?: string | null;
+  address?: string | null;
+  addressError?: string | null;
 }
 
-export default function ErrorInquireModal({ isOpen, onClose, errorType }: ErrorInquireModalProps) {
+export default function ErrorInquireModal({ 
+  isOpen, 
+  onClose, 
+  errorType, 
+  location, 
+  locationError,
+  address,
+  addressError
+}: ErrorInquireModalProps) {
   const [displayNumber, setDisplayNumber] = useState('');
   const [modalStep, setModalStep] = useState<'phone-input' | 'confirmation'>('phone-input');
   const router = useRouter();
@@ -76,6 +91,20 @@ export default function ErrorInquireModal({ isOpen, onClose, errorType }: ErrorI
     return `${month.toString().padStart(2, '0')}월 ${day.toString().padStart(2, '0')}일 ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`;
   };
 
+  // 위치 정보 포맷팅
+  const formatLocation = () => {
+    if (address) {
+      return address; // 도로명 주소 우선
+    }
+    if (location) {
+      return `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`; // 좌표 (fallback)
+    }
+    if (addressError) {
+      return addressError;
+    }
+    return locationError || '위치 정보 가져오는 중...';
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
@@ -133,8 +162,8 @@ export default function ErrorInquireModal({ isOpen, onClose, errorType }: ErrorI
               <h2 className="text-xl font-bold text-gray-800 mb-6">
                 해당 내용이 고객센터로 전송됩니다.
               </h2>
-              <div className="text-left space-y-2 mb-6">
-                <p className="text-gray-700"><strong>위치:</strong> --</p>
+              <div className="text-left space-y-2 mb-6 flex flex-col item-start justify-between">
+                <p className="text-gray-700"><strong>위치:</strong> {formatLocation()}</p>
                 <p className="text-gray-700"><strong>내용:</strong> {errorType || '페트병 인식 오류'}</p>
                 <p className="text-gray-700"><strong>시기:</strong> {getCurrentDateTime()}</p>
               </div>
