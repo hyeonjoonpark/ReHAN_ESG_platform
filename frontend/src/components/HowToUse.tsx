@@ -16,7 +16,7 @@ export default function HowToUse({ onBack }: HowToUseProps) {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="text-center w-full max-w-7xl px-4">
+      <div className="text-start w-full max-w-7xl px-4">
         <h2 className="text-2xl lg:text-3xl font-bold mb-4 text-white">
           페트몬 이용 방법
         </h2>
