@@ -104,15 +104,32 @@ ReHAN_ESG_platform/
 ├── backend/                 # Node.js + Express 서버
 │   ├── backup/              # 백업 파일들
 │   ├── sql/                 # SQL 스크립트
-│   │   └── create_user.sql  # 사용자 생성 스크립트
+│   │   ├── create_user.sql  # 사용자 생성 스크립트
+│   │   └── usage_count.sql  # 사용자 수 조회 스크립트
 │   ├── src/                 # 백엔드 소스 코드
-│   │   ├── auth/            # 인증 관련 모듈
-│   │   ├── models/          # 데이터 모델
-│   │   ├── routes/          # API 라우트
-│   │   ├── service/         # 비즈니스 로직
-│   │   └── utils/           # 유틸리티 함수
+│   │   ├── auth/            # 인증 관련 모듈 (개발 예정)
+│   │   │   └── .gitkeep     # Git 폴더 유지용 파일
+│   │   ├── database/        # 데이터베이스 연결 및 설정
+│   │   │   └── sequelize.js # Sequelize 설정 및 연결
+│   │   ├── models/          # Sequelize 데이터 모델
+│   │   │   ├── index.js     # 모델 관계 설정
+│   │   │   ├── user/        # 사용자 모델
+│   │   │   │   └── User.js  # 사용자 테이블 모델
+│   │   │   └── usage_user/  # 사용량 모델
+│   │   │       └── UsageUser.js # 사용량 테이블 모델
+│   │   ├── routes/          # API 라우트 (개발 예정)
+│   │   │   └── .gitkeep     # Git 폴더 유지용 파일
+│   │   ├── serial/          # 시리얼 통신 관련 모듈 (개발 예정)
+│   │   ├── service/         # 비즈니스 로직 (개발 예정)
+│   │   │   └── .gitkeep     # Git 폴더 유지용 파일
+│   │   └── utils/           # 유틸리티 함수 (개발 예정)
+│   │       └── .gitkeep     # Git 폴더 유지용 파일
+│   ├── node_modules/        # NPM 의존성 패키지들
 │   ├── Dockerfile           # Docker 빌드 설정
+│   ├── .dockerignore        # Docker 빌드 제외 파일
+│   ├── .gitignore           # Git 제외 파일
 │   ├── package.json         # 의존성 관리
+│   ├── package-lock.json    # 의존성 버전 고정
 │   ├── index.js             # 서버 엔트리 포인트
 │   └── config.example.js    # 설정 파일 예제
 ├── frontend/                # Next.js 프론트엔드 (nginx 배포)
@@ -126,12 +143,18 @@ ReHAN_ESG_platform/
 │   │   │   ├── layout.tsx   # 루트 레이아웃
 │   │   │   ├── globals.css  # 글로벌 스타일
 │   │   │   └── favicon.ico  # 파비콘
-│   │   └── components/      # 재사용 가능한 컴포넌트
-│   │       ├── Keypad.tsx           # 키패드
-│   │       ├── Header.tsx           # 공통 헤더 (시간 표시, 로고)
-│   │       ├── RightSection.tsx     # 우측 사이드바
-│   │       ├── BottomInquire.tsx    # 하단 문의 영역
-│   │       └── ErrorInquireModal.tsx # 오류 문의 모달
+│   │   ├── components/      # 재사용 가능한 컴포넌트
+│   │   │   ├── Keypad.tsx           # 키패드
+│   │   │   ├── Header.tsx           # 공통 헤더 (시간 표시, 로고)
+│   │   │   ├── RightSection.tsx     # 우측 사이드바
+│   │   │   ├── BottomInquire.tsx    # 하단 문의 영역
+│   │   │   ├── ErrorInquireModal.tsx # 오류 문의 모달
+│   │   │   ├── UserInfoModal.tsx    # 사용자 정보 모달
+│   │   │   ├── Register.tsx         # 회원가입 화면 컴포넌트
+│   │   │   ├── HowToUse.tsx         # 이용방법 화면 컴포넌트
+│   │   │   └── PointGuide.tsx       # 포인트 적립 안내 컴포넌트
+│   │   └── types/           # TypeScript 타입 정의
+│   │       └── ScreenType.ts        # 화면 타입 enum
 │   ├── public/              # 정적 파일
 │   │   ├── file.svg         # 파일 아이콘
 │   │   ├── globe.svg        # 글로브 아이콘
@@ -161,6 +184,7 @@ ReHAN_ESG_platform/
   - 4개의 기능 카드 (회원가입, 이용방법, 포인트 적립, 투입 가능 물품)
   - 시작하기 버튼으로 로그인 페이지 이동
   - 오류/고장 문의 모달
+  - 화면별 컴포넌트 분리 (Register, HowToUse, PointGuide)
 
 #### 로그인 페이지 (`/login`)
 - **기능**: 휴대폰 번호 기반 로그인
@@ -204,6 +228,27 @@ ReHAN_ESG_platform/
 - **기능**: 오류 문의 모달
 - **특징**: 팝업 형태의 문의 인터페이스
 
+#### Register.tsx
+- **기능**: 회원가입 화면 컴포넌트
+- **특징**: 
+  - QR코드 표시 및 가입 안내
+  - 독립적인 컴포넌트로 분리
+  - onBack prop으로 이전 화면 이동
+
+#### HowToUse.tsx
+- **기능**: 이용방법 화면 컴포넌트
+- **특징**: 
+  - 7단계 사용법 가로 스크롤 카드
+  - 스크롤바 숨김 기능
+  - 반응형 카드 레이아웃
+
+#### PointGuide.tsx
+- **기능**: 포인트 적립 안내 컴포넌트
+- **특징**: 
+  - 체크리스트 형태의 포인트 안내
+  - 4가지 포인트 정책 표시
+  - 직관적인 체크 아이콘 UI
+
 ## 🔧 개발 환경 설정
 
 ### 로컬 개발 실행
@@ -224,6 +269,8 @@ npm run dev
 - **터치 인터페이스**: 최소 44px × 44px 터치 영역
 - **시각적 피드백**: 버튼 클릭 시 즉각적인 반응
 - **스크롤 방지**: 모든 컨텐츠가 화면에 맞도록 설계
+- **컴포넌트 분리**: 화면별 독립적인 컴포넌트로 관리
+- **타입 안전성**: TypeScript enum 및 interface 활용
 
 ### nginx 배포 특징
 - **정적 파일 서빙**: 빌드된 정적 파일을 nginx가 직접 서빙
@@ -314,6 +361,15 @@ chmod 644 ./ssl/server.crt
 - **Password**: app_password
 - **Root Password**: root_password
 
+#### 주요 테이블 구조
+- **USER**: 사용자 정보 테이블
+  - phone_number (VARCHAR(11), PRIMARY KEY)
+  - created_at, updated_at
+- **USAGE_COUNT**: 사용 횟수 테이블
+  - id (AUTO_INCREMENT)
+  - phone_number (VARCHAR(11), FOREIGN KEY)
+  - created_at, updated_at
+
 ## 🐛 문제 해결
 
 ### 포트 충돌 시
@@ -371,6 +427,34 @@ docker-compose up -d
 - **gzip 압축**: 데이터 전송 최적화
 - **보안 헤더 자동 적용**: 일반적인 웹 공격 방어
 
+## 📋 개발 아키텍처 패턴
+
+### 컴포넌트 아키텍처
+```
+페이지 (page.tsx)
+├── 화면별 컴포넌트 (Register, HowToUse, PointGuide)
+├── 공통 컴포넌트 (Header, Footer, Modal)
+└── 타입 정의 (types/)
+    └── ScreenType.ts
+```
+
+### 상태 관리 패턴
+- **로컬 상태**: useState를 통한 컴포넌트 상태 관리
+- **화면 전환**: enum 기반 화면 타입 관리
+- **Props 전달**: 컴포넌트 간 콜백 함수를 통한 상태 전달
+
+### 폴더 구조 원칙
+- **pages/**: 라우팅 기반 페이지 파일
+- **components/**: 재사용 가능한 UI 컴포넌트
+- **types/**: TypeScript 타입 정의
+- **public/**: 정적 파일 (이미지, 아이콘)
+
+### 코딩 컨벤션
+- **명명 규칙**: PascalCase (컴포넌트), camelCase (변수/함수)
+- **파일 명명**: 컴포넌트 파일은 대문자로 시작
+- **TypeScript**: 엄격한 타입 검사 적용
+- **ESLint**: 코드 품질 관리
+
 ## 🚀 성능 최적화
 
 ### nginx 최적화 기능
@@ -383,4 +467,6 @@ docker-compose up -d
 - **이미지 최적화**: WebP 형식 사용 및 적절한 크기 조절
 - **JavaScript 최적화**: 코드 분할 및 lazy loading
 - **CSS 최적화**: 불필요한 스타일 제거 및 미니파이
-- **캐싱 전략**: 정적 리소스 장기간 캐싱 
+- **캐싱 전략**: 정적 리소스 장기간 캐싱
+- **컴포넌트 분리**: 화면별 독립적인 렌더링으로 성능 향상
+- **타입 안전성**: TypeScript 컴파일 시 오류 사전 방지 
