@@ -5,11 +5,16 @@ import ErrorInquireModal from '@/components/ErrorInquireModal';
 import Header from '@/components/Header';
 import RightSection from '@/components/RightSection';
 import BottomInquire from '@/components/BottomInquire';
+import Register from '@/components/Register';
+import HowToUse from '@/components/HowToUse';
+import PointGuide from '@/components/PointGuide';
+import { ScreenType } from '@/types/ScreenType';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>(ScreenType.MAIN);
   const router = useRouter();
 
   useEffect(() => {
@@ -56,25 +61,46 @@ export default function Home() {
 
           {/* 좌우 분할 레이아웃 */}
           <section className="grid lg:grid-cols-3 gap-8 flex-1">
-            {/* 왼쪽 - 기능 카드들 */}
+            {/* 왼쪽 - 메인 컨텐츠 */}
             <section className="lg:col-span-2 flex flex-col justify-center">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <button className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                  <h3 className="text-xl font-bold text-white">회원가입하기</h3>
-                </button>
+              {currentScreen === ScreenType.MAIN ? (
+                // 메인 화면 - 기능 카드들
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <button 
+                    onClick={() => setCurrentScreen(ScreenType.REGISTER)}
+                    className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                  >
+                    <h3 className="text-xl font-bold text-white">회원가입하기</h3>
+                  </button>
 
-                <button className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                  <h3 className="text-xl font-bold text-white">이용 방법</h3>
-                </button>
+                  <button 
+                    onClick={() => setCurrentScreen(ScreenType.HOW_TO_USE)}
+                    className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                  >
+                    <h3 className="text-xl font-bold text-white">이용 방법</h3>
+                  </button>
 
-                <button className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                  <h3 className="text-xl font-bold text-white">포인트 적립<br />안내</h3>
-                </button>
+                  <button 
+                    onClick={() => setCurrentScreen(ScreenType.POINT_GUIDE)}
+                    className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                  >
+                    <h3 className="text-xl font-bold text-white">포인트 적립<br />안내</h3>
+                  </button>
 
-                <button className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                  <h3 className="text-xl font-bold text-white">투입 가능 물품</h3>
-                </button>
-              </div>
+                  <button className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                    <h3 className="text-xl font-bold text-white">투입 가능 물품</h3>
+                  </button>
+                </div>
+              ) : currentScreen === ScreenType.REGISTER ? (
+                // 회원가입 화면
+                <Register onBack={() => setCurrentScreen(ScreenType.MAIN)} />
+              ) : currentScreen === ScreenType.HOW_TO_USE ? (
+                // 이용방법 화면
+                <HowToUse onBack={() => setCurrentScreen(ScreenType.MAIN)} />
+              ) : currentScreen === ScreenType.POINT_GUIDE ? (
+                // 포인트 적립 안내 화면
+                <PointGuide onBack={() => setCurrentScreen(ScreenType.MAIN)} />
+              ) : null}
             </section>
 
             {/* 오른쪽 - 사이드바 */}
