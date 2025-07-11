@@ -2,54 +2,65 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Keypad from './Keypad';
 
 interface ErrorInquireModalProps {
   isOpen: boolean;
   onClose: () => void;
+  errorType?: string;
 }
 
-export default function ErrorInquireModal({ isOpen, onClose }: ErrorInquireModalProps) {
-  const [displayNumber, setDisplayNumber] = useState('010-1234-1234');
+export default function ErrorInquireModal({ isOpen, onClose, errorType }: ErrorInquireModalProps) {
+  const [displayNumber, setDisplayNumber] = useState('');
   const [modalStep, setModalStep] = useState<'phone-input' | 'confirmation'>('phone-input');
   const router = useRouter();
 
   useEffect(() => {
     if (isOpen) {
-      setDisplayNumber('010-1234-1234');
+      setDisplayNumber('');
       setModalStep('phone-input');
     }
   }, [isOpen]);
 
-  const handleNumberClick = (number: string) => {
-    if (number === '지움') {
-      if (displayNumber.length > 0) {
-        let newNumber = displayNumber.slice(0, -1);
-        // 하이픈 자동 제거
-        if (newNumber.endsWith('-')) {
-          newNumber = newNumber.slice(0, -1);
-        }
-        setDisplayNumber(newNumber);
-      }
-    } else if (number === '전체지움') {
-      setDisplayNumber('');
-    } else {
-      let newNumber = displayNumber + number;
-      // 하이픈 자동 추가
-      if (newNumber.length === 3 && !newNumber.includes('-')) {
-        newNumber = newNumber + '-';
-      } else if (newNumber.length === 8 && newNumber.split('-').length === 2) {
-        newNumber = newNumber + '-';
+  const handleNumberInput = (num: string) => {
+    // 현재 숫자만 카운트 (하이픈 제외)
+    const currentDigits = displayNumber.replace(/[^0-9]/g, '');
+    
+    // 숫자 11자리 제한
+    if (currentDigits.length >= 11) {
+      return; // 더 이상 입력 불가
+    }
+    
+    let newNumber = displayNumber + num;
+    // 하이픈 자동 추가
+    if (newNumber.length === 3 && !newNumber.includes('-')) {
+      newNumber = newNumber + '-';
+    } else if (newNumber.length === 8 && newNumber.split('-').length === 2) {
+      newNumber = newNumber + '-';
+    }
+    setDisplayNumber(newNumber);
+  };
+
+  const handleDelete = () => {
+    if (displayNumber.length > 0) {
+      let newNumber = displayNumber.slice(0, -1);
+      // 하이픈 자동 제거
+      if (newNumber.endsWith('-')) {
+        newNumber = newNumber.slice(0, -1);
       }
       setDisplayNumber(newNumber);
     }
   };
 
-  const keypadNumbers = [
-    ['1', '2', '3'],
-    ['4', '5', '6'],
-    ['7', '8', '9'],
-    ['지움', '0', '전체지움']
-  ];
+  const handleClear = () => {
+    setDisplayNumber('');
+  };
+
+  // 완성된 번호 검증
+  const isPhoneNumberComplete = () => {
+    const digits = displayNumber.replace(/[^0-9]/g, '');
+    return digits.length === 11;
+  };
 
   if (!isOpen) return null;
 
@@ -75,25 +86,23 @@ export default function ErrorInquireModal({ isOpen, onClose }: ErrorInquireModal
                 자세한 문의를 위해 연락받으실<br />
                 휴대번호를 입력해 주세요.
               </h2>
-              <div className="text-2xl font-bold text-gray-900 mt-6 mb-8">
-                {displayNumber}
-              </div>
+              <input
+                type="text"
+                value={displayNumber}
+                placeholder="010-0000-0000"
+                readOnly
+                className="w-full text-2xl font-bold text-gray-900 text-center mt-6 mb-8 p-4 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none"
+              />
             </div>
 
             {/* 숫자 키패드 */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {keypadNumbers.map((row, rowIndex) => (
-                row.map((number, colIndex) => (
-                  <button
-                    key={`${rowIndex}-${colIndex}`}
-                    onClick={() => handleNumberClick(number)}
-                    className="bg-sky-500 hover:bg-blue-600 text-white font-semibold text-lg py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105"
-                  >
-                    {number}
-                  </button>
-                ))
-              ))}
-            </div>
+            <Keypad 
+              size="large" 
+              colorScheme="blue"
+              onNumberClick={handleNumberInput}
+              onDelete={handleDelete}
+              onClear={handleClear}
+            />
 
             {/* 하단 버튼 */}
             <div className="flex gap-3">
@@ -107,7 +116,12 @@ export default function ErrorInquireModal({ isOpen, onClose }: ErrorInquireModal
                 onClick={() => {
                   setModalStep('confirmation');
                 }}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
+                disabled={!isPhoneNumberComplete()}
+                className={`flex-1 ${
+                  isPhoneNumberComplete() 
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600' 
+                    : 'bg-gray-400 cursor-not-allowed'
+                } text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300`}
               >
                 완료
               </button>
@@ -121,7 +135,7 @@ export default function ErrorInquireModal({ isOpen, onClose }: ErrorInquireModal
               </h2>
               <div className="text-left space-y-2 mb-6">
                 <p className="text-gray-700"><strong>위치:</strong> --</p>
-                <p className="text-gray-700"><strong>내용:</strong> 페트병 인식 오류</p>
+                <p className="text-gray-700"><strong>내용:</strong> {errorType || '페트병 인식 오류'}</p>
                 <p className="text-gray-700"><strong>시기:</strong> {getCurrentDateTime()}</p>
               </div>
               <p className="text-lg font-semibold text-gray-800 mb-6">

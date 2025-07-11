@@ -1,12 +1,14 @@
 interface KeypadProps {
   size?: 'small' | 'large';
+  colorScheme?: 'default' | 'blue';
   onNumberClick: (num: string) => void;
   onDelete: () => void;
   onClear: () => void;
 }
 
 export default function Keypad({ 
-  size = 'large', 
+  size = 'large',
+  colorScheme = 'default',
   onNumberClick, 
   onDelete, 
   onClear 
@@ -15,8 +17,24 @@ export default function Keypad({
   const containerPadding = size === 'small' ? 'p-4' : 'p-6';
   const gap = size === 'small' ? 'gap-2' : 'gap-4';
 
+  // 색상 테마 정의
+  const colorSchemes = {
+    default: {
+      container: 'bg-gray-800',
+      button: 'bg-gray-600 hover:bg-gray-500',
+      text: 'text-white'
+    },
+    blue: {
+      container: 'bg-white',
+      button: 'bg-sky-500 hover:bg-blue-600',
+      text: 'text-white'
+    }
+  };
+
+  const currentColors = colorSchemes[colorScheme];
+
   return (
-    <div className={`bg-gray-800 rounded-2xl ${containerPadding}`}>
+    <div className={`${currentColors.container} rounded-2xl ${containerPadding}`}>
       
       {/* 숫자 키패드 */}
       <div className={`grid grid-cols-3 ${gap}`}>
@@ -24,7 +42,7 @@ export default function Keypad({
           <button
             key={num}
             onClick={() => onNumberClick(num.toString())}
-            className={`${buttonSize} bg-gray-600 hover:bg-gray-500 rounded-xl font-bold text-white transition-colors`}
+            className={`${buttonSize} ${currentColors.button} rounded-xl font-bold ${currentColors.text} transition-colors`}
           >
             {num}
           </button>
@@ -33,19 +51,19 @@ export default function Keypad({
         {/* 하단 행 */}
         <button
           onClick={onDelete}
-          className={`${buttonSize} bg-gray-600 hover:bg-gray-500 rounded-xl text-xs font-bold text-white transition-colors`}
+          className={`${buttonSize} ${currentColors.button} rounded-xl text-xs font-bold ${currentColors.text} transition-colors`}
         >
           지움
         </button>
         <button
           onClick={() => onNumberClick('0')}
-          className={`${buttonSize} bg-gray-600 hover:bg-gray-500 rounded-xl font-bold text-white transition-colors`}
+          className={`${buttonSize} ${currentColors.button} rounded-xl font-bold ${currentColors.text} transition-colors`}
         >
           0
         </button>
         <button
           onClick={onClear}
-          className={`${buttonSize} bg-gray-600 hover:bg-gray-500 rounded-xl text-xs font-bold text-white transition-colors leading-tight`}
+          className={`${buttonSize} ${currentColors.button} rounded-xl text-xs font-bold ${currentColors.text} transition-colors leading-tight`}
         >
           전체<br/>지움
         </button>

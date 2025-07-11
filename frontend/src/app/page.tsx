@@ -8,6 +8,7 @@ import BottomInquire from '@/components/BottomInquire';
 import Register from '@/components/Register';
 import HowToUse from '@/components/HowToUse';
 import PointGuide from '@/components/PointGuide';
+import ErrorTypeSelect from '@/components/ErrorTypeSelect';
 import { ScreenType } from '@/types/ScreenType';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +16,7 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<ScreenType>(ScreenType.MAIN);
+  const [selectedErrorType, setSelectedErrorType] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
@@ -38,6 +40,19 @@ export default function Home() {
 
     return () => clearInterval(timeInterval);
   }, []);
+
+  const handleErrorTypeSelect = (errorType: string) => {
+    setSelectedErrorType(errorType);
+    setCurrentScreen(ScreenType.MAIN);
+    setIsModalOpen(true);
+  };
+
+  const handleInquireClick = () => {
+    if(window.location.pathname === '/login' || window.location.pathname === '/login/') {
+      router.replace('/');
+    }
+    setCurrentScreen(ScreenType.ERROR_TYPE_SELECT);
+  };
 
   return (
     <div className="h-screen bg-darkblue-950 text-white flex flex-col overflow-hidden">
@@ -100,6 +115,12 @@ export default function Home() {
               ) : currentScreen === ScreenType.POINT_GUIDE ? (
                 // 포인트 적립 안내 화면
                 <PointGuide onBack={() => setCurrentScreen(ScreenType.MAIN)} />
+              ) : currentScreen === ScreenType.ERROR_TYPE_SELECT ? (
+                // 오류 유형 선택 화면
+                <ErrorTypeSelect 
+                  onBack={() => setCurrentScreen(ScreenType.ERROR_TYPE_SELECT)} 
+                  onErrorTypeSelect={handleErrorTypeSelect}
+                />
               ) : null}
             </section>
 
@@ -111,7 +132,7 @@ export default function Home() {
 
       {/* 하단 */}
       <BottomInquire 
-        onInquireClick={() => setIsModalOpen(true)}
+        onInquireClick={handleInquireClick}
         rightButtons={[{
           text: "시작하기",
           onClick: () => router.replace('/login'),
@@ -122,7 +143,8 @@ export default function Home() {
       {/* 모달 */}
       <ErrorInquireModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        onClose={() => setIsModalOpen(false)}
+        errorType={selectedErrorType}
       />
     </div>
   );
