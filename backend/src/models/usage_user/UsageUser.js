@@ -23,7 +23,7 @@ const UsageUser = sequelize.define('UsageUser', {
     allowNull: false
   }
 }, {
-  tableName: 'USAGE_COUNT',
+  tableName: 'TBL_USAGE_USER',
   timestamps: false
 });
 
