@@ -8,6 +8,7 @@ import CompleteModal from '@/components/CompleteModal';
 import StartSplitBandSections from '@/components/StartSplitBandSections';
 import { useRouter } from 'next/navigation';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
+import OpenGateSection from '@/components/OpenGateSection';
 
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -15,6 +16,19 @@ const BandSplit = () => {
   const earnedPoints = 10; // TODO: 실제 데이터로 수정
   const totalPoints = 10;
   const router = useRouter();
+
+  const data = "투입구";
+
+  // 안내 섹션 렌더링 함수
+  const renderSection = () => {
+    // TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
+    switch (data) {
+      case '투입구':
+        return <OpenGateSection />;
+      default:
+        return <StartSplitBandSections />;
+    }
+  };
 
   // 현재 시간 업데이트
   useEffect(() => {
@@ -38,7 +52,7 @@ const BandSplit = () => {
         <div className="max-w-7xl mx-auto h-full flex flex-col">
           <section className="grid lg:grid-cols-3 gap-8 flex-1">
             {/* 왼쪽 - 안내 컨텐츠 */}
-            <StartSplitBandSections />
+            {renderSection()}
 
             {/* 오른쪽 - 사이드바 */}
             <RightSection mode="counts" remainingCount={100} currentCount={0} />
