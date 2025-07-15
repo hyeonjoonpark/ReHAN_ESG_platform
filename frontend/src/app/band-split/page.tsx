@@ -11,6 +11,7 @@ import { getFormattedCurrentTime } from '@/utils/updateTime';
 import OpenGateSection from '@/components/OpenGateSection';
 import CheckSection from '@/components/CheckResourceSection';
 import ResourceErrorSection from '@/components/ResourceErrorSection';
+import { SectionType } from '@/types/SectionType';
 
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -19,7 +20,7 @@ const BandSplit = () => {
   const totalPoints = 10;
   const router = useRouter();
 
-  const data: string = "에러"; // 예시 값
+  const [data, setData] = useState<SectionType>(SectionType.START_SPLIT_BAND); // 예시 값
 
   /**
    * TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
@@ -35,16 +36,16 @@ const BandSplit = () => {
   const renderSection = () => {
     // TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
     switch (data) {
-      case '투입구':
+      case SectionType.OPEN_GATE:
         return <OpenGateSection />;
-      case '자원확인':
+      case SectionType.CHECK_RESOURCE:
         return <CheckSection />;
-      case '에러':
+      case SectionType.ERROR:
         return (
           <ResourceErrorSection
             message={errorMessage}
             onHomeClick={() => router.replace('/')}
-            onRetryClick={() => window.location.reload()}
+            onRetryClick={() => setData(SectionType.START_SPLIT_BAND)}
           />
         );
       default:
