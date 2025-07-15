@@ -9,6 +9,7 @@ import StartSplitBandSections from '@/components/StartSplitBandSections';
 import { useRouter } from 'next/navigation';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
 import OpenGateSection from '@/components/OpenGateSection';
+import CheckSection from '@/components/CheckResourceSection';
 
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -17,7 +18,7 @@ const BandSplit = () => {
   const totalPoints = 10;
   const router = useRouter();
 
-  const data = "투입구";
+  const data: string = "자원확인";
 
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
@@ -25,6 +26,8 @@ const BandSplit = () => {
     switch (data) {
       case '투입구':
         return <OpenGateSection />;
+      case '자원확인':
+        return <CheckSection />;
       default:
         return <StartSplitBandSections />;
     }
