@@ -61,8 +61,8 @@ export default function RightSection({ mode = 'percent', remainingCount = 100, c
             <div className="flex justify-between items-center">
               <p className="text-gray-300 text-sm font-medium mb-2">오늘 남은 투입 개수</p>
               <div className="flex items-baseline">
-                <span className="text-6xl font-extrabold text-white">{remainingCount}</span>
-                <span className="text-2xl text-white ml-1">개</span>
+                <span className="text-4xl font-extrabold text-white">{remainingCount}</span>
+                <span className="text-xl text-white ml-1">개</span>
               </div>
             </div>
 
@@ -70,8 +70,8 @@ export default function RightSection({ mode = 'percent', remainingCount = 100, c
             <div className="border-t border-white/10 pt-8 flex justify-between items-center">
               <p className="text-gray-300 text-sm font-medium mb-2">현재 투입 개수</p>
               <div className="flex items-baseline">
-                <span className="text-6xl font-extrabold text-white">{currentCount}</span>
-                <span className="text-2xl text-white ml-1">개</span>
+                <span className="text-4xl font-extrabold text-white">{currentCount}</span>
+                <span className="text-xl text-white ml-1">개</span>
               </div>
             </div>
           </div>
