@@ -2,7 +2,7 @@ import React from 'react';
 
 const OpenGateSection: React.FC = () => {
   return (
-    <section className="lg:col-span-2 flex flex-col justify-start space-y-8 pt-4">
+    <section className="lg:col-span-2 flex flex-col justify-start space-y-8">
       <section className="space-y-8 bg-gray-800 rounded-2xl p-6 border border-white/20 h-full flex items-center justify-center">
         <div className="flex flex-col justify-center text-center items-center">
           <h2 className="text-6xl font-extrabold mb-6 text-green-500">투입구가 열렸어요!</h2>
