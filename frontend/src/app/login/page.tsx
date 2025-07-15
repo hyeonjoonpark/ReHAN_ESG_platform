@@ -8,7 +8,8 @@ import ErrorInquireModal from '@/components/ErrorInquireModal';
 import UserInfoModal from '@/components/UserInfoModal';
 import Keypad from '@/components/Keypad';
 import ErrorTypeSelect from '@/components/ErrorTypeSelect';
-import { getAddressFromCoords } from '../utils/getAddressFromCoords';
+import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
+import { getFormattedCurrentTime } from '@/utils/updateTime';
 import axios from 'axios';
 
 // axios 기본 설정
@@ -93,17 +94,7 @@ export default function LoginPage() {
     
     // 현재 시간 업데이트
     const updateTime = () => {
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const day = now.getDate();
-      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-      const weekday = weekdays[now.getDay()];
-      const hour = now.getHours();
-      const minute = now.getMinutes();
-      const period = hour < 12 ? '오전' : '오후';
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      
-      setCurrentTime(`${month}월 ${day}일(${weekday}) ${period} ${displayHour}:${minute.toString().padStart(2, '0')}`);
+      setCurrentTime(getFormattedCurrentTime());
     };
     
     updateTime();
@@ -160,7 +151,7 @@ export default function LoginPage() {
 
   const handleUserInfoConfirm = () => {
     setIsUserInfoModalOpen(false);
-    router.replace('/');
+    router.replace('/band-split');
   };
 
   const handleInquireClick = () => {

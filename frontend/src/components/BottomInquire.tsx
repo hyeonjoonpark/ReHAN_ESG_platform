@@ -44,16 +44,21 @@ export default function BottomInquire({ onInquireClick, rightButtons }: BottomIn
           )}
         </div>
         <div className="flex space-x-4">
-          {rightButtons.map((button, index) => (
-            <button 
-              key={index}
-              className={button.className}
-              onClick={button.onClick}
-              disabled={button.disabled}
-            >
-              {button.text}
-            </button>
-          ))}
+          {rightButtons.map((button, index) => {
+            const finalClass = button.disabled
+              ? 'bg-gray-400 text-white px-6 py-3 rounded-xl opacity-50 cursor-not-allowed'
+              : button.className;
+            return (
+              <button
+                key={index}
+                className={finalClass}
+                onClick={button.onClick}
+                disabled={button.disabled}
+              >
+                {button.text}
+              </button>
+            );
+          })}
         </div>
       </div>
     </footer>

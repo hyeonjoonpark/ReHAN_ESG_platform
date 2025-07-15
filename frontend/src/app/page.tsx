@@ -11,7 +11,8 @@ import PointGuide from '@/components/PointGuide';
 import ErrorTypeSelect from '@/components/ErrorTypeSelect';
 import { ScreenType } from '@/types/ScreenType';
 import { useRouter } from 'next/navigation';
-import { getAddressFromCoords } from './utils/getAddressFromCoords';
+import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
+import { getFormattedCurrentTime } from '@/utils/updateTime';
 
 export default function Home() {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -81,17 +82,7 @@ export default function Home() {
   useEffect(() => {
     // 현재 시간 업데이트
     const updateTime = () => {
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const day = now.getDate();
-      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-      const weekday = weekdays[now.getDay()];
-      const hour = now.getHours();
-      const minute = now.getMinutes();
-      const period = hour < 12 ? '오전' : '오후';
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      
-      setCurrentTime(`${month}월 ${day}일(${weekday}) ${period} ${displayHour}:${minute.toString().padStart(2, '0')}`);
+      setCurrentTime(getFormattedCurrentTime());
     };
     
     updateTime();
@@ -178,7 +169,7 @@ export default function Home() {
               ) : currentScreen === ScreenType.ERROR_TYPE_SELECT ? (
                 // 오류 유형 선택 화면
                 <ErrorTypeSelect 
-                  onBack={() => setCurrentScreen(ScreenType.ERROR_TYPE_SELECT)} 
+                  onBack={() => setCurrentScreen(ScreenType.MAIN)} 
                   onErrorTypeSelect={handleErrorTypeSelect}
                 />
               ) : null}
