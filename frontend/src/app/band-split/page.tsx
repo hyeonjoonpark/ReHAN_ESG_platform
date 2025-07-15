@@ -7,6 +7,7 @@ import RightSection from '@/components/RightSection';
 import CompleteModal from '@/components/CompleteModal';
 import { useRouter } from 'next/navigation';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
+import Image from 'next/image';
 
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -37,35 +38,38 @@ const BandSplit = () => {
         <div className="max-w-7xl mx-auto h-full flex flex-col">
           <section className="grid lg:grid-cols-3 gap-8 flex-1">
             {/* 왼쪽 - 안내 컨텐츠 */}
-            <section className="lg:col-span-2 flex flex-col justify-center space-y-8">
-              <div>
-                <h2 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
-                  띠 분리하기
-                </h2>
-                <p className="text-base text-gray-300 max-w-2xl leading-relaxed">
-                  페트병의 입구 부분을 띠 분리기에 넣어주세요.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 뚜껑투입구 카드 */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 flex flex-col items-center text-center">
-                  <div className="w-32 h-32 bg-white/20 rounded-xl mb-4 flex items-center justify-center">
-                    <span className="text-5xl">🧢</span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">뚜껑투입구</h3>
-                  <p className="text-gray-300">뚜껑은 분리하여 뚜껑 투입구에!</p>
+            <section className="lg:col-span-2 flex flex-col justify-start space-y-8 pt-8">
+                <div>
+                    <h2 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
+                    띠 분리하기
+                    </h2>
+                    <p className="text-base text-gray-300 max-w-2xl leading-relaxed">
+                    페트병의 입구 부분을 띠 분리기에 넣어주세요.
+                    </p>
                 </div>
+            
+                <div className="flex flex-col space-y-8 bg-gray-800 rounded-2xl p-6 border border-white/20 h-full">
+                    <section className="flex flex-col space-y-8">
+                        <div className="">
+                          {/* 왼쪽 ­– 그림
+                          <div className="flex space-x-16">
+                            <Image src="/images/lid.svg" alt="Lid" width={150} height={150} />
+                            <Image src="/images/band.svg" alt="Band" width={150} height={150} />
+                          </div> */}
 
-                {/* 페트병 카드 */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 flex flex-col items-center text-center">
-                  <div className="w-32 h-32 bg-white/20 rounded-xl mb-4 flex items-center justify-center">
-                    <span className="text-5xl">🥤</span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">페트병</h3>
-                  <p className="text-gray-300">투명 페트병만 투입해 주세요.</p>
+                          {/* 오른쪽 ­– 텍스트 */}
+                          <div className="flex flex-col justify-center text-center">
+                            <h2 className="text-6xl font-extrabold mb-6">띠 분리하기</h2>
+                            <p className="text-3xl leading-snug">
+                              페트병의 입구 부분을 <br />
+                              띠 분리기에 넣어주세요.
+                            </p>
+                          </div>
+                        </div>
+                    </section>
                 </div>
-              </div>
+              
+              
             </section>
 
             {/* 오른쪽 - 사이드바 */}

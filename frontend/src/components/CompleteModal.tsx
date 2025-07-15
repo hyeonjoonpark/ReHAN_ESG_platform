@@ -19,6 +19,7 @@ const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, earnedPo
     localStorage.removeItem('user_point');
     localStorage.removeItem('address');
     router.replace('/');
+    onClose();
   };
 
   return (
