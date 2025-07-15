@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
 import OpenGateSection from '@/components/OpenGateSection';
 import CheckSection from '@/components/CheckResourceSection';
+import ResourceErrorSection from '@/components/ResourceErrorSection';
 
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -18,7 +19,17 @@ const BandSplit = () => {
   const totalPoints = 10;
   const router = useRouter();
 
-  const data: string = "자원확인";
+  const data: string = "에러"; // 예시 값
+
+  /**
+   * TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
+   * 투명 생수병이 아닙니다!
+   * 내용물을 제거해주세요!
+   * 라벨을 제거해주세요!
+   * 뚜껑을 제거해주세요!
+   * 띠를 제거해주세요!
+   */
+  const errorMessage: string = '내용물을 제거해주세요!';
 
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
@@ -28,6 +39,14 @@ const BandSplit = () => {
         return <OpenGateSection />;
       case '자원확인':
         return <CheckSection />;
+      case '에러':
+        return (
+          <ResourceErrorSection
+            message={errorMessage}
+            onHomeClick={() => router.replace('/')}
+            onRetryClick={() => window.location.reload()}
+          />
+        );
       default:
         return <StartSplitBandSections />;
     }
