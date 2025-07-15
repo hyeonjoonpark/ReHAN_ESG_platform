@@ -4,11 +4,15 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import BottomInquire from '@/components/BottomInquire';
 import RightSection from '@/components/RightSection';
+import CompleteModal from '@/components/CompleteModal';
 import { useRouter } from 'next/navigation';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
 
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
+  const earnedPoints = 10; // TODO: 실제 데이터로 수정
+  const totalPoints = 10;
   const router = useRouter();
 
   // 현재 시간 업데이트
@@ -22,10 +26,6 @@ const BandSplit = () => {
 
     return () => clearInterval(timeInterval);
   }, []);
-
-  const handleCompleteModal = () => {
-    
-  };
 
   return (
     <div className="h-screen bg-darkblue-950 text-white flex flex-col overflow-hidden">
@@ -79,12 +79,18 @@ const BandSplit = () => {
         rightButtons={[
           {
             text: '투입 완료',
-            disabled: true,
-            onClick: () => handleCompleteModal(),
+            onClick: () => setIsCompleteModalOpen(true),
             className:
               'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-8 py-4 rounded-4xl text-white font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl',
           },
         ]}
+      />
+      {/* 완료 모달 */}
+      <CompleteModal
+        isOpen={isCompleteModalOpen}
+        onClose={() => setIsCompleteModalOpen(false)}
+        earnedPoints={earnedPoints}
+        totalPoints={totalPoints}
       />
     </div>
   );
