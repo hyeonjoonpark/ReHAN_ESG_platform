@@ -1,9 +1,19 @@
 'use client';
 
+import { DATE } from "@/types/DateType";
+
 export const getFormattedCurrentTime = (date: Date = new Date()): string => {
   const month = date.getMonth() + 1;
   const day = date.getDate();
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'] as const;
+  const weekdays = [
+    DATE.SUNDAY,
+    DATE.MONDAY,
+    DATE.TUESDAY,
+    DATE.WEDNESDAY,
+    DATE.THURSDAY,
+    DATE.FRIDAY,
+    DATE.SATURDAY,
+  ] as const;
   const weekday = weekdays[date.getDay()];
   const hour = date.getHours();
   const minute = date.getMinutes();
