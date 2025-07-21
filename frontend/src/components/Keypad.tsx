@@ -1,5 +1,7 @@
+import { KeypadSizeType } from "@/types/KeypadSizeType";
+
 interface KeypadProps {
-  size?: 'small' | 'large';
+  size?: KeypadSizeType;
   colorScheme?: 'default' | 'blue';
   onNumberClick: (num: string) => void;
   onDelete: () => void;
@@ -7,15 +9,17 @@ interface KeypadProps {
 }
 
 export default function Keypad({ 
-  size = 'large',
+  size = KeypadSizeType.LARGE,
   colorScheme = 'default',
   onNumberClick, 
   onDelete, 
   onClear 
 }: KeypadProps) {
-  const buttonSize = size === 'small' ? 'w-12 h-12 text-lg' : 'w-20 h-20 text-2xl';
-  const containerPadding = size === 'small' ? 'p-4' : 'p-6';
-  const gap = size === 'small' ? 'gap-2' : 'gap-4';
+  // SMALL 사이즈: 전체 키패드를 더 작게 표시
+  const buttonSize = size === KeypadSizeType.SMALL ? 'w-6 h-6 text-base' : 'w-20 h-20 text-2xl';
+  const containerPadding = size === KeypadSizeType.SMALL ? 'p-1' : 'p-6';
+  const gap = size === KeypadSizeType.SMALL ? 'gap-1' : 'gap-3';
+  const scaleClass = size === KeypadSizeType.SMALL ? 'scale-90' : '';
 
   // 색상 테마 정의
   const colorSchemes = {
@@ -34,10 +38,13 @@ export default function Keypad({
   const currentColors = colorSchemes[colorScheme];
 
   return (
-    <div className={`${currentColors.container} rounded-2xl ${containerPadding}`}>
+    <div className={`${currentColors.container} ${scaleClass} rounded-2xl ${containerPadding}`}>
       
-      {/* 숫자 키패드 */}
-      <div className={`grid grid-cols-3 ${gap}`}>
+      {/* 
+      * 숫자 키패드 (마진 중앙 정렬)
+      * 삭제 버튼 중앙 정렬
+      */}
+      <div className={`grid grid-cols-3 ${gap} mx-auto`}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
           <button
             key={num}
@@ -53,7 +60,7 @@ export default function Keypad({
           onClick={onDelete}
           className={`${buttonSize} ${currentColors.button} rounded-xl text-xs font-bold ${currentColors.text} transition-colors`}
         >
-          지움
+          삭제
         </button>
         <button
           onClick={() => onNumberClick('0')}
@@ -65,7 +72,7 @@ export default function Keypad({
           onClick={onClear}
           className={`${buttonSize} ${currentColors.button} rounded-xl text-xs font-bold ${currentColors.text} transition-colors leading-tight`}
         >
-          전체<br/>지움
+          전체<br/>삭제
         </button>
       </div>
     </div>

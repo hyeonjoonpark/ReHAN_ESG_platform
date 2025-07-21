@@ -1,8 +1,54 @@
+import Keypad from "@/components/Keypad";
+import { KeypadSizeType } from "@/types/KeypadSizeType";
+import { useState, useRef, useEffect } from "react";
+
 interface RegisterProps {
   onBack: () => void;
+  keypadSize?: KeypadSizeType
 }
 
-export default function Register({ onBack }: RegisterProps) {
+export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: RegisterProps) {
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 컴포넌트 마운트 시 자동 포커스
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // 전화번호 포매팅 (3-4-4)
+  const formatPhone = (digits: string) => {
+    const len = digits.length;
+    if (len <= 3) return digits;
+    if (len <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+  };
+
+  // 숫자 버튼 클릭
+  const handleNumberClick = (num: string) => {
+    setPhoneNumber(prev => {
+      const digits = prev.replace(/-/g, '');
+      if (digits.length >= 11) return prev; // 최대 11자리
+      const newDigits = digits + num;
+      return formatPhone(newDigits);
+    });
+    inputRef.current?.focus();
+  };
+
+  // 삭제 버튼 클릭 (마지막 숫자 제거)
+  const handleDelete = () => {
+    setPhoneNumber(prev => {
+      const digits = prev.replace(/-/g, '').slice(0, -1);
+      return formatPhone(digits);
+    });
+    inputRef.current?.focus();
+  };
+
+  // 전체 지움
+  const handleClear = () => {
+    setPhoneNumber('');
+    inputRef.current?.focus();
+  };
   return (
     <div className="relative flex flex-col items-center justify-center h-full">
       {/* 이전으로 버튼 */}
@@ -17,35 +63,37 @@ export default function Register({ onBack }: RegisterProps) {
 
       {/* 메인 컨텐츠 */}
       <div className="text-center">
-        <h2 className="text-2xl lg:text-3xl font-bold mb-12 text-white">
-          쉽고 빠른 간편회원가입
-        </h2>
-        
-        <div className="flex items-center justify-center gap-8">
-          {/* QR 코드 */}
-          <div className="bg-white p-6 rounded-2xl">
-            <div className="w-32 h-32 bg-black flex items-center justify-center text-white text-xs">
-              <div className="grid grid-cols-8 gap-1">
-                {/* QR 코드 패턴 시뮬레이션 */}
-                {Array.from({ length: 64 }, (_, i) => (
-                  <div 
-                    key={i} 
-                    className={`w-1 h-1 ${Math.random() > 0.5 ? 'bg-black' : 'bg-white'}`}
-                  />
-                ))}
-              </div>
+        {/**
+         * 회원가입 폼
+         * 휴대폰번호 입력 키패드 Keypad.tsx
+         * 완료 버튼
+         */}
+         <div className="flex items-center justify-center gap-4 mt-6">
+          <div className="flex flex-col items-center justify-between gap-3 w-1/2">
+            {
+              /**
+               * placeholder 패딩 추가
+               */
+            }
+            <div className="text-sm text-white font-semibold">
+              휴대폰번호를 입력해 회원가입을 하세요
             </div>
+            <input ref={inputRef} type="text" className="w-full h-12 rounded-full text-white font-semibold transition-all duration-300 bg-gray-700 placeholder:text-gray-400 placeholder:pl-4" 
+              placeholder="010-0000-0000"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+            <button className="w-full h-12 bg-gray-700 hover:bg-gray-600 px-6 rounded-full text-white font-semibold transition-all duration-300 whitespace-nowrap">
+              완료
+            </button>
           </div>
-
-          {/* 설명 텍스트 */}
-          <div className="text-left max-w-md">
-            <p className="text-lg lg:text-xl font-bold text-white leading-relaxed">
-              화면의 QR코드를 촬영하고<br />
-              이름과 휴대번호 입력만으로<br />
-              페트몬 회원이 되어보세요!
-            </p>
-          </div>
-        </div>
+          
+          <Keypad size={keypadSize}
+                  onNumberClick={handleNumberClick}
+                  onDelete={handleDelete}
+                  onClear={handleClear} 
+          />
+         </div>
       </div>
     </div>
   );

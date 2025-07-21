@@ -11,6 +11,7 @@ import ErrorTypeSelect from '@/components/ErrorTypeSelect';
 import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
 import axios from 'axios';
+import { KeypadSizeType } from '@/types/KeypadSizeType';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
@@ -165,7 +166,7 @@ export default function LoginPage() {
   };
 
   const handlePrevious = () => {
-    router.back();
+    router.push('/');
   };
 
   return (
@@ -187,27 +188,6 @@ export default function LoginPage() {
                     기업 시 업력한 휴대폰 번호 입력하고<br />
                     회원 정보 확인 후 로그인하세요.
                   </p>
-                  
-                  {/* QR코드 영역 */}
-                  <div className="flex items-center justify-center space-x-6">
-                    <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center">
-                      <div className="w-16 h-16 bg-black grid grid-cols-8 gap-0.5 p-1">
-                        {Array.from({ length: 64 }).map((_, i) => {
-                          const pattern = [1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,1,0];
-                          return (
-                            <div 
-                              key={i} 
-                              className={`w-1 h-1 ${pattern[i] ? 'bg-white' : 'bg-black'}`}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xl font-semibold text-white">회원이 아니시라면?</p>
-                      <p className="text-lg text-gray-300">QR코드 촬영하고 회원가입 진행하기</p>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -225,7 +205,7 @@ export default function LoginPage() {
                 
                 {/* 큰 키패드 */}
                 <Keypad 
-                  size="large" 
+                  size={KeypadSizeType.LARGE} 
                   onNumberClick={handleNumberClick}
                   onDelete={handleDelete}
                   onClear={handleClear}
