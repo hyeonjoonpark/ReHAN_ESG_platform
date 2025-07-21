@@ -185,7 +185,7 @@ export default function LoginPage() {
                 <div className="bg-gray-800 rounded-3xl p-12 w-[800px] min-w-[800px] h-[500px] text-center">
                   <h1 className="text-6xl font-bold text-white mb-8">로그인</h1>
                   <p className="text-2xl text-gray-300 leading-relaxed mb-12">
-                    기업 시 업력한 휴대폰 번호 입력하고<br />
+                    회원가입 시 입력한 휴대폰 번호를 입력하고<br />
                     회원 정보 확인 후 로그인하세요.
                   </p>
                 </div>
