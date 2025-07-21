@@ -20,7 +20,7 @@ const BandSplit = () => {
   const totalPoints = 10;
   const router = useRouter();
 
-  const [data, setData] = useState<SectionType>(SectionType.START_SPLIT_BAND); // 예시 값
+  const [sectionType, setSectionType] = useState<SectionType>(SectionType.ERROR); // 예시 값
 
   /**
    * TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
@@ -35,7 +35,7 @@ const BandSplit = () => {
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
     // TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
-    switch (data) {
+    switch (sectionType) {
       case SectionType.OPEN_GATE:
         return <OpenGateSection />;
       case SectionType.CHECK_RESOURCE:
@@ -45,9 +45,11 @@ const BandSplit = () => {
           <ResourceErrorSection
             message={errorMessage}
             onHomeClick={() => router.replace('/')}
-            onRetryClick={() => setData(SectionType.START_SPLIT_BAND)}
+            onRetryClick={() => setSectionType(SectionType.CHECK_RESOURCE)}
           />
         );
+      case SectionType.START_SPLIT_BAND:
+        return <StartSplitBandSections />;
       default:
         return <StartSplitBandSections />;
     }
