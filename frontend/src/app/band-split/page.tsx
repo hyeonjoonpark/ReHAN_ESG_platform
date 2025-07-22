@@ -20,7 +20,7 @@ const BandSplit = () => {
   const totalPoints = 10;
   const router = useRouter();
 
-  const [sectionType, setSectionType] = useState<SectionType>(SectionType.ERROR); // 예시 값
+  const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND); // 예시 값
 
   /**
    * TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정

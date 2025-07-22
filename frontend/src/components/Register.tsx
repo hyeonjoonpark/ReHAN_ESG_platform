@@ -1,6 +1,8 @@
 import Keypad from "@/components/Keypad";
 import { KeypadSizeType } from "@/types/KeypadSizeType";
 import { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import AlertModal from "@/components/AlertModal";
 
 interface RegisterProps {
   onBack: () => void;
@@ -10,6 +12,9 @@ interface RegisterProps {
 export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: RegisterProps) {
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMsg, setAlertMsg] = useState("");
+  const [alertType, setAlertType] = useState<'success' | 'error'>("success");
 
   // 컴포넌트 마운트 시 자동 포커스
   useEffect(() => {
@@ -43,6 +48,42 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
     });
     inputRef.current?.focus();
   };
+
+  const handleSignUp = async () => {
+    const digits = phoneNumber.replace(/-/g, "");
+
+    // 최소 10자리(지역번호 포함) 검증
+    if (digits.length < 10 || digits.length > 11) {
+      alert("유효한 전화번호를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+      const res = await axios.post(
+        `${baseURL}/api/v1/signup`,
+        { phone_number: digits },
+        { withCredentials: true }
+      );
+
+      if (res.data && res.data.success) {
+        setAlertMsg(res.data.message || "회원가입이 완료되었습니다.");
+        setAlertType("success");
+        setAlertOpen(true);
+        // 성공 후 뒤로 가기 콜백은 모달 닫힌 뒤 수행
+        return;
+      } else {
+        setAlertMsg(res.data?.error || "회원가입에 실패했습니다.");
+        setAlertType("error");
+        setAlertOpen(true);
+      }
+    } catch (err: any) {
+      console.error("회원가입 요청 오류:", err);
+      setAlertMsg(err?.response?.data?.error || "서버 오류가 발생했습니다.");
+      setAlertType("error");
+      setAlertOpen(true);
+    }
+  }
 
   // 전체 지움
   const handleClear = () => {
@@ -83,7 +124,8 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
-            <button className="w-full h-12 bg-gray-700 hover:bg-gray-600 px-6 rounded-full text-white font-semibold transition-all duration-300 whitespace-nowrap">
+            <button className="w-full h-12 bg-gray-700 hover:bg-gradient-to-r from-cyan-500 to-purple-500 px-6 rounded-full text-white font-semibold transition-all duration-300 whitespace-nowrap"
+            onClick={handleSignUp}>
               완료
             </button>
           </div>
@@ -95,6 +137,17 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
           />
          </div>
       </div>
+      <AlertModal
+    isOpen={alertOpen}
+    message={alertMsg}
+    type={alertType}
+    onClose={() => {
+      setAlertOpen(false);
+      if (alertType === 'success') {
+        onBack();
+      }
+    }}
+  />
     </div>
   );
 } 
