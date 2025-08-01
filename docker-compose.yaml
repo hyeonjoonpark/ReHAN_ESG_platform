@@ -27,9 +27,9 @@ services:
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_NAME: rehan_esg_platform
-      DB_USER: app_user
-      DB_PASSWORD: app_password
+      DB_NAME: petmon
+      DB_USER: srv
+      DB_PASSWORD: srv123!
       NODE_ENV: development
     ports:
       - "3001:3001"
