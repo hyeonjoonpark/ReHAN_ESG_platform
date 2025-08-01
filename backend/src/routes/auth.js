@@ -128,7 +128,6 @@ router.post('/login', async (req, res) => {
       success: true,
       user: {
         phone_number: user.phone_number,
-        user_name: user.user_name,
         user_point: user.user_point
       }
     };

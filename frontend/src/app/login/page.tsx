@@ -32,7 +32,7 @@ export default function LoginPage() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<{
+  const [userInfo] = useState<{
     phone_number: string;
     user_name: string;
     user_point: number;

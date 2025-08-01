@@ -77,9 +77,13 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
         setAlertType("error");
         setAlertOpen(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("회원가입 요청 오류:", err);
-      setAlertMsg(err?.response?.data?.error || "서버 오류가 발생했습니다.");
+      if (axios.isAxiosError(err) && err.response) {
+        setAlertMsg((err.response.data as { error?: string })?.error || "서버 오류가 발생했습니다.");
+      } else {
+        setAlertMsg("서버 오류가 발생했습니다.");
+      }
       setAlertType("error");
       setAlertOpen(true);
     }

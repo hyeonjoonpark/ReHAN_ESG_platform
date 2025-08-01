@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Keypad from './Keypad';
+import { KeypadSizeType } from '@/types/KeypadSizeType';
 
 interface ErrorInquireModalProps {
   isOpen: boolean;
@@ -126,7 +127,7 @@ export default function ErrorInquireModal({
 
             {/* 숫자 키패드 */}
             <Keypad 
-              size="large" 
+              size={KeypadSizeType.LARGE} 
               colorScheme="blue"
               onNumberClick={handleNumberInput}
               onDelete={handleDelete}

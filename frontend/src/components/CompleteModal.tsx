@@ -9,8 +9,8 @@ interface CompleteModalProps {
 }
 
 const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, earnedPoints, totalPoints }) => {
-  if (!isOpen) return null;
   const router = useRouter();
+  if (!isOpen) return null;
 
   const handleComplete = () => {
     localStorage.removeItem('access_token');

@@ -2,8 +2,10 @@ services:
   backend:
     build: ./backend
     container_name: rehan_backend
+    depends_on:
+      - mysql
     environment:
-      DB_HOST: localhost
+      DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: petmon
       DB_USER: root
@@ -14,6 +16,18 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: rehan_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: srv123!
+      MYSQL_DATABASE: petmon
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
     restart: unless-stopped
 
   frontend:
