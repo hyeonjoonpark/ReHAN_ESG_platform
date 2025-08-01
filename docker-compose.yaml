@@ -9,7 +9,7 @@ services:
       DB_HOST: localhost
       DB_PORT: 3306
       DB_NAME: petmon
-      DB_USER: srv
+      DB_USER: root
       DB_PASSWORD: srv123!
       NODE_ENV: development
     ports:
