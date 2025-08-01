@@ -24,6 +24,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: srv123!
       MYSQL_DATABASE: petmon
+      MYSQL_USER: root
+      MYSQL_PASSWORD: srv123!
     ports:
       - "3306:3306"
     volumes:

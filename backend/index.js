@@ -45,7 +45,6 @@ app.get("/health", (req, res) => {
 // 데이터베이스 연결 테스트 및 시드 데이터 생성
 const initializeDatabase = async () => {
   await testConnection();
-  await seedUsers();
 };
 
 initializeDatabase();
