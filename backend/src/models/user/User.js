@@ -12,10 +12,6 @@ const User = sequelize.define('User', {
       isNumeric: true
     }
   },
-  user_name: {
-    type: DataTypes.STRING(20),
-    allowNull: false
-  },
   user_point: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
