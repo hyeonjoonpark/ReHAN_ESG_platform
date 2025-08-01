@@ -1,5 +1,5 @@
 # Node.js 22.15.0 베이스 이미지 사용
-FROM node:22.15.0
+FROM node:20.14.0
 
 # 작업 디렉토리 설정
 WORKDIR /app
