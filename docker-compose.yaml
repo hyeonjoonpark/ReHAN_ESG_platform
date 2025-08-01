@@ -2,9 +2,6 @@ services:
   backend:
     build: ./backend
     container_name: rehan_backend
-    depends_on:
-      mysql:
-        condition: service_healthy
     environment:
       DB_HOST: localhost
       DB_PORT: 3306
