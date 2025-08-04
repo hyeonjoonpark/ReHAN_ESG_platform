@@ -26,8 +26,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: srv123!
       MYSQL_DATABASE: petmon
-      MYSQL_USER: root
-      MYSQL_PASSWORD: srv123!
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
