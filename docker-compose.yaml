@@ -1,6 +1,8 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      network: host
     container_name: rehan_backend
     depends_on:
       - mysql
@@ -33,7 +35,9 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      network: host
     container_name: rehan_frontend
     depends_on:
       - backend
