@@ -6,7 +6,6 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { testConnection } = require("./src/database/sequelize");
 const authRoutes = require("./src/routes/auth");
-const seedUsers = require("./src/database/seedUsers");
 
 const app = express();
 
