@@ -4,10 +4,15 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const { SerialPort } = require("serialport");
 const { testConnection } = require("./src/database/sequelize");
 const authRoutes = require("./src/routes/auth");
 
 const app = express();
+const port = new SerialPort({
+  path: process.env.SERIAL_PORT,
+  baudRate: 9600
+});
 
 // 미들웨어 설정
 app.use(express.json({ limit: "10mb" }));
@@ -39,6 +44,10 @@ app.get("/health", (req, res) => {
     status: "healthy",
     timestamp: new Date().toISOString()
   });
+});
+
+port.on('open', () => {
+  console.log('Serial port opened');
 });
 
 // 데이터베이스 연결 테스트 및 시드 데이터 생성

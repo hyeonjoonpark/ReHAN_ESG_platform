@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend
       network: host
-    container_name: rehan_backend
+    container_name: petmon_backend
     network_mode: host
     depends_on:
       - mysql
@@ -14,6 +14,7 @@ services:
       DB_USER: root
       DB_PASSWORD: srv123!
       NODE_ENV: development
+      SERIAL_PORT: /dev/ttyUSB0
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -21,7 +22,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: rehan_mysql
+    container_name: petmon_mysql
     network_mode: host
     environment:
       MYSQL_ROOT_PASSWORD: srv123!
@@ -34,7 +35,7 @@ services:
     build:
       context: ./frontend
       network: host
-    container_name: rehan_frontend
+    container_name: petmon_frontend
     network_mode: host
     depends_on:
       - backend
