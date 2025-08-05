@@ -11,7 +11,7 @@ const authRoutes = require("./src/routes/auth");
 const app = express();
 // const port = new SerialPort({
 //   path: process.env.SERIAL_PORT,
-//   baudRate: 9600
+//   baudRate: 115200
 // });
 
 // 미들웨어 설정
