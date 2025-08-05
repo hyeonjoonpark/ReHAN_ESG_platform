@@ -15,12 +15,12 @@ services:
       DB_USER: root
       DB_PASSWORD: srv123!
       NODE_ENV: development
-#      SERIAL_PORT: /dev/ttyUSB0
+      SERIAL_PORT: /dev/ttyUSB0
     volumes:
       - ./backend:/app
       - /app/node_modules
-#    devices:
-#      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
     restart: unless-stopped
 
   mysql:
