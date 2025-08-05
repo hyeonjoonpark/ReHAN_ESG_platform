@@ -4,10 +4,7 @@ services:
       context: ./backend
       network: host
     container_name: petmon_backend
-    networks:
-      - rehan_network
-    ports:
-      - "3001:3001"
+    network_mode: host
     depends_on:
       mysql:
         condition: service_healthy
@@ -29,10 +26,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: petmon_mysql
-    networks:
-      - rehan_network
-    ports:
-      - "3306:3306"
+    network_mode: host
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -50,21 +44,14 @@ services:
       context: ./frontend
       network: host
     container_name: petmon_frontend
-    networks:
-      - rehan_network
-    ports:
-      - "80:80"
+    network_mode: host
     depends_on:
       - backend
     environment:
       NODE_ENV: production
-      BACKEND_URL: http://backend:3001
+      BACKEND_URL: http://localhost:3001
     restart: unless-stopped
 
 volumes:
   mysql_data:
     driver: local
-
-networks:
-  rehan_network:
-    driver: bridge
