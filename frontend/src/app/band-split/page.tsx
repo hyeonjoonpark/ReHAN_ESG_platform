@@ -183,9 +183,41 @@ const BandSplit = () => {
           <div>WebSocket: {isConnected ? '🟢 연결됨' : '🔴 연결 안됨'}</div>
           <div>띠분리 완료: {beltSeparatorCompleted ? '✅ 완료' : '⏳ 대기중'}</div>
           <div>투입구 열림: {hopperOpened ? '✅ 완료' : '⏳ 대기중'}</div>
+          <div className="text-yellow-300">Section: {sectionType}</div>
           {hardwareStatus && (
             <div className="text-gray-300">마지막 신호: {hardwareStatus.type} ({new Date(hardwareStatus.timestamp).toLocaleTimeString()})</div>
           )}
+          
+          {/* 테스트 버튼들 */}
+          <div className="pt-2 border-t border-gray-600 space-y-1">
+            <div className="text-green-300 font-semibold">🧪 테스트</div>
+            <button
+              onClick={() => {
+                console.log('🧪 테스트 API 호출 중...');
+                fetch('/api/v1/hardware/test', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ command: 'belt_separator_complete' })
+                })
+                .then(res => res.json())
+                .then(data => console.log('🧪 테스트 API 응답:', data))
+                .catch(err => console.error('🧪 테스트 API 오류:', err));
+              }}
+              className="w-full bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs font-semibold"
+            >
+              띠분리 완료 테스트
+            </button>
+            
+            <button
+              onClick={() => {
+                console.log('🔄 상태 초기화');
+                setSectionType(SectionType.START_SPLIT_BAND);
+              }}
+              className="w-full bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded text-xs font-semibold"
+            >
+              상태 초기화
+            </button>
+          </div>
         </div>
       )}
       {/* 완료 모달 */}
