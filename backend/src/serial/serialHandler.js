@@ -68,16 +68,10 @@ class SerialHandler {
       this.isConnected = false;
     });
 
-    // Raw 데이터 수신 (파서를 거치기 전)
+    // Raw 데이터 수신 (파서를 거치기 전) - 간소화
     this.port.on('data', (buffer) => {
-      const rawHex = buffer.toString('hex');
       const rawString = buffer.toString('utf8');
-      console.log('🔍 Raw 시리얼 포트 데이터:', {
-        hex: rawHex,
-        string: `"${rawString}"`,
-        bytes: buffer.length,
-        buffer: Array.from(buffer)
-      });
+      console.log('🔍 Raw 데이터:', `"${rawString}" (${buffer.length} bytes)`);
     });
 
     // 에러 처리 (더 안전하게)
@@ -93,12 +87,7 @@ class SerialHandler {
         const rawData = data.toString();
         const trimmedData = rawData.trim();
         
-        console.log('🔄 Parser에서 데이터 수신:', {
-          raw: `"${rawData}"`,
-          trimmed: `"${trimmedData}"`,
-          length: rawData.length,
-          trimmedLength: trimmedData.length
-        });
+        console.log('🔄 Parser 처리:', `"${trimmedData}"`);
         
         this.handleSerialData(trimmedData);
       });
@@ -107,19 +96,18 @@ class SerialHandler {
 
   // 시리얼 데이터 처리
   handleSerialData(data) {
+    // ========== 기본 시리얼 데이터 로그 ==========
+    const timestamp = new Date().toISOString();
+    console.log(`📥 시리얼 데이터 수신 [${timestamp}]: "${data}"`);
+    
+    // JSON 형태인지 미리 확인 (성능 최적화)
+    if (!data.startsWith('{') || !data.endsWith('}')) {
+      console.log('💡 비JSON 데이터 (무시): 시스템 메시지일 가능성');
+      return;
+    }
+    
     try {
-      // ========== 상세 시리얼 데이터 로그 ==========
-      const timestamp = new Date().toISOString();
-      const dataLength = data.length;
-      const dataHex = Buffer.from(data, 'utf8').toString('hex');
-      
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(`📥 시리얼 데이터 수신 [${timestamp}]`);
-      console.log(`📊 데이터 길이: ${dataLength} bytes`);
-      console.log(`📝 Raw 데이터: "${data}"`);
-      console.log(`🔢 16진수: ${dataHex}`);
-      console.log(`📋 데이터 타입: ${typeof data}`);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🔍 JSON 파싱 시도 중...');
       
       // JSON 파싱 시도
       const parsedData = JSON.parse(data);
@@ -179,17 +167,11 @@ class SerialHandler {
       });
 
     } catch (error) {
-      // JSON 파싱 실패 상세 로그
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.warn('❌ JSON 파싱 실패:');
-      console.warn(`🔍 에러 메시지: ${error.message}`);
-      console.warn(`📝 원본 데이터: "${data}"`);
-      console.warn(`📊 데이터 길이: ${data.length} bytes`);
-      console.warn(`🔢 16진수: ${Buffer.from(data, 'utf8').toString('hex')}`);
-      console.warn('💡 비JSON 데이터이거나 형식이 잘못되었습니다');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // JSON 파싱 실패 로그 (간소화)
+      console.warn('❌ JSON 파싱 실패:', error.message);
+      console.warn(`📝 문제 데이터: "${data}"`);
       
-      // JSON이 아닌 데이터도 전송
+      // JSON이 아닌 데이터도 전송 (디버깅용)
       this.socketIO.emit('serial_data', {
         raw_data: data,
         parsed_data: null,
