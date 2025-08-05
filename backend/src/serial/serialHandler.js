@@ -1,13 +1,15 @@
 const { SerialPort } = require('serialport');
+const { ReadlineParser } = require('@serialport/parser-readline');
 const EventEmitter = require('events');
 
 class SerialHandler extends EventEmitter {
   constructor() {
     super();
     this.port = null;
+    this.parser = null; // 파서 인스턴스 추가
     this.path = process.env.SERIAL_PORT;
     this.baudRate = parseInt(process.env.SERIAL_BAUD_RATE, 10) || 115200;
-    this._isConnected = false; // 내부 연결 상태 변수
+    this._isConnected = false;
     this.testMode = process.env.NODE_ENV === 'development' && !this.path;
     this.testInterval = null;
 
@@ -55,6 +57,8 @@ class SerialHandler extends EventEmitter {
       autoOpen: false,
     });
 
+    this.parser = this.port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+
     this.port.open((err) => {
       if (err) {
         console.error(`❌ 포트 열기 오류 (${this.path}):`, err.message);
@@ -65,7 +69,9 @@ class SerialHandler extends EventEmitter {
       console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
     });
 
-    this.port.on('data', (data) => this.handleSerialData(data));
+    // 파서를 통해 완성된 데이터 라인을 수신
+    this.parser.on('data', (data) => this.handleSerialData(data));
+    
     this.port.on('close', () => {
       this._isConnected = false;
       console.log('🔌 시리얼 포트 연결이 닫혔습니다.');
