@@ -2,6 +2,7 @@ services:
   backend:
     build:
       context: ./backend
+      network: host
     container_name: petmon_backend
     networks:
       - rehan_network
@@ -47,6 +48,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      network: host
     container_name: petmon_frontend
     networks:
       - rehan_network
@@ -55,7 +57,7 @@ services:
     depends_on:
       - backend
     environment:
-      - NODE_ENV=production
+      - NODE_ENV: production
       - BACKEND_URL=http://backend:3001
     restart: unless-stopped
 
