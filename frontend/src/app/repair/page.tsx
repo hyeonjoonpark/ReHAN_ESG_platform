@@ -52,7 +52,7 @@ export default function RepairPage() {
   }, []);
 
   return (
-    <div className="h-screen bg-white dark:bg-darkblue-950 text-gray-800 dark:text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={currentTime} />
 

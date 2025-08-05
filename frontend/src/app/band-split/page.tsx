@@ -115,12 +115,12 @@ const BandSplit = () => {
   };
 
   return (
-    <div className="h-screen bg-white dark:bg-darkblue-950 text-gray-800 dark:text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={currentTime} />
 
       {/* 메인 컨텐츠 */}
-      <main className="flex-1 px-6 lg:px-8 overflow-hidden">
+      <main className="flex-1 px-6 lg:px-8 overflow-hidden bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto h-full flex flex-col">
           <section className="grid lg:grid-cols-3 gap-8 flex-1">
             {/* 왼쪽 - 안내 컨텐츠 */}
@@ -150,12 +150,13 @@ const BandSplit = () => {
       
       {/* WebSocket 연결 상태 표시 (개발용 - 배포 시 제거) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 bg-black bg-opacity-70 text-white p-2 rounded text-xs z-50">
-          <div>WebSocket: {isConnected ? '연결됨' : '연결 안됨'}</div>
+        <div className="fixed top-30 right-7 bg-black bg-opacity-80 text-white p-3 rounded-lg text-xs z-40 backdrop-blur-sm border border-gray-600 space-y-1 max-w-xs">
+          <div className="font-semibold text-blue-300">🔗 개발 모드</div>
+          <div>WebSocket: {isConnected ? '🟢 연결됨' : '🔴 연결 안됨'}</div>
           <div>띠분리 완료: {beltSeparatorCompleted ? '✅ 완료' : '⏳ 대기중'}</div>
           <div>투입구 열림: {hopperOpened ? '✅ 완료' : '⏳ 대기중'}</div>
           {hardwareStatus && (
-            <div>마지막 신호: {hardwareStatus.type} ({new Date(hardwareStatus.timestamp).toLocaleTimeString()})</div>
+            <div className="text-gray-300">마지막 신호: {hardwareStatus.type} ({new Date(hardwareStatus.timestamp).toLocaleTimeString()})</div>
           )}
         </div>
       )}

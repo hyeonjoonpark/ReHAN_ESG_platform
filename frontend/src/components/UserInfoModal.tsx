@@ -15,17 +15,17 @@ export default function UserInfoModal({ isOpen, onClose, userInfo, onConfirm }: 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4">
         <div className="text-center mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
             회원정보를<br />
             확인해주세요
           </h2>
           
           <div className="text-left flex flex-col justify-center mb-6 h-20">
             <div className="flex justify-between items-center">
-              <span className="text-gray-700 font-medium">휴대번호</span>
-              <span className="text-gray-900 font-semibold">{userInfo?.phone_number || '010-0000-0000'}</span>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">휴대번호</span>
+              <span className="text-gray-900 dark:text-white font-semibold">{userInfo?.phone_number || '010-0000-0000'}</span>
             </div>
           </div>
         </div>

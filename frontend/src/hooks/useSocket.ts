@@ -34,6 +34,11 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
   const [isConnected, setIsConnected] = useState(false);
   const [beltSeparatorCompleted, setBeltSeparatorCompleted] = useState(false);
   const [hopperOpened, setHopperOpened] = useState(false);
+  
+  // 디버깅을 위한 상태 로그
+  useEffect(() => {
+    console.log('🔍 상태 변경:', { beltSeparatorCompleted, hopperOpened });
+  }, [beltSeparatorCompleted, hopperOpened]);
   const [hardwareStatus, setHardwareStatus] = useState<HardwareStatus | null>(null);
   
   const socketRef = useRef<Socket | null>(null);
@@ -78,10 +83,14 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       if (data.type === 'belt_separator_complete') {
         console.log('✅ 띠분리 완료 조건 충족! 상태 업데이트 중...');
         setBeltSeparatorCompleted(true);
+        setHopperOpened(true); // 투입구도 함께 활성화
         console.log('🎯 띠분리 완료 상태 활성화');
         // 강제 로그로 상태 확인
         setTimeout(() => {
-          console.log('🔍 1초 후 beltSeparatorCompleted 상태 확인 필요');
+          console.log('🔍 1초 후 상태 재확인:', {
+            beltSeparatorCompleted: true,
+            hopperOpened: true
+          });
         }, 1000);
       }
       

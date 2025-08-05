@@ -1,8 +1,48 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
   body {
-    @apply bg-white text-gray-900 dark:bg-black dark:text-gray-100;
+    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    @apply transition-colors duration-300;
+  }
+  
+  /* 다크모드 전환 애니메이션 */
+  * {
+    @apply transition-colors duration-200;
+  }
+  
+  /* 입력 필드 기본 스타일 */
+  input[type="text"], input[type="tel"] {
+    @apply bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+    @apply border-gray-300 dark:border-gray-600;
+    @apply focus:ring-blue-500 dark:focus:ring-blue-400;
+    @apply focus:border-blue-500 dark:focus:border-blue-400;
+  }
+  
+  /* 버튼 기본 스타일 */
+  button {
+    @apply transition-all duration-200;
+  }
+  
+  /* 스크롤바 다크모드 스타일 */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
   }
 }
 

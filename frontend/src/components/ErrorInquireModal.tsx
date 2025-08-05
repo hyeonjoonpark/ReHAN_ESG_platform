@@ -108,11 +108,11 @@ export default function ErrorInquireModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4">
         {modalStep === 'phone-input' ? (
           <>
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
                 자세한 문의를 위해 연락받으실<br />
                 휴대번호를 입력해 주세요.
               </h2>
@@ -121,7 +121,7 @@ export default function ErrorInquireModal({
                 value={displayNumber}
                 placeholder="010-0000-0000"
                 readOnly
-                className="w-full text-2xl font-bold text-gray-900 text-center mt-6 mb-8 p-4 border-2 border-gray-300 rounded-lg bg-gray-50 focus:outline-none"
+                className="w-full text-2xl font-bold text-gray-900 dark:text-white text-center mt-6 mb-8 p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 focus:outline-none"
               />
             </div>
 
@@ -160,15 +160,15 @@ export default function ErrorInquireModal({
         ) : (
           <>
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">
                 해당 내용이 고객센터로 전송됩니다.
               </h2>
               <div className="text-left space-y-2 mb-6 flex flex-col item-start justify-between">
-                <p className="text-gray-700"><strong>위치:</strong> {formatLocation()}</p>
-                <p className="text-gray-700"><strong>내용:</strong> {errorType || '페트병 인식 오류'}</p>
-                <p className="text-gray-700"><strong>시기:</strong> {getCurrentDateTime()}</p>
+                <p className="text-gray-700 dark:text-gray-300"><strong>위치:</strong> {formatLocation()}</p>
+                <p className="text-gray-700 dark:text-gray-300"><strong>내용:</strong> {errorType || '페트병 인식 오류'}</p>
+                <p className="text-gray-700 dark:text-gray-300"><strong>시기:</strong> {getCurrentDateTime()}</p>
               </div>
-              <p className="text-lg font-semibold text-gray-800 mb-6">
+              <p className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
                 작성하신 내용과 일치한가요?
               </p>
             </div>

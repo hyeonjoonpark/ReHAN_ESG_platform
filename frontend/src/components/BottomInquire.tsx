@@ -10,7 +10,7 @@ interface BottomInquireProps {
 
 export default function BottomInquire({ onInquireClick, rightButtons }: BottomInquireProps) {
   return (
-    <footer className="px-8 py-4 bg-darkblue-800">
+    <footer className="px-8 py-4 bg-darkblue-800 dark:bg-darkblue-900">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-8">
           <div className="flex items-center space-x-3">
