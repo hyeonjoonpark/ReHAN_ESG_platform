@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface HardwareStatus {
   type: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -44,7 +44,7 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
   const socketRef = useRef<Socket | null>(null);
   const currentPageRef = useRef<string | null>(null);
 
-  const connect = () => {
+  const connect = useCallback(() => {
     if (socketRef.current?.connected) {
       console.log('Socket이 이미 연결되어 있습니다.');
       return;
@@ -129,7 +129,7 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
     socketRef.current.on('error', (error) => {
       console.error('Socket 에러:', error);
     });
-  };
+  }, [serverUrl]);
 
   const disconnect = () => {
     if (socketRef.current) {
@@ -177,7 +177,7 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       }
       // disconnect는 컴포넌트 언마운트 시에만
     };
-  }, [autoConnect, serverUrl]);
+  }, [autoConnect, serverUrl, connect]);
 
   return {
     socket: socketRef.current,
