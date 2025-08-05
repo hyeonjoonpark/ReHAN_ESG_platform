@@ -68,7 +68,7 @@ const BandSplit = () => {
   }, []);
 
   return (
-    <div className="h-screen bg-darkblue-950 text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white dark:bg-darkblue-950 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={currentTime} />
 

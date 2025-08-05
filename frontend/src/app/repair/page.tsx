@@ -52,7 +52,7 @@ export default function RepairPage() {
   }, []);
 
   return (
-    <div className="h-screen bg-darkblue-950 text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white dark:bg-darkblue-950 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={currentTime} />
 
@@ -63,21 +63,21 @@ export default function RepairPage() {
           <div className="grid lg:grid-cols-3 gap-8 h-full">
             {/* 왼쪽 - 지도 영역 */}
             <div className="lg:col-span-2 flex flex-col justify-center">
-              <div className="bg-white rounded-2xl overflow-hidden h-[400px] relative">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[400px] relative">
                 {/* 지도 배경 */}
                 <div className="w-full h-full bg-gradient-to-br from-green-200 via-green-300 to-green-100 relative">
                   {/* 도로 라인들 */}
                   <svg className="absolute inset-0 w-full h-full">
-                    <line x1="0" y1="50%" x2="100%" y2="50%" stroke="white" strokeWidth="3" />
-                    <line x1="30%" y1="0" x2="30%" y2="100%" stroke="white" strokeWidth="3" />
-                    <line x1="70%" y1="0" x2="70%" y2="100%" stroke="white" strokeWidth="3" />
-                    <line x1="0" y1="20%" x2="100%" y2="20%" stroke="white" strokeWidth="2" />
-                    <line x1="0" y1="80%" x2="100%" y2="80%" stroke="white" strokeWidth="2" />
+                    <line x1="0" y1="50%" x2="100%" y2="50%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="3" />
+                    <line x1="30%" y1="0" x2="30%" y2="100%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="3" />
+                    <line x1="70%" y1="0" x2="70%" y2="100%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="3" />
+                    <line x1="0" y1="20%" x2="100%" y2="20%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="2" />
+                    <line x1="0" y1="80%" x2="100%" y2="80%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="2" />
                   </svg>
                   
                   {/* 내 위치 마커 */}
                   <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="bg-black text-white px-3 py-1 rounded-lg text-sm font-medium">
+                    <div className="bg-gray-800 dark:bg-black text-white px-3 py-1 rounded-lg text-sm font-medium">
                       {userAddress}
                     </div>
                   </div>
@@ -91,18 +91,18 @@ export default function RepairPage() {
                 </div>
                 
                 {/* 하단 정보 */}
-                <div className="absolute bottom-0 left-0 right-0 bg-white p-6">
+                <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-700 p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                       <div>
                         <p className="text-blue-600 font-semibold">페트몬 매니저가 출동 중입니다.</p>
-                        <p className="text-gray-600">잠시만 기다려주세요.</p>
+                        <p className="text-gray-600 dark:text-gray-300">잠시만 기다려주세요.</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-gray-900">{arrivalTime}</div>
-                      <div className="text-sm text-gray-600">분 후 도착 예정</div>
+                      <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{arrivalTime}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">분 후 도착 예정</div>
                     </div>
                   </div>
                 </div>

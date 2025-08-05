@@ -24,9 +24,9 @@ export default function Keypad({
   // 색상 테마 정의
   const colorSchemes = {
     default: {
-      container: 'bg-gray-800',
-      button: 'bg-gray-600 hover:bg-gray-500',
-      text: 'text-white'
+      container: 'bg-gray-200 dark:bg-gray-800',
+      button: 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500',
+      text: 'text-gray-800 dark:text-white'
     },
     blue: {
       container: 'bg-white',

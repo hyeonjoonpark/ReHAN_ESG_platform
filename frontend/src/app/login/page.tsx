@@ -170,7 +170,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen bg-gray-900 text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={mounted ? currentTime : ''} />
 
@@ -182,9 +182,9 @@ export default function LoginPage() {
             <div className="w-full h-full justify-around items-center flex">
               {/* 가운데 - 로그인 영역 */}
               <div className="flex flex-col justify-center items-center space-y-8">
-                <div className="bg-gray-800 rounded-3xl p-12 w-[800px] min-w-[800px] h-[500px] text-center">
-                  <h1 className="text-6xl font-bold text-white mb-8">로그인</h1>
-                  <p className="text-2xl text-gray-300 leading-relaxed mb-12">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-3xl p-12 w-[800px] min-w-[800px] h-[500px] text-center">
+                  <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-8">로그인</h1>
+                  <p className="text-2xl text-gray-600 dark:text-gray-300 leading-relaxed mb-12">
                     회원가입 시 입력한 휴대폰 번호를 입력하고<br />
                     회원 정보 확인 후 로그인하세요.
                   </p>
@@ -198,7 +198,7 @@ export default function LoginPage() {
                   type="text" 
                   value={phoneNumber} 
                   placeholder='010-0000-0000' 
-                  className="bg-gray-800 rounded-2xl p-4 text-center text-2xl font-bold text-white border-none outline-none placeholder-gray-400 w-full" 
+                  className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 text-center text-2xl font-bold text-gray-900 dark:text-white border-none outline-none placeholder-gray-400 dark:placeholder-gray-500 w-full" 
                   style={{ textAlign: 'center' }}
                   readOnly
                 />
@@ -235,7 +235,7 @@ export default function LoginPage() {
             text: "확인",
             className: `px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
               phoneNumber === ''
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                ? 'bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white'
             }`,
             onClick: handleConfirm,

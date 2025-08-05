@@ -24,19 +24,19 @@ const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, earnedPo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div className="bg-white rounded-3xl p-10 w-96 text-center space-y-8">
-        <h2 className="text-2xl font-extrabold leading-tight text-gray-900">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-10 w-96 text-center space-y-8">
+        <h2 className="text-2xl font-extrabold leading-tight text-gray-900 dark:text-white">
           자원순환에<br />참여해주셔서<br />감사합니다
         </h2>
 
         <div className="space-y-4">
           <div className="flex justify-between text-lg">
-            <span className="font-semibold text-gray-700">적립 포인트</span>
-            <span className="font-semibold text-gray-900">{earnedPoints} P</span>
+            <span className="font-semibold text-gray-600 dark:text-gray-300">적립 포인트</span>
+            <span className="font-semibold text-gray-900 dark:text-white">{earnedPoints} P</span>
           </div>
           <div className="flex justify-between text-lg">
-            <span className="font-semibold text-gray-700">누적 포인트</span>
-            <span className="font-semibold text-cyan-600">{totalPoints} P</span>
+            <span className="font-semibold text-gray-600 dark:text-gray-300">누적 포인트</span>
+            <span className="font-semibold text-cyan-500 dark:text-cyan-400">{totalPoints} P</span>
           </div>
         </div>
 

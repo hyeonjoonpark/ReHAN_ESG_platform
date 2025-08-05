@@ -106,7 +106,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen bg-darkblue-950 text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white dark:bg-darkblue-950 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={currentTime} />
 
@@ -118,8 +118,8 @@ export default function Home() {
             <h2 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
               페트몬 입문자를 위한 안내 가이드
             </h2>
-            <div className="w-full h-0.5 bg-white mb-4"></div>
-            <p className="text-base text-gray-300 max-w-2xl leading-relaxed">
+            <div className="w-full h-0.5 bg-gray-300 dark:bg-white mb-4"></div>
+            <p className="text-base text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
               투명 생수병 ai 무인회수기 페트몬을 찾아주셔서 감사합니다.<br />
               궁금하신 내용을 아래 버튼을 터치해 알아보세요.
             </p>
