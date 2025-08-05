@@ -92,12 +92,16 @@ app.post('/api/v1/hardware/test', (req, res) => {
   const { command } = req.body;
   
   if (command === 'belt_separator_complete') {
+    console.log('🧪 테스트 API: 띠분리 완료 신호 전송');
+    
     // 테스트용으로 띠분리 완료 신호 전송
     io.emit('hardware_status', {
       type: 'belt_separator_complete',
       data: { belt_separator: 1 },
       timestamp: new Date().toISOString()
     });
+    
+    console.log('✅ WebSocket으로 belt_separator_complete 이벤트 전송 완료');
     
     res.json({ 
       message: '띠분리 완료 테스트 신호가 전송되었습니다.',
@@ -156,9 +160,20 @@ app.post('/api/v1/hardware/test', (req, res) => {
       message: '전체 시퀀스 테스트가 시작되었습니다 (띠분리 완료 → 투입구 열림).',
       success: true 
     });
+  } else if (command === 'simulate_serial') {
+    // 시리얼 데이터 시뮬레이션 (실제 시리얼 핸들러를 통과)
+    console.log('🧪 시리얼 데이터 시뮬레이션: {"belt_separator":1}');
+    if (serialHandler) {
+      serialHandler.handleSerialData('{"belt_separator":1}');
+    }
+    
+    res.json({
+      message: '시리얼 데이터 시뮬레이션 완료: {"belt_separator":1}',
+      success: true
+    });
   } else {
     res.status(400).json({ 
-      message: '알 수 없는 명령입니다. 사용 가능한 명령: belt_separator_complete, hopper_open, full_sequence',
+      message: '알 수 없는 명령입니다. 사용 가능한 명령: belt_separator_complete, hopper_open, full_sequence, simulate_serial',
       success: false 
     });
   }

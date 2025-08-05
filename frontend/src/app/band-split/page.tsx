@@ -193,19 +193,36 @@ const BandSplit = () => {
             <div className="text-green-300 font-semibold">🧪 테스트</div>
             <button
               onClick={() => {
-                console.log('🧪 테스트 API 호출 중...');
+                console.log('🧪 WebSocket 직접 테스트 API 호출 중...');
                 fetch('/api/v1/hardware/test', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ command: 'belt_separator_complete' })
                 })
                 .then(res => res.json())
-                .then(data => console.log('🧪 테스트 API 응답:', data))
-                .catch(err => console.error('🧪 테스트 API 오류:', err));
+                .then(data => console.log('🧪 WebSocket 테스트 API 응답:', data))
+                .catch(err => console.error('🧪 WebSocket 테스트 API 오류:', err));
               }}
               className="w-full bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs font-semibold"
             >
-              띠분리 완료 테스트
+              WebSocket 직접 테스트
+            </button>
+            
+            <button
+              onClick={() => {
+                console.log('🧪 시리얼 시뮬레이션 테스트 API 호출 중...');
+                fetch('/api/v1/hardware/test', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ command: 'simulate_serial' })
+                })
+                .then(res => res.json())
+                .then(data => console.log('🧪 시리얼 시뮬레이션 API 응답:', data))
+                .catch(err => console.error('🧪 시리얼 시뮬레이션 API 오류:', err));
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs font-semibold"
+            >
+              시리얼 시뮬레이션
             </button>
             
             <button
