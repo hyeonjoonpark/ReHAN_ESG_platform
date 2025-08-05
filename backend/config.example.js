@@ -15,5 +15,12 @@ module.exports = {
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'your_jwt_secret_key_here'
+  },
+  serial: {
+    port: process.env.SERIAL_PORT || '/dev/ttyTHS1', // Tegra UART 또는 /dev/ttyUSB0 for USB-Serial
+    baudRate: parseInt(process.env.SERIAL_BAUD_RATE) || 115200
+  },
+  websocket: {
+    corsOrigin: process.env.SOCKET_CORS_ORIGIN || 'http://localhost:3000'
   }
 }; 

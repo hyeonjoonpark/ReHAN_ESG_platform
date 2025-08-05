@@ -12,6 +12,7 @@ import OpenGateSection from '@/components/OpenGateSection';
 import CheckSection from '@/components/CheckResourceSection';
 import ResourceErrorSection from '@/components/ResourceErrorSection';
 import { SectionType } from '@/types/SectionType';
+import { useSocket } from '@/hooks/useSocket';
 
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -21,6 +22,17 @@ const BandSplit = () => {
   const router = useRouter();
 
   const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND); // 예시 값
+  
+  // WebSocket 연결
+  const { 
+    isConnected, 
+    beltSeparatorCompleted, 
+    hopperOpened,
+    hardwareStatus,
+    joinPage,
+    leavePage,
+    requestHardwareStatus 
+  } = useSocket();
 
   /**
    * TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
@@ -67,6 +79,36 @@ const BandSplit = () => {
     return () => clearInterval(timeInterval);
   }, []);
 
+  // 페이지 진입 시 WebSocket 페이지 참여
+  useEffect(() => {
+    joinPage('band-split');
+    
+    // 현재 하드웨어 상태 요청
+    requestHardwareStatus();
+
+    return () => {
+      leavePage('band-split');
+    };
+  }, [joinPage, leavePage, requestHardwareStatus]);
+
+  // 하드웨어 상태 변경 감지
+  useEffect(() => {
+    if (hardwareStatus) {
+      console.log('하드웨어 상태 변경 감지:', hardwareStatus);
+      
+      if (hardwareStatus.type === 'belt_separator_complete') {
+        console.log('띠분리 완료! 투입 완료 버튼 활성화');
+      }
+    }
+  }, [hardwareStatus]);
+
+  // 투입 완료 버튼 클릭 핸들러
+  const handleCompleteClick = () => {
+    if (beltSeparatorCompleted) {
+      setIsCompleteModalOpen(true);
+    }
+  };
+
   return (
     <div className="h-screen bg-white dark:bg-darkblue-950 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
@@ -90,13 +132,28 @@ const BandSplit = () => {
         rightButtons={[
           {
             text: '투입 완료',
-            disabled: true,
-            onClick: () => setIsCompleteModalOpen(true),
-            className:
-              'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-8 py-4 rounded-4xl text-white font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl',
+            disabled: !beltSeparatorCompleted,
+            onClick: handleCompleteClick,
+            className: `px-8 py-4 rounded-4xl font-semibold text-lg transition-all duration-300 ${
+              beltSeparatorCompleted
+                ? 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
+                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+            }`,
           },
         ]}
       />
+      
+      {/* WebSocket 연결 상태 표시 (개발용 - 배포 시 제거) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-4 right-4 bg-black bg-opacity-70 text-white p-2 rounded text-xs z-50">
+          <div>WebSocket: {isConnected ? '연결됨' : '연결 안됨'}</div>
+          <div>띠분리 완료: {beltSeparatorCompleted ? '✅ 완료' : '⏳ 대기중'}</div>
+          <div>투입구 열림: {hopperOpened ? '✅ 완료' : '⏳ 대기중'}</div>
+          {hardwareStatus && (
+            <div>마지막 신호: {hardwareStatus.type} ({new Date(hardwareStatus.timestamp).toLocaleTimeString()})</div>
+          )}
+        </div>
+      )}
       {/* 완료 모달 */}
       <CompleteModal
         isOpen={isCompleteModalOpen}
