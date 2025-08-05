@@ -68,6 +68,18 @@ class SerialHandler {
       this.isConnected = false;
     });
 
+    // Raw 데이터 수신 (파서를 거치기 전)
+    this.port.on('data', (buffer) => {
+      const rawHex = buffer.toString('hex');
+      const rawString = buffer.toString('utf8');
+      console.log('🔍 Raw 시리얼 포트 데이터:', {
+        hex: rawHex,
+        string: `"${rawString}"`,
+        bytes: buffer.length,
+        buffer: Array.from(buffer)
+      });
+    });
+
     // 에러 처리 (더 안전하게)
     this.port.on('error', (err) => {
       console.warn('⚠️  시리얼 포트 에러:', err.message);
@@ -78,7 +90,17 @@ class SerialHandler {
     // 데이터 수신
     if (this.parser) {
       this.parser.on('data', (data) => {
-        this.handleSerialData(data.toString().trim());
+        const rawData = data.toString();
+        const trimmedData = rawData.trim();
+        
+        console.log('🔄 Parser에서 데이터 수신:', {
+          raw: `"${rawData}"`,
+          trimmed: `"${trimmedData}"`,
+          length: rawData.length,
+          trimmedLength: trimmedData.length
+        });
+        
+        this.handleSerialData(trimmedData);
       });
     }
   }
@@ -86,10 +108,26 @@ class SerialHandler {
   // 시리얼 데이터 처리
   handleSerialData(data) {
     try {
-      console.log('시리얼 데이터 수신:', data);
+      // ========== 상세 시리얼 데이터 로그 ==========
+      const timestamp = new Date().toISOString();
+      const dataLength = data.length;
+      const dataHex = Buffer.from(data, 'utf8').toString('hex');
+      
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log(`📥 시리얼 데이터 수신 [${timestamp}]`);
+      console.log(`📊 데이터 길이: ${dataLength} bytes`);
+      console.log(`📝 Raw 데이터: "${data}"`);
+      console.log(`🔢 16진수: ${dataHex}`);
+      console.log(`📋 데이터 타입: ${typeof data}`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       // JSON 파싱 시도
       const parsedData = JSON.parse(data);
+      
+      // JSON 파싱 성공 로그
+      console.log('✅ JSON 파싱 성공:');
+      console.log('🗂️  파싱된 객체:', JSON.stringify(parsedData, null, 2));
+      console.log('🔑 객체 키들:', Object.keys(parsedData));
       
       // belt_separator 신호 확인
       if (parsedData.belt_separator === 1) {
@@ -141,13 +179,22 @@ class SerialHandler {
       });
 
     } catch (error) {
-      console.warn('시리얼 데이터 JSON 파싱 실패:', data, error.message);
+      // JSON 파싱 실패 상세 로그
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.warn('❌ JSON 파싱 실패:');
+      console.warn(`🔍 에러 메시지: ${error.message}`);
+      console.warn(`📝 원본 데이터: "${data}"`);
+      console.warn(`📊 데이터 길이: ${data.length} bytes`);
+      console.warn(`🔢 16진수: ${Buffer.from(data, 'utf8').toString('hex')}`);
+      console.warn('💡 비JSON 데이터이거나 형식이 잘못되었습니다');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       // JSON이 아닌 데이터도 전송
       this.socketIO.emit('serial_data', {
         raw_data: data,
         parsed_data: null,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        error: error.message
       });
     }
   }
@@ -161,11 +208,29 @@ class SerialHandler {
 
     try {
       const dataToSend = typeof data === 'object' ? JSON.stringify(data) : data;
-      this.port.write(dataToSend + '\n');
-      console.log('📤 시리얼 데이터 전송:', dataToSend);
+      const finalData = dataToSend + '\n';
+      
+      // ========== 상세 시리얼 전송 로그 ==========
+      const timestamp = new Date().toISOString();
+      const dataLength = finalData.length;
+      const dataHex = Buffer.from(finalData, 'utf8').toString('hex');
+      
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log(`📤 시리얼 데이터 전송 [${timestamp}]`);
+      console.log(`📊 데이터 길이: ${dataLength} bytes (개행 포함)`);
+      console.log(`📝 전송 데이터: "${dataToSend}"`);
+      console.log(`🔢 16진수: ${dataHex}`);
+      console.log(`📋 원본 타입: ${typeof data}`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      this.port.write(finalData);
       return true;
     } catch (error) {
-      console.warn('⚠️  시리얼 데이터 전송 실패:', error.message);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.warn('❌ 시리얼 데이터 전송 실패:');
+      console.warn(`🔍 에러 메시지: ${error.message}`);
+      console.warn(`📝 전송하려던 데이터: ${data}`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return false;
     }
   }
