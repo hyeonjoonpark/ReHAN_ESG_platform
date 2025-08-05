@@ -11,6 +11,7 @@ class SocketHandler {
     });
 
     this.connectedClients = new Map();
+    this.serialHandler = null; // SerialHandler 참조를 저장
     this.setupEventListeners();
   }
 
@@ -39,9 +40,14 @@ class SocketHandler {
         // 페이지별 룸에 참여
         socket.join(pageInfo.page);
         
-        // 현재 하드웨어 상태 전송 (만약 저장된 상태가 있다면)
+        // 현재 하드웨어 상태 전송
+        const currentStatus = this.serialHandler ? 
+          this.serialHandler.getCurrentHardwareStatus() : 
+          { belt_separator_complete: false, hopper_opened: false };
+          
+        console.log('📤 페이지 접속 시 현재 하드웨어 상태 전송:', currentStatus);
         socket.emit('current_hardware_status', {
-          belt_separator_complete: false, // TODO: 실제 상태로 교체
+          ...currentStatus,
           timestamp: new Date().toISOString()
         });
       });
@@ -54,8 +60,15 @@ class SocketHandler {
 
       // 하드웨어 상태 요청
       socket.on('request_hardware_status', () => {
+        console.log('📥 클라이언트에서 하드웨어 상태 요청:', socket.id);
+        
+        const currentStatus = this.serialHandler ? 
+          this.serialHandler.getCurrentHardwareStatus() : 
+          { belt_separator_complete: false, hopper_opened: false };
+          
+        console.log('📤 하드웨어 상태 응답 전송:', currentStatus);
         socket.emit('hardware_status_response', {
-          belt_separator_complete: false, // TODO: 실제 상태로 교체
+          ...currentStatus,
           timestamp: new Date().toISOString()
         });
       });
@@ -98,6 +111,12 @@ class SocketHandler {
   // Socket.IO 인스턴스 반환 (SerialHandler에서 사용)
   getIO() {
     return this.io;
+  }
+
+  // SerialHandler 참조 설정
+  setSerialHandler(serialHandler) {
+    this.serialHandler = serialHandler;
+    console.log('✅ SocketHandler에 SerialHandler 참조 설정 완료');
   }
 }
 

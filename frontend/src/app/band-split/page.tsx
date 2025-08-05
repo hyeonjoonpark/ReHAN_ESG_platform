@@ -227,8 +227,21 @@ const BandSplit = () => {
             
             <button
               onClick={() => {
-                console.log('🔄 상태 초기화');
-                setSectionType(SectionType.START_SPLIT_BAND);
+                console.log('🔄 상태 초기화 API 호출 중...');
+                
+                // 백엔드 상태 초기화
+                fetch('/api/v1/hardware/test', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ command: 'reset_state' })
+                })
+                .then(res => res.json())
+                .then(data => {
+                  console.log('🔄 상태 초기화 API 응답:', data);
+                  // 프론트엔드 상태도 초기화
+                  setSectionType(SectionType.START_SPLIT_BAND);
+                })
+                .catch(err => console.error('🔄 상태 초기화 API 오류:', err));
               }}
               className="w-full bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded text-xs font-semibold"
             >

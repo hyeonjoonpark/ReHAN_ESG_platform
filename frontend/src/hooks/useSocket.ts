@@ -119,14 +119,34 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
 
     // 현재 하드웨어 상태 수신
     socketRef.current.on('current_hardware_status', (data) => {
-      console.log('현재 하드웨어 상태:', data);
-      setBeltSeparatorCompleted(data.belt_separator_complete || false);
+      console.log('📊 현재 하드웨어 상태 수신:', data);
+      
+      // 상태 업데이트 (true 또는 false 모두 적용)
+      if (data.belt_separator_complete !== undefined) {
+        setBeltSeparatorCompleted(data.belt_separator_complete);
+        console.log('🔄 current_hardware_status - belt_separator_complete:', data.belt_separator_complete);
+      }
+      
+      if (data.hopper_opened !== undefined) {
+        setHopperOpened(data.hopper_opened);
+        console.log('🔄 current_hardware_status - hopper_opened:', data.hopper_opened);
+      }
     });
 
     // 하드웨어 상태 응답
     socketRef.current.on('hardware_status_response', (data) => {
-      console.log('하드웨어 상태 응답:', data);
-      setBeltSeparatorCompleted(data.belt_separator_complete || false);
+      console.log('📋 하드웨어 상태 응답:', data);
+      
+      // 상태 업데이트 (true 또는 false 모두 적용)
+      if (data.belt_separator_complete !== undefined) {
+        setBeltSeparatorCompleted(data.belt_separator_complete);
+        console.log('🔄 hardware_status_response - belt_separator_complete:', data.belt_separator_complete);
+      }
+      
+      if (data.hopper_opened !== undefined) {
+        setHopperOpened(data.hopper_opened);
+        console.log('🔄 hardware_status_response - hopper_opened:', data.hopper_opened);
+      }
     });
 
     // 시리얼 데이터 수신 (디버깅용)

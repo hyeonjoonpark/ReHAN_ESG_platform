@@ -53,6 +53,9 @@ const io = socketHandler.getIO();
 const serialHandler = new SerialHandler(io);
 serialHandler.initialize();
 
+// SocketHandler에 SerialHandler 참조 설정
+socketHandler.setSerialHandler(serialHandler);
+
 // 하드웨어 상태 API 엔드포인트
 app.get('/api/v1/hardware/status', (req, res) => {
   const serialStatus = serialHandler.getConnectionStatus();
@@ -94,6 +97,12 @@ app.post('/api/v1/hardware/test', (req, res) => {
   if (command === 'belt_separator_complete') {
     console.log('🧪 테스트 API: 띠분리 완료 신호 전송');
     
+    // SerialHandler 상태 업데이트
+    const newState = serialHandler.setTestState({
+      belt_separator_complete: true,
+      hopper_opened: true
+    });
+    
     // 테스트용으로 띠분리 완료 신호 전송
     io.emit('hardware_status', {
       type: 'belt_separator_complete',
@@ -102,10 +111,12 @@ app.post('/api/v1/hardware/test', (req, res) => {
     });
     
     console.log('✅ WebSocket으로 belt_separator_complete 이벤트 전송 완료');
+    console.log('💾 하드웨어 상태 업데이트:', newState);
     
     res.json({ 
       message: '띠분리 완료 테스트 신호가 전송되었습니다.',
-      success: true 
+      success: true,
+      hardware_state: newState
     });
   } else if (command === 'hopper_open') {
     // 테스트용으로 투입구 열림 신호 전송
@@ -171,9 +182,20 @@ app.post('/api/v1/hardware/test', (req, res) => {
       message: '시리얼 데이터 시뮬레이션 완료: {"belt_separator":1}',
       success: true
     });
+  } else if (command === 'reset_state') {
+    // 하드웨어 상태 초기화
+    console.log('🧪 테스트 API: 하드웨어 상태 초기화');
+    
+    const resetState = serialHandler.resetHardwareState();
+    
+    res.json({
+      message: '하드웨어 상태가 초기화되었습니다.',
+      success: true,
+      hardware_state: resetState
+    });
   } else {
     res.status(400).json({ 
-      message: '알 수 없는 명령입니다. 사용 가능한 명령: belt_separator_complete, hopper_open, full_sequence, simulate_serial',
+      message: '알 수 없는 명령입니다. 사용 가능한 명령: belt_separator_complete, hopper_open, full_sequence, simulate_serial, reset_state',
       success: false 
     });
   }

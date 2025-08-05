@@ -7,12 +7,19 @@ class SerialHandler {
     this.port = null;
     this.parser = null;
     this.isConnected = false;
+    
+    // 하드웨어 상태 추적
+    this.hardwareState = {
+      belt_separator_complete: false,
+      hopper_opened: false,
+      last_updated: new Date().toISOString()
+    };
   }
 
   // 시리얼 포트 초기화
   initialize() {
     try {
-      const portPath = process.env.SERIAL_PORT || '/dev/ttyTHS1'; // Tegra 하드웨어 UART (또는 /dev/ttyUSB0)
+      const portPath = process.env.SERIAL_PORT || '/dev/ttyUSB0'; // Tegra 하드웨어 UART (또는 /dev/ttyUSB0)
       const baudRate = parseInt(process.env.SERIAL_BAUD_RATE) || 115200;
 
       // 개발 환경에서 시리얼 포트 비활성화 옵션
@@ -121,6 +128,13 @@ class SerialHandler {
       if (parsedData.belt_separator === 1) {
         console.log('🎯 띠분리 완료 신호 수신');
         
+        // 하드웨어 상태 업데이트
+        this.hardwareState.belt_separator_complete = true;
+        this.hardwareState.hopper_opened = true; // 띠분리 완료되면 투입구도 열림
+        this.hardwareState.last_updated = new Date().toISOString();
+        
+        console.log('💾 하드웨어 상태 업데이트:', this.hardwareState);
+        
         // 모든 연결된 클라이언트에게 전송
         this.socketIO.emit('hardware_status', {
           type: 'belt_separator_complete',
@@ -150,6 +164,12 @@ class SerialHandler {
       // hopper_open 신호 확인 (투입구 열림)
       if (parsedData.hopper_open === 1) {
         console.log('🚪 투입구 열림 신호 수신');
+        
+        // 하드웨어 상태 업데이트
+        this.hardwareState.hopper_opened = true;
+        this.hardwareState.last_updated = new Date().toISOString();
+        
+        console.log('💾 투입구 상태 업데이트:', this.hardwareState);
         
         // 모든 연결된 클라이언트에게 전송
         this.socketIO.emit('hardware_status', {
@@ -224,6 +244,38 @@ class SerialHandler {
       portPath: this.port?.path || null,
       baudRate: this.port?.baudRate || null
     };
+  }
+
+  // 현재 하드웨어 상태 반환
+  getCurrentHardwareStatus() {
+    console.log('📊 현재 하드웨어 상태 요청:', this.hardwareState);
+    return {
+      ...this.hardwareState,
+      connection_status: this.isConnected
+    };
+  }
+
+  // 하드웨어 상태 초기화 (테스트용)
+  resetHardwareState() {
+    console.log('🔄 하드웨어 상태 초기화');
+    this.hardwareState = {
+      belt_separator_complete: false,
+      hopper_opened: false,
+      last_updated: new Date().toISOString()
+    };
+    return this.hardwareState;
+  }
+
+  // 테스트용 상태 설정
+  setTestState(state) {
+    console.log('🧪 테스트 상태 설정:', state);
+    this.hardwareState = {
+      ...this.hardwareState,
+      ...state,
+      last_updated: new Date().toISOString()
+    };
+    console.log('💾 업데이트된 상태:', this.hardwareState);
+    return this.hardwareState;
   }
 
   // 시리얼 포트 종료
