@@ -48,7 +48,6 @@ services:
   frontend:
     build:
       context: ./frontend
-      network: host
     container_name: petmon_frontend
     networks:
       - rehan_network
@@ -64,7 +63,7 @@ services:
 volumes:
   mysql_data:
     driver: local
-
 networks:
   rehan_network:
     driver: bridge
+
