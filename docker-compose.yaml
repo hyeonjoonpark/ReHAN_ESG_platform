@@ -2,14 +2,16 @@ services:
   backend:
     build:
       context: ./backend
-      network: host
     container_name: petmon_backend
-    network_mode: host
+    networks:
+      - rehan_network
+    ports:
+      - "3001:3001"
     depends_on:
       mysql:
         condition: service_healthy
     environment:
-      DB_HOST: localhost
+      DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: petmon
       DB_USER: root
@@ -26,9 +28,12 @@ services:
   mysql:
     image: mysql:8.0
     container_name: petmon_mysql
-    network_mode: host
+    networks:
+      - rehan_network
+    ports:
+      - "3306:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,16 +47,22 @@ services:
   frontend:
     build:
       context: ./frontend
-      network: host
     container_name: petmon_frontend
-    network_mode: host
+    networks:
+      - rehan_network
+    ports:
+      - "80:80"
     depends_on:
       - backend
     environment:
       - NODE_ENV=production
-      - BACKEND_URL=http://localhost:3001
+      - BACKEND_URL=http://backend:3001
     restart: unless-stopped
 
 volumes:
   mysql_data:
     driver: local
+
+networks:
+  rehan_network:
+    driver: bridge
