@@ -94,13 +94,18 @@ const BandSplit = () => {
   // 하드웨어 상태 변경 감지
   useEffect(() => {
     if (hardwareStatus) {
-      console.log('하드웨어 상태 변경 감지:', hardwareStatus);
+      console.log('🔍 하드웨어 상태 변경 감지:', hardwareStatus);
       
       if (hardwareStatus.type === 'belt_separator_complete') {
-        console.log('띠분리 완료! 투입 완료 버튼 활성화');
+        console.log('🎯 띠분리 완료 감지! UI 업데이트 중...');
+        // 투입구 열림 상태 업데이트
+        setSectionType(SectionType.OPEN_GATE);
+        
+        console.log('✅ 띠분리 완료! 투입 완료 버튼 활성화');
+        console.log('🔍 현재 beltSeparatorCompleted 상태:', beltSeparatorCompleted);
       }
     }
-  }, [hardwareStatus]);
+  }, [hardwareStatus, beltSeparatorCompleted]);
 
   // 투입 완료 버튼 클릭 핸들러
   const handleCompleteClick = () => {

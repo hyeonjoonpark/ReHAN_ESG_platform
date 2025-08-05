@@ -67,6 +67,26 @@ app.get('/api/v1/hardware/status', (req, res) => {
   });
 });
 
+// 하드웨어로 시리얼 데이터 전송 엔드포인트
+app.post('/api/v1/hardware/send', (req, res) => {
+  const { data } = req.body;
+  
+  const success = serialHandler.sendData(data);
+  
+  if (success) {
+    res.json({
+      message: '하드웨어로 데이터 전송 완료',
+      success: true,
+      data: data
+    });
+  } else {
+    res.status(500).json({
+      message: '하드웨어 데이터 전송 실패',
+      success: false
+    });
+  }
+});
+
 // 하드웨어 테스트용 엔드포인트 (개발용)
 app.post('/api/v1/hardware/test', (req, res) => {
   const { command } = req.body;

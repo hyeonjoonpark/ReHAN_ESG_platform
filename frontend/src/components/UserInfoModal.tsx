@@ -22,11 +22,7 @@ export default function UserInfoModal({ isOpen, onClose, userInfo, onConfirm }: 
             확인해주세요
           </h2>
           
-          <div className="text-left flex flex-col justify-between mb-6 h-20">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700 font-medium">이름</span>
-              <span className="text-gray-900 font-semibold">{userInfo?.user_name || 'OOO'}</span>
-            </div>
+          <div className="text-left flex flex-col justify-center mb-6 h-20">
             <div className="flex justify-between items-center">
               <span className="text-gray-700 font-medium">휴대번호</span>
               <span className="text-gray-900 font-semibold">{userInfo?.phone_number || '010-0000-0000'}</span>

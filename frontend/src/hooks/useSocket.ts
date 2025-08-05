@@ -49,7 +49,11 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
     
     socketRef.current = io(serverUrl, {
       withCredentials: true,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      timeout: 20000
     });
 
     // 연결 이벤트
@@ -66,17 +70,24 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
 
     // 하드웨어 상태 수신
     socketRef.current.on('hardware_status', (data: HardwareStatus) => {
-      console.log('하드웨어 상태 수신:', data);
+      console.log('🔍 하드웨어 상태 수신:', data);
+      console.log('🔍 수신된 타입:', data.type);
       setHardwareStatus(data);
       
       // 띠분리 완료 상태 업데이트
       if (data.type === 'belt_separator_complete') {
+        console.log('✅ 띠분리 완료 조건 충족! 상태 업데이트 중...');
         setBeltSeparatorCompleted(true);
         console.log('🎯 띠분리 완료 상태 활성화');
+        // 강제 로그로 상태 확인
+        setTimeout(() => {
+          console.log('🔍 1초 후 beltSeparatorCompleted 상태 확인 필요');
+        }, 1000);
       }
       
       // 투입구 열림 상태 업데이트
       if (data.type === 'hopper_open') {
+        console.log('✅ 투입구 열림 조건 충족! 상태 업데이트 중...');
         setHopperOpened(true);
         console.log('🚪 투입구 열림 상태 활성화');
       }
@@ -151,11 +162,11 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
     }
 
     return () => {
-      // 현재 페이지에서 나가기
-      if (currentPageRef.current) {
+      // 정리 작업을 더 안전하게
+      if (currentPageRef.current && socketRef.current?.connected) {
         leavePage(currentPageRef.current);
       }
-      disconnect();
+      // disconnect는 컴포넌트 언마운트 시에만
     };
   }, [autoConnect, serverUrl]);
 

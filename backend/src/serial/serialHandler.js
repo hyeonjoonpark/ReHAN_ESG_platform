@@ -101,6 +101,24 @@ class SerialHandler {
           data: parsedData,
           timestamp: new Date().toISOString()
         });
+        
+        // 자동으로 투입구 열림 명령 전송
+        setTimeout(() => {
+          const hopperOpenCommand = {
+            motor_stop: 0,
+            hopper_open: 1,
+            status_ok: 0,
+            status_error: 0,
+            grinder_on: 0,
+            grinder_off: 0,
+            grinder_foword: 0,
+            grinder_reverse: 0,
+            grinder_stop: 0
+          };
+          
+          console.log('🚪 투입구 열림 명령 자동 전송:', hopperOpenCommand);
+          this.sendData(hopperOpenCommand);
+        }, 1000); // 1초 후 전송
       }
       
       // hopper_open 신호 확인 (투입구 열림)
