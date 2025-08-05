@@ -47,8 +47,6 @@ services:
     network_mode: host
     depends_on:
       - backend
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
     environment:
       - NODE_ENV=production
       - BACKEND_URL=http://localhost:3001
