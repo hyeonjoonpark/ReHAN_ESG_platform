@@ -82,15 +82,30 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       // 띠분리 완료 상태 업데이트
       if (data.type === 'belt_separator_complete') {
         console.log('✅ 띠분리 완료 조건 충족! 상태 업데이트 중...');
-        setBeltSeparatorCompleted(true);
-        setHopperOpened(true); // 투입구도 함께 활성화
-        console.log('🎯 띠분리 완료 상태 활성화');
-        // 강제 로그로 상태 확인
+        console.log('🔄 현재 상태 (업데이트 전):', { beltSeparatorCompleted, hopperOpened });
+        
+        // 상태 업데이트를 여러 번 시도
+        setBeltSeparatorCompleted(prev => {
+          console.log('🎯 setBeltSeparatorCompleted 호출: prev =', prev, '-> true');
+          return true;
+        });
+        
+        setHopperOpened(prev => {
+          console.log('🚪 setHopperOpened 호출: prev =', prev, '-> true');  
+          return true;
+        });
+        
+        // 상태 변경 확인을 위한 타이머
         setTimeout(() => {
-          console.log('🔍 1초 후 상태 재확인:', {
-            beltSeparatorCompleted: true,
-            hopperOpened: true
-          });
+          console.log('🔍 상태 업데이트 후 1초 대기...');
+        }, 100);
+        
+        setTimeout(() => {
+          console.log('🔍 상태 업데이트 후 500ms 확인...');
+        }, 500);
+        
+        setTimeout(() => {
+          console.log('🔍 상태 업데이트 후 1초 확인...');
         }, 1000);
       }
       

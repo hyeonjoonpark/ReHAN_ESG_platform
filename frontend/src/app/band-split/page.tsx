@@ -91,6 +91,13 @@ const BandSplit = () => {
     };
   }, [joinPage, leavePage, requestHardwareStatus]);
 
+  // beltSeparatorCompleted 상태 변화 감지
+  useEffect(() => {
+    console.log('🎯 beltSeparatorCompleted 상태 변화:', beltSeparatorCompleted);
+    console.log('🚪 hopperOpened 상태:', hopperOpened);
+    console.log('📄 현재 sectionType:', sectionType);
+  }, [beltSeparatorCompleted, hopperOpened, sectionType]);
+
   // 하드웨어 상태 변경 감지
   useEffect(() => {
     if (hardwareStatus) {
@@ -98,19 +105,40 @@ const BandSplit = () => {
       
       if (hardwareStatus.type === 'belt_separator_complete') {
         console.log('🎯 띠분리 완료 감지! UI 업데이트 중...');
+        console.log('🔄 setSectionType 호출 전 - 현재:', sectionType);
+        
         // 투입구 열림 상태 업데이트
         setSectionType(SectionType.OPEN_GATE);
         
-        console.log('✅ 띠분리 완료! 투입 완료 버튼 활성화');
+        console.log('✅ setSectionType(OPEN_GATE) 호출 완료');
         console.log('🔍 현재 beltSeparatorCompleted 상태:', beltSeparatorCompleted);
+        
+        // 강제 리렌더링 확인
+        setTimeout(() => {
+          console.log('🕐 1초 후 상태 확인:', {
+            sectionType,
+            beltSeparatorCompleted,
+            hopperOpened
+          });
+        }, 1000);
       }
     }
-  }, [hardwareStatus, beltSeparatorCompleted]);
+  }, [hardwareStatus, sectionType, beltSeparatorCompleted, hopperOpened]);
 
   // 투입 완료 버튼 클릭 핸들러
   const handleCompleteClick = () => {
+    console.log('🖱️ 투입완료 버튼 클릭!');
+    console.log('🔍 클릭 시 상태:', {
+      beltSeparatorCompleted,
+      hopperOpened,
+      sectionType
+    });
+    
     if (beltSeparatorCompleted) {
+      console.log('✅ 조건 충족 - 모달 열기');
       setIsCompleteModalOpen(true);
+    } else {
+      console.log('❌ 조건 불충족 - beltSeparatorCompleted:', beltSeparatorCompleted);
     }
   };
 
