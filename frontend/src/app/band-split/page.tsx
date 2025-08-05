@@ -22,12 +22,13 @@ const BandSplit = () => {
   const router = useRouter();
 
   const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND); // 예시 값
-  
-  // WebSocket 연결
+
+  // 소켓 통신 훅 사용
   const { 
+    socket, 
     isConnected, 
     beltSeparatorCompleted, 
-    hopperOpened,
+    hopperOpened, 
     hardwareStatus,
     joinPage,
     leavePage,
@@ -43,6 +44,57 @@ const BandSplit = () => {
    * 띠를 제거해주세요!
    */
   const errorMessage: string = '내용물을 제거해주세요!';
+
+
+  // 페이지 진입 시 소켓 통신 및 시리얼 포트 관리
+  useEffect(() => {
+    console.log('🔌 band-split 페이지 진입 - 소켓 연결 상태:', isConnected);
+    
+    if (isConnected && socket) {
+      // 페이지 룸에 참여
+      joinPage('band-split');
+      
+      // 시리얼 포트 열기 요청
+      console.log('📡 시리얼 포트 열기 요청 전송');
+      socket.emit('serial_port_open');
+      
+      // 현재 하드웨어 상태 요청
+      requestHardwareStatus();
+      
+      // 시리얼 포트 응답 이벤트 리스너
+      socket.on('serial_port_opened', (data: any) => {
+        console.log('✅ 시리얼 포트 열림 응답:', data);
+      });
+      
+      socket.on('serial_port_error', (error: any) => {
+        console.error('❌ 시리얼 포트 오류:', error);
+      });
+    }
+    
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      if (socket) {
+        leavePage('band-split');
+        socket.off('serial_port_opened');
+        socket.off('serial_port_error');
+      }
+    };
+  }, [isConnected, socket, joinPage, leavePage, requestHardwareStatus]);
+
+  // 하드웨어 상태 변경 감지
+  useEffect(() => {
+    console.log('🔧 하드웨어 상태 변경:', {
+      beltSeparatorCompleted,
+      hopperOpened,
+      hardwareStatus
+    });
+    
+    // 띠분리 완료 시 섹션 타입 변경
+    if (beltSeparatorCompleted && hopperOpened) {
+      console.log('🚪 투입구 열림 - 섹션 타입을 OPEN_GATE로 변경');
+      setSectionType(SectionType.OPEN_GATE);
+    }
+  }, [beltSeparatorCompleted, hopperOpened, hardwareStatus]);
 
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
@@ -67,6 +119,11 @@ const BandSplit = () => {
     }
   };
 
+  const handleCompleteClick = () => {
+    console.log('🎯 투입 완료 버튼 클릭');
+    setIsCompleteModalOpen(true);
+  };
+
   // 현재 시간 업데이트
   useEffect(() => {
     const updateTime = () => {
@@ -78,69 +135,6 @@ const BandSplit = () => {
 
     return () => clearInterval(timeInterval);
   }, []);
-
-  // 페이지 진입 시 WebSocket 페이지 참여
-  useEffect(() => {
-    joinPage('band-split');
-    
-    // 현재 하드웨어 상태 요청
-    requestHardwareStatus();
-
-    return () => {
-      leavePage('band-split');
-    };
-  }, [joinPage, leavePage, requestHardwareStatus]);
-
-  // beltSeparatorCompleted 상태 변화 감지
-  useEffect(() => {
-    console.log('🎯 beltSeparatorCompleted 상태 변화:', beltSeparatorCompleted);
-    console.log('🚪 hopperOpened 상태:', hopperOpened);
-    console.log('📄 현재 sectionType:', sectionType);
-  }, [beltSeparatorCompleted, hopperOpened, sectionType]);
-
-  // 하드웨어 상태 변경 감지
-  useEffect(() => {
-    if (hardwareStatus) {
-      console.log('🔍 하드웨어 상태 변경 감지:', hardwareStatus);
-      
-      if (hardwareStatus.type === 'belt_separator_complete') {
-        console.log('🎯 띠분리 완료 감지! UI 업데이트 중...');
-        console.log('🔄 setSectionType 호출 전 - 현재:', sectionType);
-        
-        // 투입구 열림 상태 업데이트
-        setSectionType(SectionType.OPEN_GATE);
-        
-        console.log('✅ setSectionType(OPEN_GATE) 호출 완료');
-        console.log('🔍 현재 beltSeparatorCompleted 상태:', beltSeparatorCompleted);
-        
-        // 강제 리렌더링 확인
-        setTimeout(() => {
-          console.log('🕐 1초 후 상태 확인:', {
-            sectionType,
-            beltSeparatorCompleted,
-            hopperOpened
-          });
-        }, 1000);
-      }
-    }
-  }, [hardwareStatus, sectionType, beltSeparatorCompleted, hopperOpened]);
-
-  // 투입 완료 버튼 클릭 핸들러
-  const handleCompleteClick = () => {
-    console.log('🖱️ 투입완료 버튼 클릭!');
-    console.log('🔍 클릭 시 상태:', {
-      beltSeparatorCompleted,
-      hopperOpened,
-      sectionType
-    });
-    
-    if (beltSeparatorCompleted) {
-      console.log('✅ 조건 충족 - 모달 열기');
-      setIsCompleteModalOpen(true);
-    } else {
-      console.log('❌ 조건 불충족 - beltSeparatorCompleted:', beltSeparatorCompleted);
-    }
-  };
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
@@ -175,81 +169,6 @@ const BandSplit = () => {
           },
         ]}
       />
-      
-      {/* WebSocket 연결 상태 표시 (개발용 - 배포 시 제거) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-30 right-7 bg-black bg-opacity-80 text-white p-3 rounded-lg text-xs z-40 backdrop-blur-sm border border-gray-600 space-y-1 max-w-xs">
-          <div className="font-semibold text-blue-300">🔗 개발 모드</div>
-          <div>WebSocket: {isConnected ? '🟢 연결됨' : '🔴 연결 안됨'}</div>
-          <div>띠분리 완료: {beltSeparatorCompleted ? '✅ 완료' : '⏳ 대기중'}</div>
-          <div>투입구 열림: {hopperOpened ? '✅ 완료' : '⏳ 대기중'}</div>
-          <div className="text-yellow-300">Section: {sectionType}</div>
-          {hardwareStatus && (
-            <div className="text-gray-300">마지막 신호: {hardwareStatus.type} ({new Date(hardwareStatus.timestamp).toLocaleTimeString()})</div>
-          )}
-          
-          {/* 테스트 버튼들 */}
-          <div className="pt-2 border-t border-gray-600 space-y-1">
-            <div className="text-green-300 font-semibold">🧪 테스트</div>
-            <button
-              onClick={() => {
-                console.log('🧪 WebSocket 직접 테스트 API 호출 중...');
-                fetch('/api/v1/hardware/test', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ command: 'belt_separator_complete' })
-                })
-                .then(res => res.json())
-                .then(data => console.log('🧪 WebSocket 테스트 API 응답:', data))
-                .catch(err => console.error('🧪 WebSocket 테스트 API 오류:', err));
-              }}
-              className="w-full bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs font-semibold"
-            >
-              WebSocket 직접 테스트
-            </button>
-            
-            <button
-              onClick={() => {
-                console.log('🧪 시리얼 시뮬레이션 테스트 API 호출 중...');
-                fetch('/api/v1/hardware/test', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ command: 'simulate_serial' })
-                })
-                .then(res => res.json())
-                .then(data => console.log('🧪 시리얼 시뮬레이션 API 응답:', data))
-                .catch(err => console.error('🧪 시리얼 시뮬레이션 API 오류:', err));
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs font-semibold"
-            >
-              시리얼 시뮬레이션
-            </button>
-            
-            <button
-              onClick={() => {
-                console.log('🔄 상태 초기화 API 호출 중...');
-                
-                // 백엔드 상태 초기화
-                fetch('/api/v1/hardware/test', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ command: 'reset_state' })
-                })
-                .then(res => res.json())
-                .then(data => {
-                  console.log('🔄 상태 초기화 API 응답:', data);
-                  // 프론트엔드 상태도 초기화
-                  setSectionType(SectionType.START_SPLIT_BAND);
-                })
-                .catch(err => console.error('🔄 상태 초기화 API 오류:', err));
-              }}
-              className="w-full bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded text-xs font-semibold"
-            >
-              상태 초기화
-            </button>
-          </div>
-        </div>
-      )}
       {/* 완료 모달 */}
       <CompleteModal
         isOpen={isCompleteModalOpen}
