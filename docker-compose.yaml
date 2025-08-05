@@ -12,7 +12,7 @@ services:
       mysql:
         condition: service_healthy
     environment:
-      DB_HOST: mysql
+      DB_HOST: localhost
       DB_PORT: 3306
       DB_NAME: petmon
       DB_USER: root
