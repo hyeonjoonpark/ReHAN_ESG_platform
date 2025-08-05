@@ -14,6 +14,12 @@ import ResourceErrorSection from '@/components/ResourceErrorSection';
 import { SectionType } from '@/types/SectionType';
 import { useSocket } from '@/hooks/useSocket';
 
+// 시리얼 포트 응답 데이터 타입 정의
+interface SerialPortResponse {
+  status: string;
+  message: string;
+}
+
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
@@ -62,11 +68,11 @@ const BandSplit = () => {
       requestHardwareStatus();
       
       // 시리얼 포트 응답 이벤트 리스너
-      socket.on('serial_port_opened', (data: any) => {
+      socket.on('serial_port_opened', (data: SerialPortResponse) => {
         console.log('✅ 시리얼 포트 열림 응답:', data);
       });
       
-      socket.on('serial_port_error', (error: any) => {
+      socket.on('serial_port_error', (error: SerialPortResponse) => {
         console.error('❌ 시리얼 포트 오류:', error);
       });
     }
