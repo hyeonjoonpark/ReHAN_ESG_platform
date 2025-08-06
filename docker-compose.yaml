@@ -14,7 +14,6 @@ services:
       DB_NAME: petmon
       DB_USER: root
       DB_PASSWORD: srv123!
-      NODE_ENV: development
       SERIAL_PORT: /dev/ttyUSB0
     volumes:
       - ./backend:/app
