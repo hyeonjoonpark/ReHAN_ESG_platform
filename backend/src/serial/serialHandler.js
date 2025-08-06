@@ -60,10 +60,12 @@ class SerialHandler extends EventEmitter {
       if (err) {
         console.error(`❌ 포트 열기 오류 (${this.path}):`, err.message);
         this._isConnected = false;
+        this.emit('error', err);
         return;
       }
       this._isConnected = true;
       console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
+      this.emit('connected');
     });
 
     // 'readable' 이벤트는 포트에서 읽을 수 있는 데이터가 있을 때 발생합니다.
@@ -152,6 +154,11 @@ class SerialHandler extends EventEmitter {
   }
 
   send(data) {
+    if (this.testMode) {
+      console.log(`[TEST MODE] 데이터 전송 시뮬레이션: ${data}`);
+      return;
+    }
+
     if (this.port && this._isConnected) {
       this.port.write(data, (err) => {
         if (err) {

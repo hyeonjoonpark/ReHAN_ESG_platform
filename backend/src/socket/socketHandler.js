@@ -27,6 +27,7 @@ class SocketHandler {
     this.serialHandler = null;
     this.connectedClients = new Map(); // 연결된 클라이언트 관리
     this.pageRooms = new Map(); // 페이지별 룸 관리
+    this.pendingCommand = null; // 보류 중인 명령
 
     this.setupSocketEvents();
     console.log('🔌 Socket.IO 서버가 초기화되었습니다.');
@@ -39,7 +40,6 @@ class SocketHandler {
   setSerialHandler(serialHandler) {
     this.serialHandler = serialHandler;
 
-    // SerialHandler에서 발생하는 하드웨어 이벤트를 수신하여 클라이언트에 전파
     this.serialHandler.on('hardware_event', ({ type, data }) => {
       this.notifyHardwareStatus(type, data);
     });
@@ -237,7 +237,7 @@ class SocketHandler {
         }
       });
       
-      // 투입구 열기 요청 (serial_port_open 과 동일한 역할)
+      // 투입구 열기 요청
       socket.on('open_gate', () => {
         console.log(`🚪 클라이언트 ${socket.id}에서 투입구 열기 요청`);
         
@@ -247,17 +247,22 @@ class SocketHandler {
         
         try {
           if (this.serialHandler.isConnected()) {
-            return socket.emit('serial_port_opened', { status: 'already_open', message: '시리얼 포트가 이미 열려있습니다.' });
+            const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+            this.serialHandler.send(JSON.stringify(command));
+            console.log('✅ 투입구 열기 명령 즉시 전송 (이미 연결됨):', command);
+            return;
           }
           
           this.serialHandler.connect();
-          setTimeout(() => {
-            if (this.serialHandler.isConnected()) {
-              socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열렸습니다.' });
-            } else {
-              socket.emit('serial_port_error', { status: 'error', message: '시리얼 포트 열기에 실패했습니다.' });
-            }
-          }, 1000);
+          this.serialHandler.once('connected', () => {
+            const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+            this.serialHandler.send(JSON.stringify(command));
+            console.log('✅ 투입구 열기 명령 전송 (연결 후):', command);
+            socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
+          });
+          this.serialHandler.once('error', (err) => {
+             socket.emit('serial_port_error', { status: 'error', message: `시리얼 포트 열기 실패: ${err.message}` });
+          });
           
         } catch (error) {
           console.error('❌ 투입구 열기 요청 중 오류:', error.message);
@@ -324,13 +329,12 @@ class SocketHandler {
     console.log(`🔧 하드웨어 상태 알림:`, statusData);
     this.broadcastToAll('hardware_status', statusData);
 
-    // 투입구가 열렸다는 신호를 받으면, 투입구를 실제로 여는 명령을 하드웨어에 보냄
+    // 투입구가 열렸다는 신호를 받으면, 프론트엔드에 투입구 열 준비 완료를 알림
     if (type === 'belt_separator_complete') {
-      if (this.serialHandler && this.serialHandler.isConnected()) {
-        const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-        this.serialHandler.send(JSON.stringify(command));
-        console.log('✅ 투입구 열기 명령 전송:', command);
-      }
+      this.broadcastToPage('band-split', 'hopper_ready', {
+        message: 'Hopper is ready to be opened.'
+      });
+      console.log('✅ 띠 분리 완료, 프론트엔드에 투입구 열기 준비 알림');
     }
 
     // 페트병 투입이 감지되면, 7초 후 정상 배출 신호를 보냄

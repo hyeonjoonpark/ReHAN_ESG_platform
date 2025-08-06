@@ -35,7 +35,7 @@ const BandSplit = () => {
     socket, 
     isConnected, 
     beltSeparatorCompleted, 
-    hopperOpened, 
+    hopperOpened,
     petInserted,
     normallyEnd,
     joinPage,
@@ -76,30 +76,64 @@ const BandSplit = () => {
 
   // 하드웨어 상태 변경 감지 및 화면 전환
   useEffect(() => {
+    const handleHopperReady = () => {
+      console.log('✅ 투입구 준비 완료, 투입구 열기 요청');
+      if (socket) {
+        socket.emit('open_gate');
+      }
+    };
+
     // 띠분리 완료 시 섹션 타입 변경
     if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
-      console.log('✅ 띠 분리 완료 - 섹션 타입을 BAND_SPLIT_COMPLETE로 변경');
+      console.log('✅ 띠 분리 완료 - 섹션 타입을 OPEN_GATE로 변경');
       setSectionType(SectionType.OPEN_GATE);
     }
     
-    // 투입구 열림 시 (띠분리가 완료된 상태에서)
-    if (hopperOpened && sectionType === SectionType.BAND_SPLIT_COMPLETE) {
-      console.log('🚪 투입구 열림 - 섹션 타입을 OPEN_GATE로 변경');
-      setSectionType(SectionType.OPEN_GATE);
-    }
-    
-    // 페트병 투입 감지 시
-    if (petInserted && sectionType === SectionType.OPEN_GATE) {
-      console.log('✅ 페트병 투입 감지 - 섹션 타입을 CHECK_RESOURCE로 변경');
-      setSectionType(SectionType.CHECK_RESOURCE);
+    if (socket) {
+      socket.on('hopper_ready', handleHopperReady);
     }
 
-    // 정상 종료 시
+    // 페트병 투입 감지 시
+    if (petInserted && sectionType === SectionType.OPEN_GATE) {
+      console.log('✅ 페트병 투입 감지 - CHECK_RESOURCE로 변경 후 7초 뒤 정상배출');
+      setSectionType(SectionType.CHECK_RESOURCE);
+
+      const timer = setTimeout(() => {
+        if (socket) {
+          const normalEndData = {
+            motor_stop: 0,
+            hopper_open: 0,
+            status_ok: 1,
+            status_error: 0,
+            grinder_on: 0,
+            grinder_off: 0,
+            grinder_foword: 0,
+            grinder_reverse: 0,
+            grinder_stop: 0,
+          };
+          // 백엔드에 정상 배출 데이터 전송
+          socket.emit('serial_data', normalEndData);
+          // 화면을 정상 종료 상태로 변경
+          setSectionType(SectionType.NORMALLY_END);
+        }
+      }, 7000);
+
+      // 컴포넌트 언마운트 시 타이머 정리
+      return () => clearTimeout(timer);
+    }
+
+    // useSocket 훅에서 normally_end 이벤트를 받으면 화면 전환
     if (normallyEnd && sectionType === SectionType.CHECK_RESOURCE) {
-      console.log('✅ 정상 종료 - 섹션 타입을 NORMALLY_END로 변경');
+      console.log('✅ 정상 종료 신호 수신 - NORMALLY_END로 변경');
       setSectionType(SectionType.NORMALLY_END);
     }
-  }, [beltSeparatorCompleted, hopperOpened, petInserted, normallyEnd, sectionType]);
+    
+    return () => {
+      if (socket) {
+        socket.off('hopper_ready', handleHopperReady);
+      }
+    };
+  }, [beltSeparatorCompleted, petInserted, normallyEnd, sectionType, socket]);
 
   // 안내 섹션 렌더링 함수
   const renderSection = () => {

@@ -34,7 +34,6 @@ export default function LoginPage() {
   const [addressError, setAddressError] = useState<string | null>(null);
   const [userInfo] = useState<{
     phone_number: string;
-    user_name: string;
     user_point: number;
   } | null>(null);
   const router = useRouter();
@@ -170,7 +169,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={mounted ? currentTime : ''} />
 
@@ -182,7 +181,7 @@ export default function LoginPage() {
             <div className="w-full h-full justify-around items-center flex">
               {/* 가운데 - 로그인 영역 */}
               <div className="flex flex-col justify-center items-center space-y-8">
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-3xl p-12 w-[800px] min-w-[800px] h-[500px] text-center">
+                <div className="bg-gray-100 dark:bg-gray-900 rounded-3xl p-12 w-[800px] min-w-[800px] h-[500px] text-center">
                   <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-8">로그인</h1>
                   <p className="text-2xl text-gray-600 dark:text-gray-300 leading-relaxed mb-12">
                     회원가입 시 입력한 휴대폰 번호를 입력하고<br />
@@ -198,7 +197,7 @@ export default function LoginPage() {
                   type="text" 
                   value={phoneNumber} 
                   placeholder='010-0000-0000' 
-                  className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 text-center text-2xl font-bold text-gray-900 dark:text-white border-none outline-none placeholder-gray-400 dark:placeholder-gray-500 w-full" 
+                  className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-4 text-center text-2xl font-bold text-gray-900 dark:text-white border-none outline-none placeholder-gray-400 dark:placeholder-gray-500 w-full" 
                   style={{ textAlign: 'center' }}
                   readOnly
                 />
@@ -259,7 +258,7 @@ export default function LoginPage() {
       <UserInfoModal
         isOpen={isUserInfoModalOpen}
         onClose={() => setIsUserInfoModalOpen(false)}
-        userInfo={userInfo || { phone_number: '', user_name: '' }}
+        userInfo={userInfo || { phone_number: '' }}
         onConfirm={handleUserInfoConfirm}
       />
     </div>

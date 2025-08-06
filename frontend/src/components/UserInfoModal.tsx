@@ -5,7 +5,6 @@ interface UserInfoModalProps {
   onClose: () => void;
   userInfo: {
     phone_number: string;
-    user_name: string;
   };
   onConfirm: () => void;
 }
