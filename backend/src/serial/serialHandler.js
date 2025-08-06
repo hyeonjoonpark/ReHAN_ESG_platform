@@ -53,17 +53,13 @@ class SerialHandler extends EventEmitter {
     this.port = new SerialPort({
       path: this.path,
       baudRate: this.baudRate,
-      autoOpen: false,
+      autoOpen: true, // 포트를 자동으로 열도록 설정
     });
 
-    this.port.open((err) => {
-      if (err) {
-        console.error(`❌ 포트 열기 오류 (${this.path}):`, err.message);
-        this._isConnected = false;
-        return;
-      }
-      this._isConnected = true;
-      console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
+    // 'open' 이벤트는 포트가 성공적으로 열렸을 때 발생합니다.
+    this.port.on('open', () => {
+        this._isConnected = true;
+        console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
     });
 
     // [DEBUG] Raw 데이터를 직접 처리하도록 'data' 이벤트를 수신합니다.
