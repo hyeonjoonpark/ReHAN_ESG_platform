@@ -323,6 +323,30 @@ class SocketHandler {
     
     console.log(`🔧 하드웨어 상태 알림:`, statusData);
     this.broadcastToAll('hardware_status', statusData);
+
+    // 투입구가 열렸다는 신호를 받으면, 투입구를 실제로 여는 명령을 하드웨어에 보냄
+    if (type === 'belt_separator_complete') {
+      if (this.serialHandler && this.serialHandler.isConnected()) {
+        const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+        this.serialHandler.send(JSON.stringify(command));
+        console.log('✅ 투입구 열기 명령 전송:', command);
+      }
+    }
+
+    // 페트병 투입이 감지되면, 7초 후 정상 배출 신호를 보냄
+    if (type === 'input_pet_detected') {
+        this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
+        
+        setTimeout(() => {
+            if (this.serialHandler && this.serialHandler.isConnected()) {
+                const command = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+                this.serialHandler.send(JSON.stringify(command));
+                console.log('✅ 정상 배출 명령 전송:', command);
+                
+                this.broadcastToAll('hardware_status', { type: 'normally_end', data: {}, timestamp: new Date().toISOString() });
+            }
+        }, 7000);
+    }
   }
 
   /**

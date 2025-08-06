@@ -11,6 +11,7 @@ import { getFormattedCurrentTime } from '@/utils/updateTime';
 import OpenGateSection from '@/components/OpenGateSection';
 import CheckSection from '@/components/CheckResourceSection';
 import ResourceErrorSection from '@/components/ResourceErrorSection';
+import NormallyEndSection from '@/components/NormallyEndSection';
 import { SectionType } from '@/types/SectionType';
 import { useSocket } from '@/hooks/useSocket';
 
@@ -35,6 +36,8 @@ const BandSplit = () => {
     isConnected, 
     beltSeparatorCompleted, 
     hopperOpened, 
+    petInserted,
+    normallyEnd,
     joinPage,
     leavePage,
     requestHardwareStatus 
@@ -84,7 +87,19 @@ const BandSplit = () => {
       console.log('🚪 투입구 열림 - 섹션 타입을 OPEN_GATE로 변경');
       setSectionType(SectionType.OPEN_GATE);
     }
-  }, [beltSeparatorCompleted, hopperOpened, sectionType]);
+    
+    // 페트병 투입 감지 시
+    if (petInserted && sectionType === SectionType.OPEN_GATE) {
+      console.log('✅ 페트병 투입 감지 - 섹션 타입을 CHECK_RESOURCE로 변경');
+      setSectionType(SectionType.CHECK_RESOURCE);
+    }
+
+    // 정상 종료 시
+    if (normallyEnd && sectionType === SectionType.CHECK_RESOURCE) {
+      console.log('✅ 정상 종료 - 섹션 타입을 NORMALLY_END로 변경');
+      setSectionType(SectionType.NORMALLY_END);
+    }
+  }, [beltSeparatorCompleted, hopperOpened, petInserted, normallyEnd, sectionType]);
 
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
@@ -110,14 +125,15 @@ const BandSplit = () => {
             onRetryClick={() => setSectionType(SectionType.CHECK_RESOURCE)}
           />
         );
+      case SectionType.NORMALLY_END:
+        return <NormallyEndSection onHomeClick={() => router.replace('/')} />;
       default:
         return <StartSplitBandSections />;
     }
   };
 
   const handleCompleteClick = () => {
-    console.log('🎯 투입 완료 버튼 클릭');
-    setIsCompleteModalOpen(true);
+    
   };
 
   // 현재 시간 업데이트

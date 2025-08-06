@@ -132,15 +132,16 @@ class SerialHandler extends EventEmitter {
 
         if (json.belt_separator === 1) {
           console.log('[SUCCESS] Belt Separator Opened event detected.');
-          
           this.emit('hardware_event', {
             type: 'belt_separator_complete',
             data: json
           });
-
-          if (this.port && this._isConnected) {
-              this.port.write(JSON.stringify(this.openGateResponseData));
-          }
+        } else if (json.input_pet === 1) {
+          console.log('[SUCCESS] PET bottle input detected.');
+          this.emit('hardware_event', {
+            type: 'input_pet_detected',
+            data: json
+          });
         }
       } catch (e) {
         console.error(`[ERROR] Failed to parse JSON: "${receivedString}"`, e);

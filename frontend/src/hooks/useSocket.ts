@@ -37,6 +37,8 @@ interface UseSocketReturn {
   isConnected: boolean; // WebSocket 연결 상태
   beltSeparatorCompleted: boolean; // 띠분리 완료 상태
   hopperOpened: boolean; // 투입구 열림 상태
+  petInserted: boolean; // 페트병 투입 상태
+  normallyEnd: boolean; // 정상 종료 상태
   hardwareStatus: HardwareStatus | null; // 최근 하드웨어 상태 데이터
   connect: () => void; // WebSocket 연결 함수
   disconnect: () => void; // WebSocket 연결 해제 함수
@@ -63,6 +65,8 @@ export const useSocket = (): UseSocketReturn => {
   // 하드웨어 상태 관리
   const [beltSeparatorCompleted, setBeltSeparatorCompleted] = useState(false); // 띠분리 완료 상태
   const [hopperOpened, setHopperOpened] = useState(false); // 투입구 열림 상태
+  const [petInserted, setPetInserted] = useState(false); // 페트병 투입 상태
+  const [normallyEnd, setNormallyEnd] = useState(false); // 정상 종료 상태
   const [hardwareStatus, setHardwareStatus] = useState<HardwareStatus | null>(null); // 최근 하드웨어 이벤트
   
   // Socket.IO 클라이언트 참조 저장
@@ -101,9 +105,14 @@ export const useSocket = (): UseSocketReturn => {
         setHopperOpened(true); // 투입구 열림 상태도 함께 활성화하여 화면 전환 유도
       }
 
-      // 투입구 열림 이벤트 처리 (예시)
-      if (data.type === 'hopper_open') {
-        setHopperOpened(true);
+      // 페트병 투입 이벤트 처리
+      if (data.type === 'pet_inserted') {
+        setPetInserted(true);
+      }
+      
+      // 정상 종료 이벤트 처리
+      if (data.type === 'normally_end') {
+        setNormallyEnd(true);
       }
     });
   }, [serverUrl]);
@@ -160,6 +169,8 @@ export const useSocket = (): UseSocketReturn => {
     isConnected, // WebSocket 연결 상태
     beltSeparatorCompleted, // 띠분리 완료 상태
     hopperOpened, // 투입구 열림 상태
+    petInserted,
+    normallyEnd,
     hardwareStatus, // 최근 하드웨어 상태 데이터
     connect, // WebSocket 연결 함수
     disconnect, // WebSocket 연결 해제 함수
