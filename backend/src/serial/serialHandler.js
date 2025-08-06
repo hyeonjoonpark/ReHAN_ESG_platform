@@ -66,20 +66,23 @@ class SerialHandler extends EventEmitter {
       console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
     });
 
-    // Raw 데이터를 직접 처리하도록 'data' 이벤트를 수신합니다.
+    // [DEBUG] Raw 데이터를 직접 처리하도록 'data' 이벤트를 수신합니다.
     this.port.on('data', (chunk) => {
+      console.log(`[DEBUG] Chunk Received: ${chunk.toString('utf8')}`);
       this.buffer += chunk.toString('utf8');
+      console.log(`[DEBUG] Buffer State: ${this.buffer}`);
       
       let start, end;
-      // 버퍼에서 '{'로 시작하고 '}'로 끝나는 부분을 찾아서 처리합니다.
       while ((start = this.buffer.indexOf('{')) !== -1 && (end = this.buffer.indexOf('}', start)) !== -1) {
         const potentialJson = this.buffer.substring(start, end + 1);
+        console.log(`[DEBUG] Potential JSON Found: ${potentialJson}`);
         
         // 찾은 문자열이 유효한 JSON인지 확인하고 처리합니다.
         this.handleSerialData(potentialJson);
 
         // 처리한 부분은 버퍼에서 제거합니다.
         this.buffer = this.buffer.substring(end + 1);
+        console.log(`[DEBUG] Buffer after processing: ${this.buffer}`);
       }
     });
     
@@ -119,10 +122,10 @@ class SerialHandler extends EventEmitter {
     if (receivedString.startsWith('{') && receivedString.endsWith('}')) {
       try {
         const json = JSON.parse(receivedString);
-        console.log('Parsed JSON data:', json);
+        console.log('[SUCCESS] Parsed JSON data:', json);
 
         if (json.belt_separator === 1) {
-          console.log('Belt Separator Opened event detected.');
+          console.log('[SUCCESS] Belt Separator Opened event detected.');
           
           this.emit('hardware_event', {
             type: 'belt_separator_complete',
@@ -134,8 +137,10 @@ class SerialHandler extends EventEmitter {
           }
         }
       } catch (e) {
-        // 파싱에 실패하면, 아직 불완전한 데이터 조각일 수 있으므로 오류를 무시합니다.
+        console.error(`[ERROR] Failed to parse JSON: "${receivedString}"`, e);
       }
+    } else {
+        console.log(`[INFO] Ignoring non-JSON data: "${receivedString}"`);
     }
   }
 
