@@ -123,7 +123,7 @@ class SerialHandler extends EventEmitter {
           }
         }
       } catch (e) {
-        console.error(`Failed to parse JSON: "${receivedString}"`, e);
+        console.error(`Failed to parse JSON= "${receivedString}"`, e);
       }
     } else {
       // JSON 형식이 아닌 데이터는 로그만 남기고 무시 (예: 'UART0: on')
