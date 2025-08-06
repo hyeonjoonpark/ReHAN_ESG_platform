@@ -1,5 +1,6 @@
 export enum SectionType {
     START_SPLIT_BAND,
+    BAND_SPLIT_COMPLETE,
     OPEN_GATE,
     CHECK_RESOURCE,
     ERROR

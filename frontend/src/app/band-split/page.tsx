@@ -27,7 +27,7 @@ const BandSplit = () => {
   const totalPoints = 10;
   const router = useRouter();
 
-  const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND); // 예시 값
+  const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND);
 
   // 소켓 통신 훅 사용
   const { 
@@ -41,71 +41,64 @@ const BandSplit = () => {
     requestHardwareStatus 
   } = useSocket();
 
-  /**
-   * TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
-   * 투명 생수병이 아닙니다!
-   * 내용물을 제거해주세요!
-   * 라벨을 제거해주세요!
-   * 뚜껑을 제거해주세요!
-   * 띠를 제거해주세요!
-   */
   const errorMessage: string = '내용물을 제거해주세요!';
-
 
   // 페이지 진입 시 소켓 통신 및 시리얼 포트 관리
   useEffect(() => {
-    console.log('🔌 band-split 페이지 진입 - 소켓 연결 상태:', isConnected);
-    
     if (isConnected && socket) {
-      // 페이지 룸에 참여
       joinPage('band-split');
       
-      // 시리얼 포트 열기 요청
-      console.log('📡 시리얼 포트 열기 요청 전송');
-      socket.emit('serial_port_open');
+      console.log('📡 투입구 열기(시리얼 포트) 요청 전송');
+      socket.emit('open_gate');
       
-      // 현재 하드웨어 상태 요청
       requestHardwareStatus();
-      
-      // 시리얼 포트 응답 이벤트 리스너
-      socket.on('serial_port_opened', (data: SerialPortResponse) => {
+
+      const handleSerialOpened = (data: SerialPortResponse) => {
         console.log('✅ 시리얼 포트 열림 응답:', data);
-      });
+      };
       
-      socket.on('serial_port_error', (error: SerialPortResponse) => {
+      const handleSerialError = (error: SerialPortResponse) => {
         console.error('❌ 시리얼 포트 오류:', error);
-      });
-    }
-    
-    // 컴포넌트 언마운트 시 정리
-    return () => {
-      if (socket) {
+      };
+
+      socket.on('serial_port_opened', handleSerialOpened);
+      socket.on('serial_port_error', handleSerialError);
+
+      return () => {
         leavePage('band-split');
-        socket.off('serial_port_opened');
-        socket.off('serial_port_error');
-      }
-    };
+        socket.off('serial_port_opened', handleSerialOpened);
+        socket.off('serial_port_error', handleSerialError);
+      };
+    }
   }, [isConnected, socket, joinPage, leavePage, requestHardwareStatus]);
 
-  // 하드웨어 상태 변경 감지
+  // 하드웨어 상태 변경 감지 및 화면 전환
   useEffect(() => {
-    console.log('🔧 하드웨어 상태 변경:', {
-      beltSeparatorCompleted,
-      hopperOpened,
-      hardwareStatus
-    });
-    
     // 띠분리 완료 시 섹션 타입 변경
-    if (beltSeparatorCompleted && hopperOpened) {
+    if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
+      console.log('✅ 띠 분리 완료 - 섹션 타입을 BAND_SPLIT_COMPLETE로 변경');
+      setSectionType(SectionType.OPEN_GATE);
+    }
+    
+    // 투입구 열림 시 (띠분리가 완료된 상태에서)
+    if (hopperOpened && sectionType === SectionType.BAND_SPLIT_COMPLETE) {
       console.log('🚪 투입구 열림 - 섹션 타입을 OPEN_GATE로 변경');
       setSectionType(SectionType.OPEN_GATE);
     }
-  }, [beltSeparatorCompleted, hopperOpened, hardwareStatus]);
+  }, [beltSeparatorCompleted, hopperOpened, sectionType]);
 
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
-    // TODO : 실제 하드웨어 신호 데이터 기반으로 수정 예정
     switch (sectionType) {
+      case SectionType.START_SPLIT_BAND:
+        return <StartSplitBandSections />;
+      case SectionType.BAND_SPLIT_COMPLETE:
+        return (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <h1 className="text-5xl font-bold mb-4">띠 분리 완료!</h1>
+            <p className="text-2xl">페트병을 투입구에 넣어주세요.</p>
+          </div>
+        );
       case SectionType.OPEN_GATE:
         return <OpenGateSection />;
       case SectionType.CHECK_RESOURCE:
@@ -118,8 +111,6 @@ const BandSplit = () => {
             onRetryClick={() => setSectionType(SectionType.CHECK_RESOURCE)}
           />
         );
-      case SectionType.START_SPLIT_BAND:
-        return <StartSplitBandSections />;
       default:
         return <StartSplitBandSections />;
     }
@@ -165,10 +156,10 @@ const BandSplit = () => {
         rightButtons={[
           {
             text: '투입 완료',
-            disabled: !beltSeparatorCompleted,
+            disabled: sectionType !== SectionType.OPEN_GATE, // 투입구가 열렸을 때만 활성화
             onClick: handleCompleteClick,
             className: `px-8 py-4 rounded-4xl font-semibold text-lg transition-all duration-300 ${
-              beltSeparatorCompleted
+              sectionType === SectionType.OPEN_GATE
                 ? 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
                 : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
             }`,

@@ -97,8 +97,13 @@ export const useSocket = (): UseSocketReturn => {
       
       // 띠분리 완료 이벤트 처리
       if (data.type === 'belt_separator_complete') {
-        setBeltSeparatorCompleted(true); // 띠분리 완료 상태 활성화
-        setHopperOpened(true); // 투입구 열림 상태도 함께 활성화
+        setBeltSeparatorCompleted(true);
+        setHopperOpened(true); // 투입구 열림 상태도 함께 활성화하여 화면 전환 유도
+      }
+
+      // 투입구 열림 이벤트 처리 (예시)
+      if (data.type === 'hopper_open') {
+        setHopperOpened(true);
       }
     });
   }, [serverUrl]);
