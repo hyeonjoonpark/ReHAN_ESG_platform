@@ -101,13 +101,13 @@ class SerialHandler extends EventEmitter {
   }
 
   handleSerialData(data) {
-    const receivedString = data.trim();
+    const receivedString = data.toString().trim();
     console.log('Received data line:', receivedString);
 
     // 수신된 문자열이 유효한 JSON 형식인지 기본적인 확인
     if (receivedString.startsWith('{') && receivedString.endsWith('}')) {
       try {
-        const json = JSON.parse(receivedString.trim());
+        const json = JSON.parse(receivedString);
         console.log('Parsed JSON data:', json);
 
         if (json.belt_separator === 1) {
