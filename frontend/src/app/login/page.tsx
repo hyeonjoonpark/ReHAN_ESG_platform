@@ -146,7 +146,16 @@ export default function LoginPage() {
 
   // 나중에 API 연동
   const handleConfirm = async () => {
-    setIsUserInfoModalOpen(true); 
+    const response = await axios.post('/api/v1/login', {
+      phone_number: phoneNumber
+    });
+    if (response.status === 200) {
+      const token = response.data.token;
+      if (token) {
+        localStorage.setItem('accessToken', token);
+      }
+      setIsUserInfoModalOpen(true);
+    }
   };
 
   const handleUserInfoConfirm = () => {
@@ -258,7 +267,7 @@ export default function LoginPage() {
       <UserInfoModal
         isOpen={isUserInfoModalOpen}
         onClose={() => setIsUserInfoModalOpen(false)}
-        userInfo={userInfo || { phone_number: '' }}
+        phoneNumber={phoneNumber}
         onConfirm={handleUserInfoConfirm}
       />
     </div>
