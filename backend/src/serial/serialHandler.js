@@ -11,7 +11,6 @@ class SerialHandler extends EventEmitter {
     this._isConnected = false;
     this.testMode = process.env.NODE_ENV === 'development' && !this.path;
     this.testInterval = null;
-    this.readInterval = null; // 데이터 읽기 인터벌 핸들러
 
     this.openGateResponseData = {
       "motor_stop": 0,
@@ -54,7 +53,7 @@ class SerialHandler extends EventEmitter {
     this.port = new SerialPort({
       path: this.path,
       baudRate: this.baudRate,
-      autoOpen: false, // 포트를 수동으로 엽니다.
+      autoOpen: false,
     });
 
     this.port.open((err) => {
@@ -65,31 +64,29 @@ class SerialHandler extends EventEmitter {
       }
       this._isConnected = true;
       console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
-
-      // 포트가 열리면, 주기적으로 데이터를 읽어오는 로직을 시작합니다.
-      this.readInterval = setInterval(() => {
-        const data = this.port.read(); // 버퍼에서 모든 데이터를 읽어옵니다.
-        if (data) {
-          this.processDataChunk(data);
-        }
-      }, 100); // 100ms 마다 확인
     });
 
+    // 'readable' 이벤트는 포트에서 읽을 수 있는 데이터가 있을 때 발생합니다.
+    this.port.on('readable', () => {
+      let data;
+      // .read()는 버퍼에 있는 모든 데이터를 반환합니다.
+      while (null !== (data = this.port.read())) {
+        this.processDataChunk(data);
+      }
+    });
+    
     this.port.on('close', () => {
       this._isConnected = false;
       this.buffer = ''; 
-      clearInterval(this.readInterval); // 인터벌 정리
       console.log('🔌 시리얼 포트 연결이 닫혔습니다.');
     });
 
     this.port.on('error', (err) => {
       console.error('❌ 시리얼 포트 오류:', err.message);
       this._isConnected = false;
-      clearInterval(this.readInterval); // 인터벌 정리
     });
   }
 
-  // 데이터를 처리하는 로직을 별도 함수로 분리
   processDataChunk(chunk) {
     console.log(`[DEBUG] Chunk Read: ${chunk.toString('utf8')}`);
     this.buffer += chunk.toString('utf8');
