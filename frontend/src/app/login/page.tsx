@@ -32,10 +32,6 @@ export default function LoginPage() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
-  const [userInfo] = useState<{
-    phone_number: string;
-    user_point: number;
-  } | null>(null);
   const router = useRouter();
 
   // 위치 정보 가져오기
@@ -146,15 +142,8 @@ export default function LoginPage() {
 
   // 나중에 API 연동
   const handleConfirm = async () => {
-    const digits = phoneNumber.replace(/-/g, "");
-
-    // 최소 10자리(지역번호 포함) 검증
-    if (digits.length < 10 || digits.length > 11) {
-      alert("유효한 전화번호를 입력해주세요.");
-      return;
-    }
     const response = await axios.post('/api/v1/login', {
-      phone_number: digits
+      phone_number: phoneNumber
     });
     if (response.status === 200) {
       const token = response.data.token;
