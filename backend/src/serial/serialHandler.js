@@ -101,25 +101,24 @@ class SerialHandler extends EventEmitter {
   }
 
   handleSerialData(data) {
-    try {
-      const json = JSON.parse(data.toString());
-      console.log('Received data:', json);
+    const receivedString = JSON.parse(data.toString());
+    console.log(data);
+    console.log('Received data string:', receivedString);
 
-      if (json.belt_separator === 1) {
-        console.log('Belt Separator Opened');
-        
-        // 하드웨어 상태 변경 이벤트를 발생시켜 다른 모듈에 알림
-        this.emit('hardware_event', {
-          type: 'belt_separator_complete',
-          data: json
-        });
+    // 표준 JSON이 아닌 문자열에서 특정 패턴을 찾아 처리
+    if (receivedString.belt_separator === 1) {
+      console.log(1);
+      console.log('Belt Separator Opened event detected.');
+      
+      // 하드웨어 상태 변경 이벤트를 발생시켜 다른 모듈에 알림
+      this.emit('hardware_event', {
+        type: 'belt_separator_complete',
+        data: { belt_separator: 1 } // 프론트엔드로 전달할 데이터는 표준 JSON 형식 유지
+      });
 
-        if (this.port && this._isConnected) {
-            this.port.write(JSON.stringify(this.openGateResponseData));
-        }
+      if (this.port && this._isConnected) {
+          this.port.write(JSON.stringify(this.openGateResponseData));
       }
-    } catch (e) {
-      console.error('Failed to parse data', e);
     }
   }
 
