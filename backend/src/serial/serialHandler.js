@@ -10,7 +10,7 @@ class SerialHandler extends EventEmitter {
     this.path = process.env.SERIAL_PORT;
     this.baudRate = parseInt(process.env.SERIAL_BAUD_RATE, 10) || 115200;
     this._isConnected = false;
-    this.testMode = process.env.NODE_ENV === 'development' && !this.path;
+    this.testMode = process.env.NODE_ENV === 'development';
     this.testInterval = null;
 
     this.openGateResponseData = {
