@@ -236,6 +236,34 @@ class SocketHandler {
           });
         }
       });
+      
+      // 투입구 열기 요청 (serial_port_open 과 동일한 역할)
+      socket.on('open_gate', () => {
+        console.log(`🚪 클라이언트 ${socket.id}에서 투입구 열기 요청`);
+        
+        if (!this.serialHandler) {
+          return socket.emit('serial_port_error', { message: '시리얼 핸들러가 초기화되지 않았습니다.' });
+        }
+        
+        try {
+          if (this.serialHandler.isConnected()) {
+            return socket.emit('serial_port_opened', { status: 'already_open', message: '시리얼 포트가 이미 열려있습니다.' });
+          }
+          
+          this.serialHandler.connect();
+          setTimeout(() => {
+            if (this.serialHandler.isConnected()) {
+              socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열렸습니다.' });
+            } else {
+              socket.emit('serial_port_error', { status: 'error', message: '시리얼 포트 열기에 실패했습니다.' });
+            }
+          }, 1000);
+          
+        } catch (error) {
+          console.error('❌ 투입구 열기 요청 중 오류:', error.message);
+          socket.emit('serial_port_error', { message: error.message });
+        }
+      });
 
       // 연결 해제 처리
       socket.on('disconnect', (reason) => {
