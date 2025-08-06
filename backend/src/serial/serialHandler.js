@@ -1,12 +1,11 @@
 const { SerialPort } = require('serialport');
-const { ReadlineParser } = require('@serialport/parser-readline');
 const EventEmitter = require('events');
 
 class SerialHandler extends EventEmitter {
   constructor() {
     super();
     this.port = null;
-    this.parser = null; // 파서 인스턴스 추가
+    this.buffer = ''; // 데이터 조각을 저장할 버퍼
     this.path = process.env.SERIAL_PORT;
     this.baudRate = parseInt(process.env.SERIAL_BAUD_RATE, 10) || 115200;
     this._isConnected = false;
@@ -57,8 +56,6 @@ class SerialHandler extends EventEmitter {
       autoOpen: false,
     });
 
-    this.parser = this.port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
-
     this.port.open((err) => {
       if (err) {
         console.error(`❌ 포트 열기 오류 (${this.path}):`, err.message);
@@ -69,13 +66,29 @@ class SerialHandler extends EventEmitter {
       console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
     });
 
-    // 파서를 통해 완성된 데이터 라인을 수신
-    this.parser.on('data', (data) => this.handleSerialData(data));
+    // Raw 데이터를 직접 처리하도록 'data' 이벤트를 수신합니다.
+    this.port.on('data', (chunk) => {
+      this.buffer += chunk.toString('utf8');
+      
+      let start, end;
+      // 버퍼에서 '{'로 시작하고 '}'로 끝나는 부분을 찾아서 처리합니다.
+      while ((start = this.buffer.indexOf('{')) !== -1 && (end = this.buffer.indexOf('}', start)) !== -1) {
+        const potentialJson = this.buffer.substring(start, end + 1);
+        
+        // 찾은 문자열이 유효한 JSON인지 확인하고 처리합니다.
+        this.handleSerialData(potentialJson);
+
+        // 처리한 부분은 버퍼에서 제거합니다.
+        this.buffer = this.buffer.substring(end + 1);
+      }
+    });
     
     this.port.on('close', () => {
       this._isConnected = false;
+      this.buffer = ''; // 연결이 닫히면 버퍼를 비웁니다.
       console.log('🔌 시리얼 포트 연결이 닫혔습니다.');
     });
+
     this.port.on('error', (err) => {
       console.error('❌ 시리얼 포트 오류:', err.message);
       this._isConnected = false;
@@ -102,9 +115,7 @@ class SerialHandler extends EventEmitter {
 
   handleSerialData(data) {
     const receivedString = data.toString().trim();
-    console.log('Received data line:', receivedString);
 
-    // 수신된 문자열이 유효한 JSON 형식인지 기본적인 확인
     if (receivedString.startsWith('{') && receivedString.endsWith('}')) {
       try {
         const json = JSON.parse(receivedString);
@@ -123,11 +134,8 @@ class SerialHandler extends EventEmitter {
           }
         }
       } catch (e) {
-        console.error(`Failed to parse JSON= "${receivedString}"`, e);
+        // 파싱에 실패하면, 아직 불완전한 데이터 조각일 수 있으므로 오류를 무시합니다.
       }
-    } else {
-      // JSON 형식이 아닌 데이터는 로그만 남기고 무시 (예: 'UART0: on')
-      console.log('Ignoring non-JSON data:', receivedString);
     }
   }
 
