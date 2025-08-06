@@ -35,7 +35,6 @@ const BandSplit = () => {
     socket, 
     isConnected, 
     beltSeparatorCompleted, 
-    hopperOpened,
     petInserted,
     normallyEnd,
     joinPage,
