@@ -35,7 +35,6 @@ const BandSplit = () => {
     isConnected, 
     beltSeparatorCompleted, 
     hopperOpened, 
-    hardwareStatus,
     joinPage,
     leavePage,
     requestHardwareStatus 
