@@ -101,24 +101,33 @@ class SerialHandler extends EventEmitter {
   }
 
   handleSerialData(data) {
-    const receivedString = JSON.parse(data.toString());
-    console.log(data);
-    console.log('Received data string:', receivedString);
+    const receivedString = data.toString().trim();
+    console.log('Received data line:', receivedString);
 
-    // 표준 JSON이 아닌 문자열에서 특정 패턴을 찾아 처리
-    if (receivedString.belt_separator === 1) {
-      console.log(1);
-      console.log('Belt Separator Opened event detected.');
-      
-      // 하드웨어 상태 변경 이벤트를 발생시켜 다른 모듈에 알림
-      this.emit('hardware_event', {
-        type: 'belt_separator_complete',
-        data: { belt_separator: 1 } // 프론트엔드로 전달할 데이터는 표준 JSON 형식 유지
-      });
+    // 수신된 문자열이 유효한 JSON 형식인지 기본적인 확인
+    if (receivedString.startsWith('{') && receivedString.endsWith('}')) {
+      try {
+        const json = JSON.parse(receivedString);
+        console.log('Parsed JSON data:', json);
 
-      if (this.port && this._isConnected) {
-          this.port.write(JSON.stringify(this.openGateResponseData));
+        if (json.belt_separator === 1) {
+          console.log('Belt Separator Opened event detected.');
+          
+          this.emit('hardware_event', {
+            type: 'belt_separator_complete',
+            data: json
+          });
+
+          if (this.port && this._isConnected) {
+              this.port.write(JSON.stringify(this.openGateResponseData));
+          }
+        }
+      } catch (e) {
+        console.error(`Failed to parse JSON: "${receivedString}"`, e);
       }
+    } else {
+      // JSON 형식이 아닌 데이터는 로그만 남기고 무시 (예: 'UART0: on')
+      console.log('Ignoring non-JSON data:', receivedString);
     }
   }
 
