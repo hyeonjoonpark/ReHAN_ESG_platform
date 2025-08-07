@@ -270,6 +270,28 @@ class SocketHandler {
         }
       });
 
+      // 시리얼 데이터 수신 (프론트엔드로부터)
+      socket.on('serial_data', (data) => {
+        console.log(`💻 클라이언트 ${socket.id}로부터 시리얼 데이터 수신:`, data);
+
+        // 프론트엔드에서 투입 완료 버튼을 눌렀을 때
+        if (data && data.input_pet === 1) {
+          if (this.serialHandler && this.serialHandler.isConnected()) {
+            const command = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+            this.serialHandler.send(JSON.stringify(command));
+            console.log('✅ 정상 배출 명령 전송 (프론트엔드 요청):', command);
+            
+            // 프론트엔드에 정상 종료 알림
+            this.broadcastToAll('hardware_status', { type: 'normally_end', data: {}, timestamp: new Date().toISOString() });
+          } else {
+            console.error('❌ 시리얼 핸들러가 연결되지 않아 정상 배출 명령을 보낼 수 없습니다.');
+            socket.emit('hardware_status_error', {
+              message: '시리얼 핸들러가 연결되지 않았습니다.'
+            });
+          }
+        }
+      });
+
       // 연결 해제 처리
       socket.on('disconnect', (reason) => {
         console.log(`🔗 클라이언트 연결 해제: ${socket.id}, 이유: ${reason}`);
@@ -337,19 +359,33 @@ class SocketHandler {
       console.log('✅ 띠 분리 완료, 프론트엔드에 투입구 열기 준비 알림');
     }
 
-    // 페트병 투입이 감지되면, 7초 후 정상 배출 신호를 보냄
+    // 페트병 투입이 감지되면 프론트엔드에 알림
     if (type === 'input_pet_detected') {
-        this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
-        
-        setTimeout(() => {
-            if (this.serialHandler && this.serialHandler.isConnected()) {
-                const command = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-                this.serialHandler.send(JSON.stringify(command));
-                console.log('✅ 정상 배출 명령 전송:', command);
-                
-                this.broadcastToAll('hardware_status', { type: 'normally_end', data: {}, timestamp: new Date().toISOString() });
-            }
-        }, 7000);
+      this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
+      console.log('🐾 페트병 투입 감지, 프론트엔드에 알림.');
+    }
+
+    // 올바른 제품 감지 시 -> 그라인더 정방향 회전
+    if (type === 'clear_pet_detected') {
+      console.log('✅ 올바른 제품 감지, 그라인더 정방향 회전 명령 전송');
+      const command = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
+      if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
+    }
+    
+    // 분쇄 완료 시 -> 그라인더 정지
+    if (type === 'grinder_end_detected') {
+      console.log('✅ 분쇄 완료, 그라인더 정지 명령 전송');
+      const command = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":1};
+      if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
+    }
+
+    // 불량 제품 감지 시 -> 비정상 반환
+    if (type === 'err_pet_detected') {
+      console.log('❌ 불량 제품 감지, 비정상 반환 명령 전송');
+      const command = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":1,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+      if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
+      // 프론트엔드에 에러 상태 전송
+      this.broadcastToAll('hardware_status', { type: 'resource_error', data, timestamp: new Date().toISOString() });
     }
   }
 

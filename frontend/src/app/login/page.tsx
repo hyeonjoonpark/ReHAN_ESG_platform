@@ -12,6 +12,7 @@ import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
 import axios from 'axios';
 import { KeypadSizeType } from '@/types/KeypadSizeType';
+import LoginErrorModal from '@/components/LoginErrorModal';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
@@ -31,6 +32,7 @@ export default function LoginPage() {
   } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
+  const [isLoginErrorModalOpen, setIsLoginErrorModalOpen] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -142,15 +144,20 @@ export default function LoginPage() {
 
   // 나중에 API 연동
   const handleConfirm = async () => {
-    const response = await axios.post('/api/v1/login', {
-      phone_number: phoneNumber
-    });
-    if (response.status === 200) {
-      const token = response.data.token;
-      if (token) {
-        localStorage.setItem('accessToken', token);
+    try {
+      const response = await axios.post('/api/v1/login', {
+        phone_number: phoneNumber
+      });
+      if (response.status === 200) {
+        const token = response.data.token;
+        if (token) {
+          localStorage.setItem('accessToken', token);
+        }
+        setIsUserInfoModalOpen(true);
       }
-      setIsUserInfoModalOpen(true);
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      setIsLoginErrorModalOpen(true);
     }
   };
 
@@ -265,6 +272,11 @@ export default function LoginPage() {
         onClose={() => setIsUserInfoModalOpen(false)}
         phoneNumber={phoneNumber}
         onConfirm={handleUserInfoConfirm}
+      />
+
+      <LoginErrorModal
+        isOpen={isLoginErrorModalOpen}
+        onClose={() => setIsLoginErrorModalOpen(false)}
       />
     </div>
   );

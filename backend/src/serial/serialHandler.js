@@ -38,7 +38,8 @@ class SerialHandler extends EventEmitter {
     if (this.testMode) {
       this._isConnected = true;
       console.log('✅ 테스트 모드 연결 성공.');
-      this.testInterval = setInterval(() => {
+      // 5초 후에 띠 분리 완료 신호 발생
+      this.testTimeout = setTimeout(() => {
         const testData = JSON.stringify({ belt_separator: 1 });
         this.handleSerialData(testData);
       }, 5000);
@@ -109,7 +110,7 @@ class SerialHandler extends EventEmitter {
   disconnect() {
     if (this.testMode) {
       this._isConnected = false;
-      clearInterval(this.testInterval);
+      if (this.testTimeout) clearTimeout(this.testTimeout);
       console.log('🧪 테스트 모드 연결이 종료되었습니다.');
       return;
     }
@@ -133,17 +134,17 @@ class SerialHandler extends EventEmitter {
         console.log('[SUCCESS] Parsed JSON data:', json);
 
         if (json.belt_separator === 1) {
-          console.log('[SUCCESS] Belt Separator Opened event detected.');
-          this.emit('hardware_event', {
-            type: 'belt_separator_complete',
-            data: json
-          });
+          this.emit('hardware_event', { type: 'belt_separator_complete', data: json });
         } else if (json.input_pet === 1) {
-          console.log('[SUCCESS] PET bottle input detected.');
-          this.emit('hardware_event', {
-            type: 'input_pet_detected',
-            data: json
-          });
+          this.emit('hardware_event', { type: 'input_pet_detected', data: json });
+        } else if (json.clear_pet === 1 && json.err_pet === 0) {
+          this.emit('hardware_event', { type: 'clear_pet_detected', data: json });
+        } else if (json.clear_pet === 0 && json.err_pet === 1) {
+          this.emit('hardware_event', { type: 'err_pet_detected', data: json });
+        } else if (json.grinder === 1) {
+          this.emit('hardware_event', { type: 'grinder_direction_detected', data: json });
+        } else if (json.grinder === 0) {
+          this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
         }
       } catch (e) {
         console.error(`[ERROR] Failed to parse JSON: "${receivedString}"`, e);
@@ -156,6 +157,32 @@ class SerialHandler extends EventEmitter {
   send(data) {
     if (this.testMode) {
       console.log(`[TEST MODE] 데이터 전송 시뮬레이션: ${data}`);
+      try {
+        const command = JSON.parse(data);
+
+        // 정상 배출 명령 수신 시
+        if (command.status_ok === 1) {
+          console.log('[TEST MODE] 정상 배출 명령 수신. 3초 후 "올바른 제품" 신호 발생');
+          this.testTimeout = setTimeout(() => {
+            this.handleSerialData(JSON.stringify({ clear_pet: 1, err_pet: 0 }));
+          }, 3000);
+        }
+        // 그라인더 정방향 명령 수신 시
+        else if (command.grinder_foword === 1) {
+          console.log('[TEST MODE] 그라인더 정방향 명령 수신. 5초 후 "분쇄 완료" 신호 발생');
+          this.testTimeout = setTimeout(() => {
+            this.handleSerialData(JSON.stringify({ grinder: 0 }));
+          }, 5000);
+        }
+        // 그라인더 정지 명령 수신 시
+        else if (command.grinder_stop === 1) {
+          console.log('[TEST MODE] 그라인더 정지 명령 수신. 시나리오 종료.');
+          if (this.testTimeout) clearTimeout(this.testTimeout);
+        }
+
+      } catch (e) {
+        console.error('[TEST MODE] 전송 데이터 파싱 오류:', e);
+      }
       return;
     }
 
