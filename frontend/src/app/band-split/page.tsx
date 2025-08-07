@@ -121,11 +121,11 @@ const BandSplit = () => {
     //   return () => clearTimeout(timer);
     // }
 
-    // useSocket 훅에서 normally_end 이벤트를 받으면 화면 전환
-    if (normallyEnd && sectionType === SectionType.CHECK_RESOURCE) {
-      console.log('✅ 정상 종료 신호 수신 - NORMALLY_END로 변경');
-      setSectionType(SectionType.NORMALLY_END);
-    }
+    // useSocket 훅에서 normally_end 이벤트를 받으면 화면 전환 (타이머 기반으로 변경)
+    // if (normallyEnd && sectionType === SectionType.CHECK_RESOURCE) {
+    //   console.log('✅ 정상 종료 신호 수신 - NORMALLY_END로 변경');
+    //   setSectionType(SectionType.NORMALLY_END);
+    // }
     
     return () => {
       if (socket) {
@@ -185,6 +185,18 @@ const BandSplit = () => {
 
     return () => clearInterval(timeInterval);
   }, []);
+
+  // 7초 후 정상 종료 화면으로 전환하는 로직
+  useEffect(() => {
+    if (sectionType === SectionType.CHECK_RESOURCE) {
+      console.log('✅ 검사 화면 진입, 7초 후 정상 종료 화면으로 전환합니다.');
+      const timer = setTimeout(() => {
+        setSectionType(SectionType.NORMALLY_END);
+      }, 7000);
+
+      return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 정리
+    }
+  }, [sectionType]);
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
