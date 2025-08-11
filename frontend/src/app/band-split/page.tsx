@@ -80,7 +80,7 @@ const BandSplit = () => {
     try {
       const stored = window.localStorage.getItem('user_point');
       setUserHavedPoints(stored ? Number(stored) : 0);
-    } catch (_) {
+    } catch {
       setUserHavedPoints(0);
     }
   }, []);
