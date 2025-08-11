@@ -1,6 +1,6 @@
 import Keypad from "@/components/Keypad";
 import { KeypadSizeType } from "@/types/KeypadSizeType";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import AlertModal from "@/components/AlertModal";
 
@@ -11,15 +11,9 @@ interface RegisterProps {
 
 export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: RegisterProps) {
   const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const inputRef = useRef<HTMLInputElement>(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
   const [alertType, setAlertType] = useState<'success' | 'error'>("success");
-
-  // 컴포넌트 마운트 시 자동 포커스
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   // 전화번호 포매팅 (3-4-4)
   const formatPhone = (digits: string) => {
@@ -37,7 +31,6 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
       const newDigits = digits + num;
       return formatPhone(newDigits);
     });
-    inputRef.current?.focus();
   };
 
   // 삭제 버튼 클릭 (마지막 숫자 제거)
@@ -46,7 +39,6 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
       const digits = prev.replace(/-/g, '').slice(0, -1);
       return formatPhone(digits);
     });
-    inputRef.current?.focus();
   };
 
   const handleSignUp = async () => {
@@ -92,7 +84,6 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
   // 전체 지움
   const handleClear = () => {
     setPhoneNumber('');
-    inputRef.current?.focus();
   };
   return (
     <div className="relative flex flex-col items-center justify-center h-full">
@@ -123,12 +114,30 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
             <div className="text-sm text-white font-semibold">
               휴대폰번호를 입력해 회원가입을 하세요
             </div>
-            <input ref={inputRef} type="text" className="w-full h-12 rounded-full text-white font-semibold transition-all duration-300 bg-gray-700 placeholder:text-gray-400 placeholder:pl-4" 
+            <input type="text" 
+              style={{ textAlign: 'center' }}
+              className="w-full h-12 rounded-full text-white font-semibold transition-all duration-300 bg-gray-700 placeholder:text-gray-400 placeholder:pl-4" 
               placeholder="010-0000-0000"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
+              inputMode="none"
+              tabIndex={-1}
+              autoComplete="off"
+              onFocus={(e) => e.currentTarget.blur()}
+              onMouseDown={(e) => e.preventDefault()}
+              onTouchStart={(e) => e.preventDefault()}
               readOnly
             />
+
+            {
+              /**
+               * type="text" 
+                  value={phoneNumber} 
+                  placeholder='010-0000-0000' 
+               * style={{ textAlign: 'center' }}
+                  readOnly
+               */
+            }
             <button className="w-full h-12 bg-gray-700 hover:bg-gradient-to-r from-cyan-500 to-purple-500 px-6 rounded-full text-white font-semibold transition-all duration-300 whitespace-nowrap"
             onClick={handleSignUp}>
               완료

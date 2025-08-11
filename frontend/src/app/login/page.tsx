@@ -211,6 +211,7 @@ export default function LoginPage() {
                   placeholder='010-0000-0000' 
                   className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-4 text-center text-2xl font-bold text-gray-900 dark:text-white border-none outline-none placeholder-gray-400 dark:placeholder-gray-500 w-full" 
                   style={{ textAlign: 'center' }}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   readOnly
                 />
                 
