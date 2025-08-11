@@ -127,6 +127,7 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
               placeholder="010-0000-0000"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
+              readOnly
             />
             <button className="w-full h-12 bg-gray-700 hover:bg-gradient-to-r from-cyan-500 to-purple-500 px-6 rounded-full text-white font-semibold transition-all duration-300 whitespace-nowrap"
             onClick={handleSignUp}>
