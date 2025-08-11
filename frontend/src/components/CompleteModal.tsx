@@ -1,25 +1,42 @@
 import React from 'react';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 interface CompleteModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userHavedPoints: number;
   earnedPoints: number;
   totalPoints: number;
 }
 
-const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, earnedPoints, totalPoints }) => {
+const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, userHavedPoints, earnedPoints, totalPoints }) => {
   const router = useRouter();
   if (!isOpen) return null;
 
-  const handleComplete = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('phone_number');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_point');
-    localStorage.removeItem('address');
-    router.replace('/');
-    onClose();
+  const handleComplete = async () => {
+    try {
+      const phoneNumber = localStorage.getItem('phone_number');
+      if (phoneNumber) {
+        // 프록시(nginx/next rewrites)를 통해 상대경로 호출
+        await axios
+        .post('/api/v1/usage', 
+          { phone_number: phoneNumber }, 
+          { withCredentials: true }
+        );
+      }
+    } catch (e) {
+      // 로깅만 하고 UX는 계속 진행
+      console.error('사용 이력 저장 실패:', e);
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('phone_number');
+      localStorage.removeItem('user_name');
+      localStorage.removeItem('user_point');
+      localStorage.removeItem('address');
+      router.replace('/');
+      onClose();
+    }
   };
 
   return (
@@ -32,7 +49,7 @@ const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, earnedPo
         <div className="space-y-4">
           <div className="flex justify-between text-lg">
             <span className="font-semibold text-gray-600 dark:text-gray-300">적립 포인트</span>
-            <span className="font-semibold text-gray-900 dark:text-white">{earnedPoints} P</span>
+            <span className="font-semibold text-gray-900 dark:text-white">{userHavedPoints + earnedPoints} P</span>
           </div>
           <div className="flex justify-between text-lg">
             <span className="font-semibold text-gray-600 dark:text-gray-300">누적 포인트</span>
