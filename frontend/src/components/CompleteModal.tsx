@@ -32,9 +32,9 @@ const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, userHave
       // 로깅만 하고 UX는 계속 진행
       console.error('사용 이력 저장 실패:', e);
     } finally {
+      // 로그인에서 저장한 키(accessToken)에 맞춰 삭제
       localStorage.removeItem('access_token');
       localStorage.removeItem('phone_number');
-      localStorage.removeItem('user_name');
       localStorage.removeItem('user_point');
       localStorage.removeItem('address');
       router.replace('/');

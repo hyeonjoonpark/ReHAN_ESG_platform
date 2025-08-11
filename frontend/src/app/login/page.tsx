@@ -150,8 +150,11 @@ export default function LoginPage() {
       });
       if (response.status === 200) {
         const token = response.data.token;
+        const userPoint = response.data.user_point;
         if (token) {
-          localStorage.setItem('accessToken', token);
+          localStorage.setItem('access_token', token);
+          localStorage.setItem('user_point', userPoint);
+          localStorage.setItem('phone_number', phoneNumber);
         }
         setIsUserInfoModalOpen(true);
       }
