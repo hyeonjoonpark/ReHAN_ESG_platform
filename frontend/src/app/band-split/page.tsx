@@ -24,7 +24,7 @@ interface SerialPortResponse {
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
-  const userHavedPoints = localStorage.getItem('user_point');
+  const [userHavedPoints, setUserHavedPoints] = useState<number>(0);
   const earnedPoints = 10; // TODO: 실제 데이터로 수정
   const totalPoints = userHavedPoints ? Number(userHavedPoints) + earnedPoints : earnedPoints;
   const router = useRouter();
@@ -73,6 +73,12 @@ const BandSplit = () => {
       };
     }
   }, [isConnected, socket, joinPage, leavePage, requestHardwareStatus]);
+
+  // 클라이언트 마운트 후 localStorage에서 사용자 보유 포인트 로드
+  useEffect(() => {
+    const stored = localStorage.getItem('user_point');
+    setUserHavedPoints(stored ? Number(stored) : 0);
+  }, []);
 
   // 하드웨어 상태 변경 감지 및 화면 전환
   useEffect(() => {
@@ -236,7 +242,7 @@ const BandSplit = () => {
       <CompleteModal
         isOpen={isCompleteModalOpen}
         onClose={() => setIsCompleteModalOpen(false)}
-        userHavedPoints={userHavedPoints ? Number(userHavedPoints) : 0}
+        userHavedPoints={userHavedPoints}
         earnedPoints={earnedPoints}
         totalPoints={totalPoints}
       />
