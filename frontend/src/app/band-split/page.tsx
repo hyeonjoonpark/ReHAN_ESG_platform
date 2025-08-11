@@ -79,7 +79,8 @@ const BandSplit = () => {
     if (typeof window === 'undefined') return;
     try {
       const stored = window.localStorage.getItem('user_point');
-      setUserHavedPoints(stored ? Number(stored) : 0);
+      const n = Number(stored);
+      setUserHavedPoints(Number.isFinite(n) ? n : 0);
     } catch {
       setUserHavedPoints(0);
     }
