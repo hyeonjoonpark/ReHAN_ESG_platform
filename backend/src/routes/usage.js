@@ -1,6 +1,7 @@
 const express = require('express');
 const UsageUser = require('../models/usage_user/UsageUser');
 const User = require('../models/user/User');
+const { Op } = require('sequelize');
 const router = express.Router();
 
 // 사용 이력 저장 API
@@ -45,6 +46,33 @@ router.post('/usage', async (req, res) => {
     return res.status(201).json(responseData);
   } catch (error) {
     console.error('사용 이력 저장 오류:', error);
+    return res.status(500).json({ success: false, error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 오늘 사용 이력 개수 조회 API
+router.get('/usage/today-count', async (req, res) => {
+  try {
+    const phone = String(req.query.phone_number || '').replace(/[^0-9]/g, '');
+    if (!/^[0-9]{10,11}$/.test(phone)) {
+      return res.status(400).json({ success: false, error: '유효한 전화번호 형식이 아닙니다.' });
+    }
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const count = await UsageUser.count({
+      where: {
+        phone_number: phone,
+        created_at: { [Op.between]: [startOfDay, endOfDay] }
+      }
+    });
+
+    return res.json({ success: true, count });
+  } catch (error) {
+    console.error('오늘 사용 이력 개수 조회 오류:', error);
     return res.status(500).json({ success: false, error: '서버 오류가 발생했습니다.' });
   }
 });

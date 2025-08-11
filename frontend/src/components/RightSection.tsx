@@ -9,7 +9,7 @@ interface RightSectionProps {
 
 export default function RightSection({ mode = 'percent', remainingCount = 100, currentCount = 0 }: RightSectionProps) {
   const [percent] = useState<number>(0);
-
+  
   return (
     <section className="space-y-6">
       <div className="bg-gray-100 dark:bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-white/20">

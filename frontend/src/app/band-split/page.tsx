@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Header from '@/components/Header';
 import BottomInquire from '@/components/BottomInquire';
 import RightSection from '@/components/RightSection';
@@ -25,6 +26,8 @@ const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [userHavedPoints, setUserHavedPoints] = useState<number>(0);
+  const [currentCount, setCurrentCount] = useState<number>(0);
+  const [remainingCount, setRemainingCount] = useState<number>(100);
   const earnedPoints = 10; // TODO: 실제 데이터로 수정
   const totalPoints = userHavedPoints ? Number(userHavedPoints) + earnedPoints : earnedPoints;
   const router = useRouter();
@@ -84,6 +87,29 @@ const BandSplit = () => {
     } catch {
       setUserHavedPoints(0);
     }
+  }, []);
+
+  // 오늘 사용 이력 개수 불러오기 -> currentCount, remainingCount 설정
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const phone = window.localStorage.getItem('phone_number');
+    if (!phone) {
+      setCurrentCount(0);
+      setRemainingCount(100);
+      return;
+    }
+    const fetchCount = async () => {
+      try {
+        const res = await axios.get('/api/v1/usage/today-count', { params: { phone_number: phone } });
+        const count = Number(res.data?.count ?? 0);
+        setCurrentCount(Number.isFinite(count) ? count : 0);
+        setRemainingCount(Math.max(0, 100 - (Number.isFinite(count) ? count : 0)));
+      } catch {
+        setCurrentCount(0);
+        setRemainingCount(100);
+      }
+    };
+    fetchCount();
   }, []);
 
   // 하드웨어 상태 변경 감지 및 화면 전환
@@ -224,7 +250,7 @@ const BandSplit = () => {
             {renderSection()}
 
             {/* 오른쪽 - 사이드바 */}
-            <RightSection mode="counts" remainingCount={100} currentCount={0} />
+            <RightSection mode="counts" remainingCount={remainingCount} currentCount={currentCount} />
           </section>
         </div>
       </main>
