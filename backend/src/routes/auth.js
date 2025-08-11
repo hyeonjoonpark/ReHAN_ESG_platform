@@ -136,7 +136,7 @@ router.post('/login', async (req, res) => {
       token: token, // 토큰을 응답 본문에 추가
       user: {
         phone_number: user.phone_number,
-        user_point: user.user_point
+        user_point: user.user_point ? user.user_point : 0
       }
     };
     
