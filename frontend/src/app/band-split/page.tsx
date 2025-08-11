@@ -76,8 +76,13 @@ const BandSplit = () => {
 
   // 클라이언트 마운트 후 localStorage에서 사용자 보유 포인트 로드
   useEffect(() => {
-    const stored = localStorage.getItem('user_point');
-    setUserHavedPoints(stored ? Number(stored) : 0);
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem('user_point');
+      setUserHavedPoints(stored ? Number(stored) : 0);
+    } catch (_) {
+      setUserHavedPoints(0);
+    }
   }, []);
 
   // 하드웨어 상태 변경 감지 및 화면 전환
