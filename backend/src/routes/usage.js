@@ -1,5 +1,6 @@
 const express = require('express');
 const UsageUser = require('../models/usage_user/UsageUser');
+const User = require('../models/user/User');
 const router = express.Router();
 
 // 사용 이력 저장 API
@@ -20,10 +21,24 @@ router.post('/usage', async (req, res) => {
       console.log('전화번호 형식 오류 - 400 에러');
       return res.status(400).json({ success: false, error: '유효한 전화번호 형식이 아닙니다.' });
     }
+    // 포인트 유효성 검사
+    const nextPoints = Number(user_point);
+    if (!Number.isFinite(nextPoints) || nextPoints < 0) {
+      console.log('포인트 값 오류 - 400 에러');
+      return res.status(400).json({ success: false, error: '유효한 포인트 값을 입력해주세요.' });
+    }
+
+    // 사용자 존재 확인 후 업데이트
+    const user = await User.findByPk(cleanPhoneNumber);
+    if (!user) {
+      console.log('사용자 미존재 - 404 에러');
+      return res.status(404).json({ success: false, error: '등록되지 않은 사용자입니다.' });
+    }
+
+    await user.update({ user_point: nextPoints }, { where: { phone_number: cleanPhoneNumber } });
 
     // 사용 이력 생성
     await UsageUser.create({ phone_number: cleanPhoneNumber });
-    await User.update({ user_point: user_point }, { where: { phone_number: cleanPhoneNumber } });
 
     const responseData = { success: true, message: '사용 이력이 저장되었습니다.' };
     console.log('응답 데이터:', responseData);
