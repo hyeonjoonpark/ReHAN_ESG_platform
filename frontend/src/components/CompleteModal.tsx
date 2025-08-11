@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 interface CompleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userHavedPoints: number;
+  userHavedPoints?: number;
   earnedPoints: number;
   totalPoints: number;
 }
 
-const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, userHavedPoints, earnedPoints, totalPoints }) => {
+const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, userHavedPoints = 0, earnedPoints, totalPoints }) => {
   const router = useRouter();
   if (!isOpen) return null;
 
@@ -21,7 +21,10 @@ const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, userHave
         // 프록시(nginx/next rewrites)를 통해 상대경로 호출
         await axios
         .post('/api/v1/usage', 
-          { phone_number: phoneNumber }, 
+          { 
+            phone_number: phoneNumber,
+            user_point: userHavedPoints + earnedPoints
+          }, 
           { withCredentials: true }
         );
       }

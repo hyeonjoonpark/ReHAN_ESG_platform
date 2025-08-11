@@ -24,8 +24,9 @@ interface SerialPortResponse {
 const BandSplit = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
+  const userHavedPoints = localStorage.getItem('user_point');
   const earnedPoints = 10; // TODO: 실제 데이터로 수정
-  const totalPoints = 10;
+  const totalPoints = userHavedPoints ? Number(userHavedPoints) + earnedPoints : earnedPoints;
   const router = useRouter();
 
   const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND);
@@ -235,6 +236,7 @@ const BandSplit = () => {
       <CompleteModal
         isOpen={isCompleteModalOpen}
         onClose={() => setIsCompleteModalOpen(false)}
+        userHavedPoints={userHavedPoints ? Number(userHavedPoints) : 0}
         earnedPoints={earnedPoints}
         totalPoints={totalPoints}
       />
