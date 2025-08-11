@@ -106,6 +106,13 @@ router.post('/login', async (req, res) => {
       });
     }
     
+    // JWT 시크릿 확인
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret || jwtSecret.trim().length === 0) {
+      console.error('JWT 시크릿이 설정되지 않았습니다. 환경변수 JWT_SECRET를 확인하세요.');
+      return res.status(500).json({ success: false, error: '서버 설정 오류(JWT). 관리자에게 문의하세요.' });
+    }
+
     // JWT 토큰 생성
     console.log('JWT 토큰 생성 중...');
     const token = jwt.sign(
@@ -113,7 +120,7 @@ router.post('/login', async (req, res) => {
         phone_number: user.phone_number, 
         user_name: user.user_name 
       },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: '24h' }
     );
     
