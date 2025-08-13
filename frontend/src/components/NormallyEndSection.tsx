@@ -1,9 +1,6 @@
 "use client";
-import { SectionType } from '@/types/SectionType';
-import { useRouter } from 'next/navigation';
 
 const NormallyEndSection = ({ onHomeClick, onAddMore }: { onHomeClick: () => void, onAddMore: () => void }) => {
-  const router = useRouter();
 
   return (
     <section className="lg:col-span-2 flex flex-col justify-start space-y-8">
