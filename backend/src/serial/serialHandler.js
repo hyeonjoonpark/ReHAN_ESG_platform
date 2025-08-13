@@ -9,6 +9,8 @@ class SerialHandler extends EventEmitter {
     this.path = process.env.SERIAL_PORT;
     this.baudRate = parseInt(process.env.SERIAL_BAUD_RATE, 10) || 115200;
     this._isConnected = false;
+    this._opening = false;   // 동시 열기 방지
+    this._closing = false;   // 동시 닫기 방지
     this.testMode = process.env.NODE_ENV === 'development' && !this.path;
     this.testInterval = null;
 
@@ -32,6 +34,10 @@ class SerialHandler extends EventEmitter {
   connect() {
     if (this._isConnected) {
       console.log('이미 연결되어 있습니다.');
+      return;
+    }
+    if (this._opening) {
+      console.log('이미 포트 열기 진행 중입니다.');
       return;
     }
     
@@ -71,17 +77,20 @@ class SerialHandler extends EventEmitter {
           }
           console.error(`❌ 포트 열기 오류 (${this.path}):`, message);
           this._isConnected = false;
+          this._opening = false;
           this.emit('error', err);
           return;
         }
 
         this._isConnected = true;
+        this._opening = false;
         console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
         this.emit('connected');
       });
     };
 
     // 기존 잠금이 남아있을 수 있어 최초 시도는 약간의 지연 후 실행
+    this._opening = true;
     setTimeout(() => openWithRetry(1), 200);
 
     // 'readable' 이벤트는 포트에서 읽을 수 있는 데이터가 있을 때 발생합니다.
@@ -130,13 +139,20 @@ class SerialHandler extends EventEmitter {
       return;
     }
 
+    if (this._closing) {
+      console.log('이미 포트 닫기 진행 중입니다.');
+      return;
+    }
+
     if (this.port) {
       try {
+        this._closing = true;
         this.port.close((err) => {
           if (err) {
             return console.error('❌ 포트 닫기 오류:', err.message);
           }
           console.log('✅ 포트가 성공적으로 닫혔습니다.');
+          this._closing = false;
         });
       } catch (e) {
         console.error('❌ 포트 닫기 중 예외:', e?.message || e);

@@ -28,6 +28,7 @@ class SocketHandler {
     this.connectedClients = new Map(); // 연결된 클라이언트 관리
     this.pageRooms = new Map(); // 페이지별 룸 관리
     this.pendingCommand = null; // 보류 중인 명령
+    this.serialOpening = false; // 시리얼 열기 진행 상태
 
     this.setupSocketEvents();
     console.log('🔌 Socket.IO 서버가 초기화되었습니다.');
@@ -176,6 +177,7 @@ class SocketHandler {
         try {
           if (this.serialHandler.disconnect) {
             this.serialHandler.disconnect();
+            this.serialOpening = false;
             socket.emit('serial_port_closed', {
               status: 'closed',
               message: '시리얼 포트가 닫혔습니다.'
@@ -252,16 +254,30 @@ class SocketHandler {
             console.log('✅ 투입구 열기 명령 즉시 전송 (이미 연결됨):', command);
             return;
           }
-          
+          // 이미 열기 진행 중이면 연결 완료까지 대기 후 전송
+          if (this.serialOpening) {
+            console.log('⏳ 시리얼 포트 열기 진행 중, 연결 완료 후 명령 전송 예정');
+            this.serialHandler.once('connected', () => {
+              const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+              this.serialHandler.send(JSON.stringify(command));
+              console.log('✅ 투입구 열기 명령 전송 (연결 후):', command);
+              socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
+            });
+            return;
+          }
+
+          this.serialOpening = true;
           this.serialHandler.connect();
           this.serialHandler.once('connected', () => {
+            this.serialOpening = false;
             const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
             this.serialHandler.send(JSON.stringify(command));
             console.log('✅ 투입구 열기 명령 전송 (연결 후):', command);
             socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
           });
           this.serialHandler.once('error', (err) => {
-             socket.emit('serial_port_error', { status: 'error', message: `시리얼 포트 열기 실패: ${err.message}` });
+            this.serialOpening = false;
+            socket.emit('serial_port_error', { status: 'error', message: `시리얼 포트 열기 실패: ${err.message}` });
           });
           
         } catch (error) {
