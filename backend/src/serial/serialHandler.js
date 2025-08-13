@@ -124,7 +124,8 @@ class SerialHandler extends EventEmitter {
     let start, end;
     while ((start = this.buffer.indexOf('{')) !== -1 && (end = this.buffer.indexOf('}', start)) !== -1) {
       const potentialJson = this.buffer.substring(start, end + 1);
-      log.debug(`Potential JSON Found: ${potentialJson}`);
+      // JSON 후보를 info 레벨로 노출하여 파싱 전/후를 쉽게 추적
+      log.info(`RX_JSON_CANDIDATE ${potentialJson}`);
       
       this.handleSerialData(potentialJson);
 
