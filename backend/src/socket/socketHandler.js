@@ -282,7 +282,11 @@ class SocketHandler {
             console.log('✅ 정상 배출 명령 전송 (프론트엔드 요청):', command);
             
             // 프론트엔드에 정상 종료 알림
-            this.broadcastToAll('hardware_status', { type: 'normally_end', data: {}, timestamp: new Date().toISOString() });
+            this.broadcastToAll('hardware_status', { 
+              type: 'normally_end', 
+              data: { source: 'frontend', command }, 
+              timestamp: new Date().toISOString() 
+            });
           } else {
             console.error('❌ 시리얼 핸들러가 연결되지 않아 정상 배출 명령을 보낼 수 없습니다.');
             socket.emit('hardware_status_error', {
