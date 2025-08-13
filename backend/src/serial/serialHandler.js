@@ -133,18 +133,27 @@ class SerialHandler extends EventEmitter {
         const json = JSON.parse(receivedString);
         console.log('[SUCCESS] Parsed JSON data:', json);
 
-        if (json.belt_separator === 1) {
-          this.emit('hardware_event', { type: 'belt_separator_complete', data: json });
-        } else if (json.input_pet === 1) {
-          this.emit('hardware_event', { type: 'input_pet_detected', data: json });
-        } else if (json.clear_pet === 1 && json.err_pet === 0) {
-          this.emit('hardware_event', { type: 'clear_pet_detected', data: json });
-        } else if (json.clear_pet === 0 && json.err_pet === 1) {
-          this.emit('hardware_event', { type: 'err_pet_detected', data: json });
-        } else if (json.grinder === 1) {
-          this.emit('hardware_event', { type: 'grinder_direction_detected', data: json });
-        } else if (json.grinder === 0) {
-          this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
+        switch (true) {
+          case json.belt_separator === 1:
+            this.emit('hardware_event', { type: 'belt_separator_complete', data: json });
+            break;
+          case json.input_pet === 1:
+            this.emit('hardware_event', { type: 'input_pet_detected', data: json });
+            break;
+          case json.clear_pet === 1 && json.err_pet === 0:
+            this.emit('hardware_event', { type: 'clear_pet_detected', data: json });
+            break;
+          case json.clear_pet === 0 && json.err_pet === 1:
+            this.emit('hardware_event', { type: 'err_pet_detected', data: json });
+            break;
+          case json.grinder === 1:
+            this.emit('hardware_event', { type: 'grinder_direction_detected', data: json });
+            break;
+          case json.grinder === 0:
+            this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
+            break;
+          default:
+            break;
         }
       } catch (e) {
         console.error(`[ERROR] Failed to parse JSON: "${receivedString}"`, e);

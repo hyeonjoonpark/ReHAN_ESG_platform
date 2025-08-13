@@ -368,21 +368,51 @@ class SocketHandler {
     // 올바른 제품 감지 시 -> 그라인더 정방향 회전
     if (type === 'clear_pet_detected') {
       console.log('✅ 올바른 제품 감지, 그라인더 정방향 회전 명령 전송');
-      const command = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
+      const command = {
+        "motor_stop":0,
+        "hopper_open":0,
+        "status_ok":0,
+        "status_error":0,
+        "grinder_on":0,
+        "grinder_off":0,
+        "grinder_foword":1,
+        "grinder_reverse":0,
+        "grinder_stop":0
+      };
       if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
     }
     
     // 분쇄 완료 시 -> 그라인더 정지
     if (type === 'grinder_end_detected') {
       console.log('✅ 분쇄 완료, 그라인더 정지 명령 전송');
-      const command = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":1};
+      const command = {
+        "motor_stop":0,
+        "hopper_open":0,
+        "status_ok":0,
+        "status_error":0,
+        "grinder_on":0,
+        "grinder_off":0,
+        "grinder_foword":0,
+        "grinder_reverse":0,
+        "grinder_stop":1
+      };
       if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
     }
 
     // 불량 제품 감지 시 -> 비정상 반환
     if (type === 'err_pet_detected') {
       console.log('❌ 불량 제품 감지, 비정상 반환 명령 전송');
-      const command = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":1,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+      const command = {
+        "motor_stop":0,
+        "hopper_open":0,
+        "status_ok":0,
+        "status_error":1,
+        "grinder_on":0,
+        "grinder_off":0,
+        "grinder_foword":0,
+        "grinder_reverse":0,
+        "grinder_stop":0
+      };
       if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
       // 프론트엔드에 에러 상태 전송
       this.broadcastToAll('hardware_status', { type: 'resource_error', data, timestamp: new Date().toISOString() });
