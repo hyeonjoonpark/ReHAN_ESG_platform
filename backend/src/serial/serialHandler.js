@@ -140,18 +140,18 @@ class SerialHandler extends EventEmitter {
           case json.input_pet === 1:
             this.emit('hardware_event', { type: 'input_pet_detected', data: json });
             break;
-          case json.clear_pet === 1 && json.err_pet === 0:
-            this.emit('hardware_event', { type: 'clear_pet_detected', data: json });
+          case json.clear_pet === 1 && json.grinder === 1:
+            this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
             break;
           case json.clear_pet === 0 && json.err_pet === 1:
             this.emit('hardware_event', { type: 'err_pet_detected', data: json });
             break;
-          case json.grinder === 1:
-            this.emit('hardware_event', { type: 'grinder_direction_detected', data: json });
-            break;
-          case json.grinder === 0:
-            this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
-            break;
+          // case json.grinder === 1:
+          //   this.emit('hardware_event', { type: 'grinder_direction_detected', data: json });
+          //   break;
+          // case json.grinder === 0:
+          //   this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
+          //   break;
           default:
             break;
         }

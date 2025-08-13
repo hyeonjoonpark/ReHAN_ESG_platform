@@ -386,7 +386,7 @@ class SocketHandler {
     }
 
     // 올바른 제품 감지 시 -> 그라인더 정방향 회전
-    if (type === 'clear_pet_detected') {
+    if (type === 'grinder_foword_detected') {
       console.log('✅ 올바른 제품 감지, 그라인더 정방향 회전 명령 전송');
       const command = {
         "motor_stop":0,
