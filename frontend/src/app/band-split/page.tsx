@@ -33,6 +33,8 @@ const BandSplit = () => {
   const router = useRouter();
 
   const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND);
+  const [waitingForHardware, setWaitingForHardware] = useState<boolean>(false);
+  const [retryCount, setRetryCount] = useState<number>(0);
 
   // 소켓 통신 훅 사용
   const { 
@@ -43,7 +45,8 @@ const BandSplit = () => {
     normallyEnd,
     joinPage,
     leavePage,
-    requestHardwareStatus 
+    requestHardwareStatus,
+    resetFlags
   } = useSocket();
 
   const errorMessage: string = '내용물을 제거해주세요!';
@@ -56,8 +59,8 @@ const BandSplit = () => {
     initializedRef.current = true;
 
     joinPage('band-split');
-    console.log('📡 투입구 열기(시리얼 포트) 요청 전송');
-    socket.emit('open_gate');
+    console.log('📡 초기 진입 - 시리얼 포트 열기 및 상태 요청 (open_gate 지연)');
+    socket.emit('serial_port_open');
     requestHardwareStatus();
 
     const handleSerialOpened = (data: SerialPortResponse) => {
@@ -125,6 +128,7 @@ const BandSplit = () => {
     // 띠분리 완료 시 섹션 타입 변경
     if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
       console.log('✅ 띠 분리 완료 - 섹션 타입을 OPEN_GATE로 변경');
+      setWaitingForHardware(false);
       setSectionType(SectionType.OPEN_GATE);
     }
     
@@ -195,7 +199,12 @@ const BandSplit = () => {
           />
         );
       case SectionType.NORMALLY_END:
-        return <NormallyEndSection onHomeClick={() => router.replace('/')} onAddMore={() => setSectionType(SectionType.START_SPLIT_BAND)} />;
+        return <NormallyEndSection onHomeClick={() => router.replace('/')} onAddMore={() => { 
+          resetFlags();
+          setRetryCount(0);
+          setWaitingForHardware(true);
+          setSectionType(SectionType.START_SPLIT_BAND); 
+        }} />;
       default:
         return <StartSplitBandSections />;
     }
@@ -242,14 +251,37 @@ const BandSplit = () => {
     // 페이지 룸 재참여(중복 참여는 socket.io에서 안전)
     joinPage('band-split');
 
-    // 재연결 유도: 닫고 다시 열기 + 상태 요청
-    console.log('📡 START_SPLIT_BAND 진입 - 시리얼 재연결 및 투입구 열기/상태 요청 재실행');
+    // 재연결 유도: 닫고 다시 열기 + 상태 요청 (open_gate는 hopper_ready에서만 보냄)
+    console.log('📡 START_SPLIT_BAND 진입 - 시리얼 재연결 및 상태 요청 (open_gate 지연)');
     socket.emit('serial_port_close');
     setTimeout(() => {
-      socket.emit('open_gate');
+      socket.emit('serial_port_open');
       requestHardwareStatus();
     }, 300);
   }, [sectionType, socket, joinPage, requestHardwareStatus]);
+
+  // 대기 상태에서 belt_separator를 못 받으면 자동 재시도 (최대 3회, 5초 간격)
+  useEffect(() => {
+    if (!waitingForHardware || sectionType !== SectionType.START_SPLIT_BAND) return;
+    if (!socket) return;
+
+    if (beltSeparatorCompleted) {
+      setWaitingForHardware(false);
+      setRetryCount(0);
+      return;
+    }
+
+    if (retryCount >= 3) return;
+
+    const timer = setTimeout(() => {
+      console.log(`⏳ belt_separator 대기 중 재시도 #${retryCount + 1}`);
+      socket.emit('serial_port_open');
+      requestHardwareStatus();
+      setRetryCount((c) => c + 1);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [waitingForHardware, beltSeparatorCompleted, retryCount, sectionType, socket, requestHardwareStatus]);
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">

@@ -45,6 +45,7 @@ interface UseSocketReturn {
   joinPage: (page: string) => void; // 특정 페이지 룸 참여 함수
   leavePage: (page: string) => void; // 특정 페이지 룸 나가기 함수
   requestHardwareStatus: () => void; // 현재 하드웨어 상태 요청 함수
+  resetFlags: () => void; // 내부 플래그 초기화 함수
 }
 
 /**
@@ -163,6 +164,17 @@ export const useSocket = (): UseSocketReturn => {
     return () => disconnect(); // 컴포넌트 언마운트 시 연결 해제
   }, [connect]);
 
+  /**
+   * 플래그 초기화: 다음 사이클을 belt_separator부터 다시 받기 위해 상태를 비움
+   */
+  const resetFlags = useCallback(() => {
+    setBeltSeparatorCompleted(false);
+    setHopperOpened(false);
+    setPetInserted(false);
+    setNormallyEnd(false);
+    setHardwareStatus(null);
+  }, []);
+
   // 훅에서 제공하는 상태와 함수들을 반환
   return {
     socket: socketRef.current, // Socket.IO 클라이언트 인스턴스
@@ -176,6 +188,7 @@ export const useSocket = (): UseSocketReturn => {
     disconnect, // WebSocket 연결 해제 함수
     joinPage, // 페이지 룸 참여 함수
     leavePage, // 페이지 룸 나가기 함수
-    requestHardwareStatus // 하드웨어 상태 요청 함수
+    requestHardwareStatus, // 하드웨어 상태 요청 함수
+    resetFlags // 내부 플래그 초기화 함수
   };
 };

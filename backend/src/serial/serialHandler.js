@@ -183,7 +183,7 @@ class SerialHandler extends EventEmitter {
             break;
           // 올바른 제품 감지
           // { clear_pet: 1, err_pet: 0 }
-          case json.clear_pet === 1 && json.grinder === 1:
+          case json.clear_pet === 1 && (json.grinder === 1 || json.err_pet === 0):
             this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
             break;
           case json.clear_pet === 0 && json.err_pet === 1:
