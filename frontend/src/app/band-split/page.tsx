@@ -195,7 +195,7 @@ const BandSplit = () => {
           />
         );
       case SectionType.NORMALLY_END:
-        return <NormallyEndSection onHomeClick={() => router.replace('/')} />;
+        return <NormallyEndSection onHomeClick={() => router.replace('/')} onAddMore={() => setSectionType(SectionType.START_SPLIT_BAND)} />;
       default:
         return <StartSplitBandSections />;
     }
@@ -233,6 +233,23 @@ const BandSplit = () => {
       return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 정리
     }
   }, [sectionType]);
+
+  // START_SPLIT_BAND로 전환될 때마다 초기 시퀀스 재실행(시리얼 재연결 유도)
+  useEffect(() => {
+    if (!socket) return;
+    if (sectionType !== SectionType.START_SPLIT_BAND) return;
+
+    // 페이지 룸 재참여(중복 참여는 socket.io에서 안전)
+    joinPage('band-split');
+
+    // 재연결 유도: 닫고 다시 열기 + 상태 요청
+    console.log('📡 START_SPLIT_BAND 진입 - 시리얼 재연결 및 투입구 열기/상태 요청 재실행');
+    socket.emit('serial_port_close');
+    setTimeout(() => {
+      socket.emit('open_gate');
+      requestHardwareStatus();
+    }, 300);
+  }, [sectionType, socket, joinPage, requestHardwareStatus]);
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
