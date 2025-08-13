@@ -23,6 +23,31 @@ const socketHandler = new SocketHandler(server);
 // 시리얼 핸들러와 소켓 핸들러 연결
 socketHandler.setSerialHandler(serialHandler);
 
+// 프로세스 전역 에러 감지 및 브로드캐스트
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  try {
+    socketHandler.broadcastToAll('server_error', {
+      source: 'uncaughtException',
+      message: err?.message || 'Unknown error',
+      stack: process.env.NODE_ENV === 'production' ? undefined : err?.stack,
+      timestamp: new Date().toISOString()
+    });
+  } catch (_) {}
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('❌ Unhandled Rejection:', reason);
+  try {
+    socketHandler.broadcastToAll('server_error', {
+      source: 'unhandledRejection',
+      message: (reason && (reason.message || String(reason))) || 'Unknown rejection',
+      stack: process.env.NODE_ENV === 'production' ? undefined : (reason && reason.stack),
+      timestamp: new Date().toISOString()
+    });
+  } catch (_) {}
+});
+
 // 미들웨어 설정
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
@@ -47,6 +72,25 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   exposedHeaders: ['Set-Cookie']
 }));
+
+// 빌드/배포 상태 리포트 API (CI/CD 훅에서 호출)
+app.post('/api/v1/system/build-status', (req, res) => {
+  try {
+    const { status, stage, message, meta } = req.body || {};
+    if (status === 'error') {
+      socketHandler.broadcastToAll('build_error', {
+        stage: stage || 'unknown',
+        message: message || '빌드/배포 오류가 발생했습니다.',
+        meta: meta || {},
+        timestamp: new Date().toISOString()
+      });
+    }
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('❌ 빌드 상태 리포트 처리 중 오류:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // 시리얼 포트 제어 API 라우트
 app.post('/api/v1/serial/open', (req, res) => {
@@ -205,6 +249,23 @@ app.get("/health", (req, res) => {
     status: "healthy",
     timestamp: new Date().toISOString()
   });
+});
+
+// Express 전역 에러 처리 미들웨어 (라우트 뒤)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('❌ 전역 에러 미들웨어:', err);
+  try {
+    socketHandler.broadcastToAll('server_error', {
+      source: 'express',
+      path: req?.path,
+      method: req?.method,
+      message: err?.message || '서버 오류가 발생했습니다.',
+      stack: process.env.NODE_ENV === 'production' ? undefined : err?.stack,
+      timestamp: new Date().toISOString()
+    });
+  } catch (_) {}
+  return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
 });
 
 // 데이터베이스 연결 테스트 및 시드 데이터 생성
