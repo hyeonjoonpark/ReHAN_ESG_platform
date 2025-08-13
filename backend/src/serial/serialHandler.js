@@ -57,17 +57,32 @@ class SerialHandler extends EventEmitter {
       autoOpen: false,
     });
 
-    this.port.open((err) => {
-      if (err) {
-        console.error(`❌ 포트 열기 오류 (${this.path}):`, err.message);
-        this._isConnected = false;
-        this.emit('error', err);
-        return;
-      }
-      this._isConnected = true;
-      console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
-      this.emit('connected');
-    });
+    const maxAttempts = 5;
+    const openWithRetry = (attempt) => {
+      this.port.open((err) => {
+        if (err) {
+          const message = err?.message || '';
+          const retryable = /Resource temporarily unavailable|Cannot lock port|EBUSY|EACCES/i.test(message);
+          if (retryable && attempt < maxAttempts) {
+            const delayMs = 1000 * attempt; // 1s, 2s, 3s, ...
+            console.warn(`⚠️ 포트 열기 재시도 ${attempt}/${maxAttempts - 1} (${this.path}) - ${message}. ${delayMs}ms 후 재시도`);
+            setTimeout(() => openWithRetry(attempt + 1), delayMs);
+            return;
+          }
+          console.error(`❌ 포트 열기 오류 (${this.path}):`, message);
+          this._isConnected = false;
+          this.emit('error', err);
+          return;
+        }
+
+        this._isConnected = true;
+        console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
+        this.emit('connected');
+      });
+    };
+
+    // 기존 잠금이 남아있을 수 있어 최초 시도는 약간의 지연 후 실행
+    setTimeout(() => openWithRetry(1), 200);
 
     // 'readable' 이벤트는 포트에서 읽을 수 있는 데이터가 있을 때 발생합니다.
     this.port.on('readable', () => {
@@ -115,13 +130,19 @@ class SerialHandler extends EventEmitter {
       return;
     }
 
-    if (this.port && this._isConnected) {
-      this.port.close((err) => {
-        if (err) {
-          return console.error('❌ 포트 닫기 오류:', err.message);
-        }
-        console.log('✅ 포트가 성공적으로 닫혔습니다.');
-      });
+    if (this.port) {
+      try {
+        this.port.close((err) => {
+          if (err) {
+            return console.error('❌ 포트 닫기 오류:', err.message);
+          }
+          console.log('✅ 포트가 성공적으로 닫혔습니다.');
+        });
+      } catch (e) {
+        console.error('❌ 포트 닫기 중 예외:', e?.message || e);
+      } finally {
+        this._isConnected = false;
+      }
     }
   }
 
@@ -140,6 +161,7 @@ class SerialHandler extends EventEmitter {
           case json.input_pet === 1:
             this.emit('hardware_event', { type: 'input_pet_detected', data: json });
             break;
+          //{"clear_pet":1,"grinder":1}
           case json.clear_pet === 1 && json.grinder === 1:
             this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
             break;
