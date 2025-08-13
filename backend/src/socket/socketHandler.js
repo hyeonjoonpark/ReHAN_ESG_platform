@@ -34,6 +34,8 @@ class SocketHandler {
     this._lastCmdTs = Object.create(null); // 명령 디듀프 타임스탬프 저장
     this._currentCycle = 0; // belt_separator 사이클 구분자
     this._gateOpenedInCycle = false; // 현재 사이클에서 투입구 열기 전송 여부
+    this._lastBeltAt = 0; // 마지막 belt_separator 처리 시각 (ms)
+    this._beltDebounceMs = Number(process.env.BELT_DEBOUNCE_MS || 1500); // 중복 belt 신호 억제 시간
 
     this.setupSocketEvents();
     log.info('🔌 Socket.IO 서버가 초기화되었습니다.');
@@ -410,6 +412,11 @@ class SocketHandler {
 
     // 투입구가 열렸다는 신호를 받으면, 프론트엔드에 투입구 열 준비 완료를 알림
     if (type === 'belt_separator_complete') {
+      const now = Date.now();
+      if (now - this._lastBeltAt < this._beltDebounceMs) {
+        return log.debug(`belt_separator_complete 디바운스: ${now - this._lastBeltAt}ms < ${this._beltDebounceMs}ms`);
+      }
+      this._lastBeltAt = now;
       // 새 사이클 시작: 게이트 오픈 허용 상태 초기화
       this._currentCycle += 1;
       this._gateOpenedInCycle = false;

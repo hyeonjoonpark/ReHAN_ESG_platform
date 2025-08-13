@@ -15,6 +15,7 @@ class SerialHandler extends EventEmitter {
     this._closing = false;   // 동시 닫기 방지
     this.testMode = process.env.NODE_ENV === 'development' && !this.path;
     this.testInterval = null;
+    this.prevState = { belt_separator: 0, input_pet: 0, clear_pet: 0, grinder: null, err_pet: 0 };
 
     this.openGateResponseData = {
       "motor_stop": 0,
@@ -174,30 +175,39 @@ class SerialHandler extends EventEmitter {
         // RX JSON은 기본 info 레벨로 노출하여 가시성 향상
         log.info(`RX_JSON ${JSON.stringify(json)}`);
 
-        switch (true) {
-          case json.belt_separator === 1:
-            this.emit('hardware_event', { type: 'belt_separator_complete', data: json });
-            break;
-          case json.input_pet === 1:
-            this.emit('hardware_event', { type: 'input_pet_detected', data: json });
-            break;
-          // 올바른 제품 감지
-          // { clear_pet: 1, err_pet: 0 }
-          case json.clear_pet === 1 && (json.grinder === 1 || json.err_pet === 0):
-            this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
-            break;
-          case json.clear_pet === 0 && json.err_pet === 1:
-            this.emit('hardware_event', { type: 'err_pet_detected', data: json });
-            break;
-          // case json.grinder === 1:
-          //   this.emit('hardware_event', { type: 'grinder_direction_detected', data: json });
-          //   break;
-          case json.grinder === 0:
-            this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
-            break;
-          default:
-            break;
+        const prev = this.prevState || {};
+
+        // 상승엣지: belt_separator 0->1
+        if (prev.belt_separator !== 1 && json.belt_separator === 1) {
+          this.emit('hardware_event', { type: 'belt_separator_complete', data: json });
         }
+
+        // 상승엣지: input_pet 0->1
+        if (prev.input_pet !== 1 && json.input_pet === 1) {
+          this.emit('hardware_event', { type: 'input_pet_detected', data: json });
+        }
+
+        // 상승엣지: clear_pet=1 && grinder=1 조합
+        const prevForward = prev.clear_pet === 1 && prev.grinder === 1;
+        const nowForward = json.clear_pet === 1 && json.grinder === 1;
+        if (nowForward && !prevForward) {
+          this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
+        }
+
+        // 상승엣지: err_pet 조건 (clear_pet=0 && err_pet=1)
+        const prevErr = prev.clear_pet === 0 && prev.err_pet === 1;
+        const nowErr = json.clear_pet === 0 && json.err_pet === 1;
+        if (nowErr && !prevErr) {
+          this.emit('hardware_event', { type: 'err_pet_detected', data: json });
+        }
+
+        // 하강엣지: grinder 1(or null/undefined) -> 0
+        if (json.grinder === 0 && prev.grinder !== 0) {
+          this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
+        }
+
+        // 상태 업데이트: 관측된 필드만 병합
+        this.prevState = { ...prev, ...json };
       } catch (e) {
         log.error(`[ERROR] Failed to parse JSON: "${receivedString}" ${e}`);
       }
