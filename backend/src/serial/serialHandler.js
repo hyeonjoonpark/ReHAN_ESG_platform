@@ -179,7 +179,8 @@ class SerialHandler extends EventEmitter {
           case json.input_pet === 1:
             this.emit('hardware_event', { type: 'input_pet_detected', data: json });
             break;
-          //{"clear_pet":1,"grinder":1}
+          // 올바른 제품 감지
+          // { clear_pet: 1, err_pet: 0 }
           case json.clear_pet === 1 && json.grinder === 1:
             this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
             break;
