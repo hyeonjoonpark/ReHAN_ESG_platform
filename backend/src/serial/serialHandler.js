@@ -39,7 +39,7 @@ class SerialHandler extends EventEmitter {
       return;
     }
     if (this._opening) {
-      console.log('이미 포트 열기 진행 중입니다.');
+      log.warn('이미 포트 열기 진행 중입니다.');
       return;
     }
     
@@ -142,7 +142,7 @@ class SerialHandler extends EventEmitter {
     }
 
     if (this._closing) {
-      console.log('이미 포트 닫기 진행 중입니다.');
+      log.warn('이미 포트 닫기 진행 중입니다.');
       return;
     }
 
@@ -170,7 +170,8 @@ class SerialHandler extends EventEmitter {
     if (receivedString.startsWith('{') && receivedString.endsWith('}')) {
       try {
         const json = JSON.parse(receivedString);
-        log.debug(`[SUCCESS] Parsed JSON data: ${JSON.stringify(json)}`);
+        // RX JSON은 기본 info 레벨로 노출하여 가시성 향상
+        log.info(`RX_JSON ${JSON.stringify(json)}`);
 
         switch (true) {
           case json.belt_separator === 1:
@@ -239,12 +240,13 @@ class SerialHandler extends EventEmitter {
     if (this.port && this._isConnected) {
       this.port.write(data, (err) => {
         if (err) {
-          return log.error(`Error on write: ${err.message}`);
+          return log.error(`TX_FAIL ${err.message} | payload=${data}`);
         }
-        log.debug('message written');
+        // 성공 시 단일 라인으로 페이로드를 기록
+        log.info(`TX ${data}`);
       });
     } else {
-      log.error('Port not open. Cannot send data.');
+      log.error(`TX_SKIP Port not open | payload=${data}`);
     }
   }
 

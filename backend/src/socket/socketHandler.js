@@ -31,9 +31,37 @@ class SocketHandler {
     this.pageRooms = new Map(); // 페이지별 룸 관리
     this.pendingCommand = null; // 보류 중인 명령
     this.serialOpening = false; // 시리얼 열기 진행 상태
+    this._lastCmdTs = Object.create(null); // 명령 디듀프 타임스탬프 저장
 
     this.setupSocketEvents();
     log.info('🔌 Socket.IO 서버가 초기화되었습니다.');
+  }
+
+  /**
+   * 하드웨어로 명령 전송(디듀프 포함)
+   * @param {string} reason - 전송 사유/출처 라벨
+   * @param {Object} command - 전송할 명령 객체
+   * @param {string} dedupKey - 디듀프 키(같은 키는 dedupMs 내 재전송 방지)
+   * @param {number} dedupMs - 디듀프 시간(ms)
+   */
+  sendCommand(reason, command, dedupKey, dedupMs = 1500) {
+    try {
+      if (!this.serialHandler || !this.serialHandler.isConnected()) {
+        return log.error(`CMD_SKIP serial_disconnected | reason=${reason} | cmd=${JSON.stringify(command)}`);
+      }
+      if (dedupKey) {
+        const now = Date.now();
+        const last = this._lastCmdTs[dedupKey] || 0;
+        if (now - last < dedupMs) {
+          return log.debug(`CMD_DEDUP key=${dedupKey} within ${dedupMs}ms | reason=${reason}`);
+        }
+        this._lastCmdTs[dedupKey] = now;
+      }
+      this.serialHandler.send(JSON.stringify(command));
+      log.info(`TX_CMD reason=${reason} cmd=${JSON.stringify(command)}`);
+    } catch (e) {
+      log.error(`CMD_ERROR reason=${reason} err=${e?.message || e}`);
+    }
   }
 
   /**
@@ -252,8 +280,7 @@ class SocketHandler {
         try {
           if (this.serialHandler.isConnected()) {
             const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-            this.serialHandler.send(JSON.stringify(command));
-            log.info('✅ 투입구 열기 명령 즉시 전송 (이미 연결됨)');
+            this.sendCommand('open_gate:already_connected', command, 'hopper_open');
             return;
           }
           // 이미 열기 진행 중이면 연결 완료까지 대기 후 전송
@@ -261,8 +288,7 @@ class SocketHandler {
             log.info('⏳ 시리얼 포트 열기 진행 중, 연결 완료 후 명령 전송 예정');
             this.serialHandler.once('connected', () => {
               const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-              this.serialHandler.send(JSON.stringify(command));
-              log.info('✅ 투입구 열기 명령 전송 (연결 후)');
+              this.sendCommand('open_gate:after_connect', command, 'hopper_open');
               socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
             });
             return;
@@ -273,8 +299,7 @@ class SocketHandler {
           this.serialHandler.once('connected', () => {
             this.serialOpening = false;
             const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-            this.serialHandler.send(JSON.stringify(command));
-            log.info('✅ 투입구 열기 명령 전송 (연결 후)');
+            this.sendCommand('open_gate:after_connect', command, 'hopper_open');
             socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
           });
           this.serialHandler.once('error', (err) => {
@@ -296,8 +321,7 @@ class SocketHandler {
         if (data && data.input_pet === 1) {
           if (this.serialHandler && this.serialHandler.isConnected()) {
             const command = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-            this.serialHandler.send(JSON.stringify(command));
-            log.info('✅ 정상 배출 명령 전송 (프론트엔드 요청)');
+            this.sendCommand('frontend:status_ok', command, 'status_ok');
             
             // 프론트엔드에 정상 종료 알림
             this.broadcastToAll('hardware_status', { 
@@ -395,12 +419,7 @@ class SocketHandler {
         "grinder_reverse": 0,
         "grinder_stop": 0
       };
-      if (this.serialHandler && this.serialHandler.isConnected()) {
-        this.serialHandler.send(JSON.stringify(command));
-        console.log('✅ 정상 배출 명령 전송 (하드웨어 감지):', command);
-      } else {
-        console.error('❌ 시리얼 핸들러가 연결되지 않아 정상 배출 명령을 보낼 수 없습니다.');
-      }
+      this.sendCommand('hw_detected:status_ok', command, 'status_ok');
 
       // 프론트엔드에 투입 알림 브로드캐스트
       this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
@@ -421,12 +440,7 @@ class SocketHandler {
         "grinder_reverse":0,
         "grinder_stop":0
       };
-      if (this.serialHandler) {
-        this.serialHandler.send(JSON.stringify(command));
-        console.log('✅ 그라인더 정방향 회전 명령 전송:', command);
-      } else {
-        console.error('❌ 시리얼 핸들러가 연결되지 않아 그라인더 정방향 회전 명령을 보낼 수 없습니다.');
-      }
+      this.sendCommand('hw_detected:grinder_foword', command, 'grinder_foword');
     }
     
     // 분쇄 완료 시 -> 그라인더 정지
@@ -443,12 +457,7 @@ class SocketHandler {
         "grinder_reverse":0,
         "grinder_stop":1
       };
-      if (this.serialHandler) {
-        this.serialHandler.send(JSON.stringify(command));
-        console.log('✅ 분쇄 완료, 그라인더 정지 명령 전송:', command);
-      } else {
-        console.error('❌ 시리얼 핸들러가 연결되지 않아 그라인더 정지 명령을 보낼 수 없습니다.');
-      }
+      this.sendCommand('hw_detected:grinder_stop', command, 'grinder_stop');
     }
 
     // 불량 제품 감지 시 -> 비정상 반환
@@ -465,12 +474,7 @@ class SocketHandler {
         "grinder_reverse":0,
         "grinder_stop":0
       };
-      if (this.serialHandler) {
-        this.serialHandler.send(JSON.stringify(command));
-        console.log('❌ 불량 제품 감지, 비정상 반환 명령 전송:', command);
-      } else {
-        console.error('❌ 시리얼 핸들러가 연결되지 않아 비정상 반환 명령을 보낼 수 없습니다.');
-      }
+      this.sendCommand('hw_detected:status_error', command, 'status_error');
       // 프론트엔드에 에러 상태 전송
       this.broadcastToAll('hardware_status', { type: 'resource_error', data, timestamp: new Date().toISOString() });
     }
