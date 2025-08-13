@@ -403,7 +403,12 @@ class SocketHandler {
         "grinder_reverse":0,
         "grinder_stop":0
       };
-      if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
+      if (this.serialHandler) {
+        this.serialHandler.send(JSON.stringify(command));
+        console.log('✅ 그라인더 정방향 회전 명령 전송:', command);
+      } else {
+        console.error('❌ 시리얼 핸들러가 연결되지 않아 그라인더 정방향 회전 명령을 보낼 수 없습니다.');
+      }
     }
     
     // 분쇄 완료 시 -> 그라인더 정지
@@ -420,7 +425,12 @@ class SocketHandler {
         "grinder_reverse":0,
         "grinder_stop":1
       };
-      if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
+      if (this.serialHandler) {
+        this.serialHandler.send(JSON.stringify(command));
+        console.log('✅ 분쇄 완료, 그라인더 정지 명령 전송:', command);
+      } else {
+        console.error('❌ 시리얼 핸들러가 연결되지 않아 그라인더 정지 명령을 보낼 수 없습니다.');
+      }
     }
 
     // 불량 제품 감지 시 -> 비정상 반환
@@ -437,7 +447,12 @@ class SocketHandler {
         "grinder_reverse":0,
         "grinder_stop":0
       };
-      if (this.serialHandler) this.serialHandler.send(JSON.stringify(command));
+      if (this.serialHandler) {
+        this.serialHandler.send(JSON.stringify(command));
+        console.log('❌ 불량 제품 감지, 비정상 반환 명령 전송:', command);
+      } else {
+        console.error('❌ 시리얼 핸들러가 연결되지 않아 비정상 반환 명령을 보낼 수 없습니다.');
+      }
       // 프론트엔드에 에러 상태 전송
       this.broadcastToAll('hardware_status', { type: 'resource_error', data, timestamp: new Date().toISOString() });
     }
