@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Header from '@/components/Header';
 import BottomInquire from '@/components/BottomInquire';
@@ -115,12 +115,12 @@ const BandSplit = () => {
 
   // 하드웨어 상태 변경 감지 및 화면 전환
   useEffect(() => {
-    const handleHopperReady = useCallback(() => {
+    const handleHopperReady = () => {
       console.log('✅ 투입구 준비 완료, 투입구 열기 요청');
       if (socket) {
         socket.emit('open_gate');
       }
-    }, [socket]);
+    };
 
     // 띠분리 완료 시 섹션 타입 변경
     if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
