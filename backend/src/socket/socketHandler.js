@@ -359,8 +359,28 @@ class SocketHandler {
       console.log('✅ 띠 분리 완료, 프론트엔드에 투입구 열기 준비 알림');
     }
 
-    // 페트병 투입이 감지되면 프론트엔드에 알림
+    // 페트병 투입이 감지되면: 정상 배출 명령 전송 + 프론트엔드 알림
     if (type === 'input_pet_detected') {
+      // 하드웨어에 정상 배출 명령 전송
+      const command = {
+        "motor_stop": 0,
+        "hopper_open": 0,
+        "status_ok": 1,
+        "status_error": 0,
+        "grinder_on": 0,
+        "grinder_off": 0,
+        "grinder_foword": 0,
+        "grinder_reverse": 0,
+        "grinder_stop": 0
+      };
+      if (this.serialHandler && this.serialHandler.isConnected()) {
+        this.serialHandler.send(JSON.stringify(command));
+        console.log('✅ 정상 배출 명령 전송 (하드웨어 감지):', command);
+      } else {
+        console.error('❌ 시리얼 핸들러가 연결되지 않아 정상 배출 명령을 보낼 수 없습니다.');
+      }
+
+      // 프론트엔드에 투입 알림 브로드캐스트
       this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
       console.log('🐾 페트병 투입 감지, 프론트엔드에 알림.');
     }
