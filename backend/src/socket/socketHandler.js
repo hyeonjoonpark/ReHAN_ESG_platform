@@ -11,6 +11,8 @@
  */
 
 const { Server } = require('socket.io');
+const { createLogger } = require('../utils/logger');
+const log = createLogger('Socket');
 
 class SocketHandler {
   constructor(server) {
@@ -31,7 +33,7 @@ class SocketHandler {
     this.serialOpening = false; // 시리얼 열기 진행 상태
 
     this.setupSocketEvents();
-    console.log('🔌 Socket.IO 서버가 초기화되었습니다.');
+    log.info('🔌 Socket.IO 서버가 초기화되었습니다.');
   }
 
   /**
@@ -45,7 +47,7 @@ class SocketHandler {
       this.notifyHardwareStatus(type, data);
     });
 
-    console.log('🔗 시리얼 핸들러가 소켓 핸들러에 연결되었습니다.');
+    log.info('🔗 시리얼 핸들러가 소켓 핸들러에 연결되었습니다.');
   }
 
   /**
@@ -53,7 +55,7 @@ class SocketHandler {
    */
   setupSocketEvents() {
     this.io.on('connection', (socket) => {
-      console.log(`🔗 클라이언트 연결됨: ${socket.id}`);
+      log.info(`🔗 클라이언트 연결됨: ${socket.id}`);
       
       // 연결된 클라이언트 정보 저장
       this.connectedClients.set(socket.id, {
@@ -72,7 +74,7 @@ class SocketHandler {
       // 페이지 룸 참여 이벤트
       socket.on('join_page', (data) => {
         const { page } = data;
-        console.log(`📄 클라이언트 ${socket.id}가 ${page} 페이지에 참여`);
+        log.info(`📄 클라이언트 ${socket.id}가 ${page} 페이지에 참여`);
         
         socket.join(page);
         
@@ -94,7 +96,7 @@ class SocketHandler {
       // 페이지 룸 나가기 이벤트
       socket.on('leave_page', (data) => {
         const { page } = data;
-        console.log(`📄 클라이언트 ${socket.id}가 ${page} 페이지에서 나감`);
+        log.info(`📄 클라이언트 ${socket.id}가 ${page} 페이지에서 나감`);
         
         socket.leave(page);
         
@@ -111,7 +113,7 @@ class SocketHandler {
 
       // 시리얼 포트 열기 요청
       socket.on('serial_port_open', () => {
-        console.log(`📡 클라이언트 ${socket.id}에서 시리얼 포트 열기 요청`);
+        log.info(`📡 클라이언트 ${socket.id}에서 시리얼 포트 열기 요청`);
         
         if (!this.serialHandler) {
           socket.emit('serial_port_error', {
@@ -154,7 +156,7 @@ class SocketHandler {
             }
           }
         } catch (error) {
-          console.error('❌ 시리얼 포트 열기 중 오류:', error.message);
+           log.error(`❌ 시리얼 포트 열기 중 오류: ${error.message}`);
           socket.emit('serial_port_error', {
             status: 'error',
             message: error.message
@@ -164,7 +166,7 @@ class SocketHandler {
 
       // 시리얼 포트 닫기 요청
       socket.on('serial_port_close', () => {
-        console.log(`📡 클라이언트 ${socket.id}에서 시리얼 포트 닫기 요청`);
+        log.info(`📡 클라이언트 ${socket.id}에서 시리얼 포트 닫기 요청`);
         
         if (!this.serialHandler) {
           socket.emit('serial_port_error', {
@@ -189,7 +191,7 @@ class SocketHandler {
             });
           }
         } catch (error) {
-          console.error('❌ 시리얼 포트 닫기 중 오류:', error.message);
+          log.error(`❌ 시리얼 포트 닫기 중 오류: ${error.message}`);
           socket.emit('serial_port_error', {
             status: 'error',
             message: error.message
@@ -199,7 +201,7 @@ class SocketHandler {
 
       // 현재 하드웨어 상태 요청
       socket.on('request_hardware_status', () => {
-        console.log(`📊 클라이언트 ${socket.id}에서 하드웨어 상태 요청`);
+        log.info(`📊 클라이언트 ${socket.id}에서 하드웨어 상태 요청`);
         
         if (!this.serialHandler) {
           socket.emit('hardware_status_error', {
@@ -232,7 +234,7 @@ class SocketHandler {
           }
 
         } catch (error) {
-          console.error('❌ 하드웨어 상태 요청 중 오류:', error.message);
+          log.error(`❌ 하드웨어 상태 요청 중 오류: ${error.message}`);
           socket.emit('hardware_status_error', {
             message: error.message
           });
@@ -241,7 +243,7 @@ class SocketHandler {
       
       // 투입구 열기 요청
       socket.on('open_gate', () => {
-        console.log(`🚪 클라이언트 ${socket.id}에서 투입구 열기 요청`);
+        log.info(`🚪 클라이언트 ${socket.id}에서 투입구 열기 요청`);
         
         if (!this.serialHandler) {
           return socket.emit('serial_port_error', { message: '시리얼 핸들러가 초기화되지 않았습니다.' });
@@ -251,16 +253,16 @@ class SocketHandler {
           if (this.serialHandler.isConnected()) {
             const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
             this.serialHandler.send(JSON.stringify(command));
-            console.log('✅ 투입구 열기 명령 즉시 전송 (이미 연결됨):', command);
+            log.info('✅ 투입구 열기 명령 즉시 전송 (이미 연결됨)');
             return;
           }
           // 이미 열기 진행 중이면 연결 완료까지 대기 후 전송
           if (this.serialOpening) {
-            console.log('⏳ 시리얼 포트 열기 진행 중, 연결 완료 후 명령 전송 예정');
+            log.info('⏳ 시리얼 포트 열기 진행 중, 연결 완료 후 명령 전송 예정');
             this.serialHandler.once('connected', () => {
               const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
               this.serialHandler.send(JSON.stringify(command));
-              console.log('✅ 투입구 열기 명령 전송 (연결 후):', command);
+              log.info('✅ 투입구 열기 명령 전송 (연결 후)');
               socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
             });
             return;
@@ -272,7 +274,7 @@ class SocketHandler {
             this.serialOpening = false;
             const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
             this.serialHandler.send(JSON.stringify(command));
-            console.log('✅ 투입구 열기 명령 전송 (연결 후):', command);
+            log.info('✅ 투입구 열기 명령 전송 (연결 후)');
             socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
           });
           this.serialHandler.once('error', (err) => {
@@ -281,21 +283,21 @@ class SocketHandler {
           });
           
         } catch (error) {
-          console.error('❌ 투입구 열기 요청 중 오류:', error.message);
+            log.error(`❌ 투입구 열기 요청 중 오류: ${error.message}`);
           socket.emit('serial_port_error', { message: error.message });
         }
       });
 
       // 시리얼 데이터 수신 (프론트엔드로부터)
       socket.on('serial_data', (data) => {
-        console.log(`💻 클라이언트 ${socket.id}로부터 시리얼 데이터 수신:`, data);
+        log.info(`💻 클라이언트 ${socket.id}로부터 시리얼 데이터 수신: ${JSON.stringify(data)}`);
 
         // 프론트엔드에서 투입 완료 버튼을 눌렀을 때
         if (data && data.input_pet === 1) {
           if (this.serialHandler && this.serialHandler.isConnected()) {
             const command = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
             this.serialHandler.send(JSON.stringify(command));
-            console.log('✅ 정상 배출 명령 전송 (프론트엔드 요청):', command);
+            log.info('✅ 정상 배출 명령 전송 (프론트엔드 요청)');
             
             // 프론트엔드에 정상 종료 알림
             this.broadcastToAll('hardware_status', { 
@@ -304,7 +306,7 @@ class SocketHandler {
               timestamp: new Date().toISOString() 
             });
           } else {
-            console.error('❌ 시리얼 핸들러가 연결되지 않아 정상 배출 명령을 보낼 수 없습니다.');
+            log.error('❌ 시리얼 핸들러가 연결되지 않아 정상 배출 명령을 보낼 수 없습니다.');
             socket.emit('hardware_status_error', {
               message: '시리얼 핸들러가 연결되지 않았습니다.'
             });
@@ -314,7 +316,7 @@ class SocketHandler {
 
       // 연결 해제 처리
       socket.on('disconnect', (reason) => {
-        console.log(`🔗 클라이언트 연결 해제: ${socket.id}, 이유: ${reason}`);
+        log.info(`🔗 클라이언트 연결 해제: ${socket.id}, 이유: ${reason}`);
         
         // 연결된 클라이언트 목록에서 제거
         this.connectedClients.delete(socket.id);
@@ -330,7 +332,7 @@ class SocketHandler {
 
       // 에러 처리
       socket.on('error', (error) => {
-        console.error(`❌ 소켓 오류 (${socket.id}):`, error);
+        log.error(`❌ 소켓 오류 (${socket.id}): ${error}`);
       });
     });
   }
@@ -341,7 +343,7 @@ class SocketHandler {
    * @param {Object} data - 전송할 데이터
    */
   broadcastToAll(event, data) {
-    console.log(`📢 모든 클라이언트에게 브로드캐스트: ${event}`, data);
+    log.debug(`브로드캐스트: ${event} ${JSON.stringify(data)}`);
     this.io.emit(event, data);
   }
 
@@ -352,7 +354,7 @@ class SocketHandler {
    * @param {Object} data - 전송할 데이터
    */
   broadcastToPage(page, event, data) {
-    console.log(`📢 ${page} 페이지 클라이언트들에게 브로드캐스트: ${event}`, data);
+    log.debug(`브로드캐스트(${page}): ${event} ${JSON.stringify(data)}`);
     this.io.to(page).emit(event, data);
   }
 
@@ -368,7 +370,7 @@ class SocketHandler {
       timestamp: new Date().toISOString()
     };
     
-    console.log(`🔧 하드웨어 상태 알림:`, statusData);
+    log.info(`🔧 하드웨어 상태 알림: ${JSON.stringify(statusData)}`);
     this.broadcastToAll('hardware_status', statusData);
 
     // 투입구가 열렸다는 신호를 받으면, 프론트엔드에 투입구 열 준비 완료를 알림
@@ -376,7 +378,7 @@ class SocketHandler {
       this.broadcastToPage('band-split', 'hopper_ready', {
         message: 'Hopper is ready to be opened.'
       });
-      console.log('✅ 띠 분리 완료, 프론트엔드에 투입구 열기 준비 알림');
+      log.info('✅ 띠 분리 완료, 프론트엔드에 투입구 열기 준비 알림');
     }
 
     // 페트병 투입이 감지되면: 정상 배출 명령 전송 + 프론트엔드 알림
@@ -402,12 +404,12 @@ class SocketHandler {
 
       // 프론트엔드에 투입 알림 브로드캐스트
       this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
-      console.log('🐾 페트병 투입 감지, 프론트엔드에 알림.');
+      log.info('🐾 페트병 투입 감지, 프론트엔드에 알림.');
     }
 
     // 올바른 제품 감지 시 -> 그라인더 정방향 회전
     if (type === 'grinder_foword_detected') {
-      console.log('✅ 올바른 제품 감지, 그라인더 정방향 회전 명령 전송');
+      log.info('✅ 올바른 제품 감지, 그라인더 정방향 회전 명령 전송');
       const command = {
         "motor_stop":0,
         "hopper_open":0,
@@ -429,7 +431,7 @@ class SocketHandler {
     
     // 분쇄 완료 시 -> 그라인더 정지
     if (type === 'grinder_end_detected') {
-      console.log('✅ 분쇄 완료, 그라인더 정지 명령 전송');
+      log.info('✅ 분쇄 완료, 그라인더 정지 명령 전송');
       const command = {
         "motor_stop":0,
         "hopper_open":0,
@@ -451,7 +453,7 @@ class SocketHandler {
 
     // 불량 제품 감지 시 -> 비정상 반환
     if (type === 'err_pet_detected') {
-      console.log('❌ 불량 제품 감지, 비정상 반환 명령 전송');
+      log.info('❌ 불량 제품 감지, 비정상 반환 명령 전송');
       const command = {
         "motor_stop":0,
         "hopper_open":0,

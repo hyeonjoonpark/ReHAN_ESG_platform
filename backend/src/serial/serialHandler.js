@@ -1,4 +1,6 @@
 const { SerialPort } = require('serialport');
+const { createLogger } = require('../utils/logger');
+const log = createLogger('Serial');
 const EventEmitter = require('events');
 
 class SerialHandler extends EventEmitter {
@@ -33,7 +35,7 @@ class SerialHandler extends EventEmitter {
 
   connect() {
     if (this._isConnected) {
-      console.log('이미 연결되어 있습니다.');
+      log.info('이미 연결되어 있습니다.');
       return;
     }
     if (this._opening) {
@@ -43,7 +45,7 @@ class SerialHandler extends EventEmitter {
     
     if (this.testMode) {
       this._isConnected = true;
-      console.log('✅ 테스트 모드 연결 성공.');
+      log.info('✅ 테스트 모드 연결 성공.');
       // 5초 후에 띠 분리 완료 신호 발생
       this.testTimeout = setTimeout(() => {
         const testData = JSON.stringify({ belt_separator: 1 });
@@ -53,7 +55,7 @@ class SerialHandler extends EventEmitter {
     }
 
     if (!this.path) {
-      console.error('❌ 시리얼 포트 경로가 설정되지 않았습니다. .env 파일을 확인해주세요.');
+      log.error('❌ 시리얼 포트 경로가 설정되지 않았습니다. .env 파일을 확인해주세요.');
       return;
     }
 
@@ -71,11 +73,11 @@ class SerialHandler extends EventEmitter {
           const retryable = /Resource temporarily unavailable|Cannot lock port|EBUSY|EACCES/i.test(message);
           if (retryable && attempt < maxAttempts) {
             const delayMs = 1000 * attempt; // 1s, 2s, 3s, ...
-            console.warn(`⚠️ 포트 열기 재시도 ${attempt}/${maxAttempts - 1} (${this.path}) - ${message}. ${delayMs}ms 후 재시도`);
+            log.warn(`포트 열기 재시도 ${attempt}/${maxAttempts - 1} (${this.path}) - ${message}. ${delayMs}ms 후 재시도`);
             setTimeout(() => openWithRetry(attempt + 1), delayMs);
             return;
           }
-          console.error(`❌ 포트 열기 오류 (${this.path}):`, message);
+          log.error(`❌ 포트 열기 오류 (${this.path}): ${message}`);
           this._isConnected = false;
           this._opening = false;
           this.emit('error', err);
@@ -84,7 +86,7 @@ class SerialHandler extends EventEmitter {
 
         this._isConnected = true;
         this._opening = false;
-        console.log(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
+        log.info(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
         this.emit('connected');
       });
     };
@@ -105,29 +107,29 @@ class SerialHandler extends EventEmitter {
     this.port.on('close', () => {
       this._isConnected = false;
       this.buffer = ''; 
-      console.log('🔌 시리얼 포트 연결이 닫혔습니다.');
+      log.info('🔌 시리얼 포트 연결이 닫혔습니다.');
     });
 
     this.port.on('error', (err) => {
-      console.error('❌ 시리얼 포트 오류:', err.message);
+      log.error(`❌ 시리얼 포트 오류: ${err.message}`);
       this._isConnected = false;
     });
   }
 
   processDataChunk(chunk) {
-    console.log(`[DEBUG] Chunk Read: ${chunk.toString('utf8')}`);
+    log.debug(`Chunk Read: ${chunk.toString('utf8')}`);
     this.buffer += chunk.toString('utf8');
-    console.log(`[DEBUG] Buffer State: ${this.buffer}`);
+    log.debug(`Buffer State: ${this.buffer}`);
     
     let start, end;
     while ((start = this.buffer.indexOf('{')) !== -1 && (end = this.buffer.indexOf('}', start)) !== -1) {
       const potentialJson = this.buffer.substring(start, end + 1);
-      console.log(`[DEBUG] Potential JSON Found: ${potentialJson}`);
+      log.debug(`Potential JSON Found: ${potentialJson}`);
       
       this.handleSerialData(potentialJson);
 
       this.buffer = this.buffer.substring(end + 1);
-      console.log(`[DEBUG] Buffer after processing: ${this.buffer}`);
+      log.debug(`Buffer after processing: ${this.buffer}`);
     }
   }
 
@@ -135,7 +137,7 @@ class SerialHandler extends EventEmitter {
     if (this.testMode) {
       this._isConnected = false;
       if (this.testTimeout) clearTimeout(this.testTimeout);
-      console.log('🧪 테스트 모드 연결이 종료되었습니다.');
+      log.info('🧪 테스트 모드 연결이 종료되었습니다.');
       return;
     }
 
@@ -149,13 +151,13 @@ class SerialHandler extends EventEmitter {
         this._closing = true;
         this.port.close((err) => {
           if (err) {
-            return console.error('❌ 포트 닫기 오류:', err.message);
+          return log.error(`❌ 포트 닫기 오류: ${err.message}`);
           }
-          console.log('✅ 포트가 성공적으로 닫혔습니다.');
+        log.info('✅ 포트가 성공적으로 닫혔습니다.');
           this._closing = false;
         });
       } catch (e) {
-        console.error('❌ 포트 닫기 중 예외:', e?.message || e);
+        log.error(`❌ 포트 닫기 중 예외: ${e?.message || e}`);
       } finally {
         this._isConnected = false;
       }
@@ -168,7 +170,7 @@ class SerialHandler extends EventEmitter {
     if (receivedString.startsWith('{') && receivedString.endsWith('}')) {
       try {
         const json = JSON.parse(receivedString);
-        console.log('[SUCCESS] Parsed JSON data:', json);
+        log.debug(`[SUCCESS] Parsed JSON data: ${JSON.stringify(json)}`);
 
         switch (true) {
           case json.belt_separator === 1:
@@ -194,41 +196,41 @@ class SerialHandler extends EventEmitter {
             break;
         }
       } catch (e) {
-        console.error(`[ERROR] Failed to parse JSON: "${receivedString}"`, e);
+        log.error(`[ERROR] Failed to parse JSON: "${receivedString}" ${e}`);
       }
     } else {
-        console.log(`[INFO] Ignoring non-JSON data: "${receivedString}"`);
+        log.info(`Ignoring non-JSON data: "${receivedString}"`);
     }
   }
 
   send(data) {
     if (this.testMode) {
-      console.log(`[TEST MODE] 데이터 전송 시뮬레이션: ${data}`);
+      log.debug(`[TEST MODE] 데이터 전송 시뮬레이션: ${data}`);
       try {
         const command = JSON.parse(data);
 
         // 정상 배출 명령 수신 시
         if (command.status_ok === 1) {
-          console.log('[TEST MODE] 정상 배출 명령 수신. 3초 후 "올바른 제품" 신호 발생');
+          log.info('[TEST MODE] 정상 배출 명령 수신. 3초 후 "올바른 제품" 신호 발생');
           this.testTimeout = setTimeout(() => {
             this.handleSerialData(JSON.stringify({ clear_pet: 1, err_pet: 0 }));
           }, 3000);
         }
         // 그라인더 정방향 명령 수신 시
         else if (command.grinder_foword === 1) {
-          console.log('[TEST MODE] 그라인더 정방향 명령 수신. 5초 후 "분쇄 완료" 신호 발생');
+          log.info('[TEST MODE] 그라인더 정방향 명령 수신. 5초 후 "분쇄 완료" 신호 발생');
           this.testTimeout = setTimeout(() => {
             this.handleSerialData(JSON.stringify({ grinder: 0 }));
           }, 5000);
         }
         // 그라인더 정지 명령 수신 시
         else if (command.grinder_stop === 1) {
-          console.log('[TEST MODE] 그라인더 정지 명령 수신. 시나리오 종료.');
+          log.info('[TEST MODE] 그라인더 정지 명령 수신. 시나리오 종료.');
           if (this.testTimeout) clearTimeout(this.testTimeout);
         }
 
       } catch (e) {
-        console.error('[TEST MODE] 전송 데이터 파싱 오류:', e);
+        log.error(`[TEST MODE] 전송 데이터 파싱 오류: ${e}`);
       }
       return;
     }
@@ -236,12 +238,12 @@ class SerialHandler extends EventEmitter {
     if (this.port && this._isConnected) {
       this.port.write(data, (err) => {
         if (err) {
-          return console.log('Error on write: ', err.message);
+          return log.error(`Error on write: ${err.message}`);
         }
-        console.log('message written');
+        log.debug('message written');
       });
     } else {
-      console.error('Port not open. Cannot send data.');
+      log.error('Port not open. Cannot send data.');
     }
   }
 
