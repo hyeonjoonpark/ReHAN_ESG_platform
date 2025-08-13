@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import Header from '@/components/Header';
 import BottomInquire from '@/components/BottomInquire';
@@ -49,32 +49,33 @@ const BandSplit = () => {
   const errorMessage: string = '내용물을 제거해주세요!';
 
   // 페이지 진입 시 소켓 통신 및 시리얼 포트 관리
+  const initializedRef = useRef(false);
+
   useEffect(() => {
-    if (isConnected && socket) {
-      joinPage('band-split');
-      
-      console.log('📡 투입구 열기(시리얼 포트) 요청 전송');
-      socket.emit('open_gate');
-      
-      requestHardwareStatus();
+    if (!isConnected || !socket || initializedRef.current) return;
+    initializedRef.current = true;
 
-      const handleSerialOpened = (data: SerialPortResponse) => {
-        console.log('✅ 시리얼 포트 열림 응답:', data);
-      };
-      
-      const handleSerialError = (error: SerialPortResponse) => {
-        console.error('❌ 시리얼 포트 오류:', error);
-      };
+    joinPage('band-split');
+    console.log('📡 투입구 열기(시리얼 포트) 요청 전송');
+    socket.emit('open_gate');
+    requestHardwareStatus();
 
-      socket.on('serial_port_opened', handleSerialOpened);
-      socket.on('serial_port_error', handleSerialError);
+    const handleSerialOpened = (data: SerialPortResponse) => {
+      console.log('✅ 시리얼 포트 열림 응답:', data);
+    };
+    const handleSerialError = (error: SerialPortResponse) => {
+      console.error('❌ 시리얼 포트 오류:', error);
+    };
 
-      return () => {
-        leavePage('band-split');
-        socket.off('serial_port_opened', handleSerialOpened);
-        socket.off('serial_port_error', handleSerialError);
-      };
-    }
+    socket.on('serial_port_opened', handleSerialOpened);
+    socket.on('serial_port_error', handleSerialError);
+
+    return () => {
+      leavePage('band-split');
+      socket.off('serial_port_opened', handleSerialOpened);
+      socket.off('serial_port_error', handleSerialError);
+      initializedRef.current = false;
+    };
   }, [isConnected, socket, joinPage, leavePage, requestHardwareStatus]);
 
   // 클라이언트 마운트 후 localStorage에서 사용자 보유 포인트 로드
@@ -114,12 +115,12 @@ const BandSplit = () => {
 
   // 하드웨어 상태 변경 감지 및 화면 전환
   useEffect(() => {
-    const handleHopperReady = () => {
+    const handleHopperReady = useCallback(() => {
       console.log('✅ 투입구 준비 완료, 투입구 열기 요청');
       if (socket) {
         socket.emit('open_gate');
       }
-    };
+    }, [socket]);
 
     // 띠분리 완료 시 섹션 타입 변경
     if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
@@ -127,9 +128,7 @@ const BandSplit = () => {
       setSectionType(SectionType.OPEN_GATE);
     }
     
-    if (socket) {
-      socket.on('hopper_ready', handleHopperReady);
-    }
+    if (socket) socket.on('hopper_ready', handleHopperReady);
 
     // 페트병 투입 감지 시 (수정: petInserted 자동 진행 로직 제거)
     // if (petInserted && sectionType === SectionType.OPEN_GATE) {
@@ -167,9 +166,7 @@ const BandSplit = () => {
     // }
     
     return () => {
-      if (socket) {
-        socket.off('hopper_ready', handleHopperReady);
-      }
+      if (socket) socket.off('hopper_ready', handleHopperReady);
     };
   }, [beltSeparatorCompleted, petInserted, normallyEnd, sectionType, socket]);
 

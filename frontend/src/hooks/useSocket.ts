@@ -132,9 +132,9 @@ export const useSocket = (): UseSocketReturn => {
    * 
    * @param page 참여할 페이지 이름 (예: 'band-split', 'repair')
    */
-  const joinPage = (page: string) => {
+  const joinPage = useCallback((page: string) => {
     socketRef.current?.emit('join_page', { page });
-  };
+  }, []);
 
   /**
    * 특정 페이지 룸에서 나가는 함수
@@ -142,17 +142,17 @@ export const useSocket = (): UseSocketReturn => {
    * 
    * @param page 나갈 페이지 이름
    */
-  const leavePage = (page: string) => {
+  const leavePage = useCallback((page: string) => {
     socketRef.current?.emit('leave_page', { page });
-  };
+  }, []);
 
   /**
    * 현재 하드웨어 상태를 백엔드에 요청하는 함수
    * 백엔드에서 저장된 현재 하드웨어 상태를 응답으로 받습니다.
    */
-  const requestHardwareStatus = () => {
+  const requestHardwareStatus = useCallback(() => {
     socketRef.current?.emit('request_hardware_status');
-  };
+  }, []);
 
   /**
    * 컴포넌트 마운트 시 자동으로 WebSocket 연결을 시작하고,
