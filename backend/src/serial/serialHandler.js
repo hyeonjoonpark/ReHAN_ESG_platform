@@ -86,6 +86,8 @@ class SerialHandler extends EventEmitter {
         }
 
         this._isConnected = true;
+        // 상승엣지 기준을 안전하게 초기화하여 첫 belt_separator=1을 상승엣지로 인식
+        this.prevState = { belt_separator: 0, input_pet: 0, clear_pet: 0, grinder: null, err_pet: 0 };
         this._opening = false;
         log.info(`✅ 시리얼 포트가 성공적으로 열렸습니다 (${this.path})`);
         this.emit('connected');
@@ -108,6 +110,8 @@ class SerialHandler extends EventEmitter {
     this.port.on('close', () => {
       this._isConnected = false;
       this.buffer = ''; 
+      // 포트 닫힐 때도 상태 초기화하여 다음 연결에서 깨끗한 시작 보장
+      this.prevState = { belt_separator: 0, input_pet: 0, clear_pet: 0, grinder: null, err_pet: 0 };
       log.info('🔌 시리얼 포트 연결이 닫혔습니다.');
     });
 
