@@ -216,7 +216,7 @@ class SerialHandler extends EventEmitter {
         if (command.status_ok === 1) {
           log.info('[TEST MODE] 정상 배출 명령 수신. 3초 후 "올바른 제품" 신호 발생');
           this.testTimeout = setTimeout(() => {
-            this.handleSerialData(JSON.stringify({ clear_pet: 1, err_pet: 0 }));
+            this.handleSerialData(JSON.stringify({ clear_pet: 1, grinder: 1 }));
           }, 3000);
         }
         // 그라인더 정방향 명령 수신 시

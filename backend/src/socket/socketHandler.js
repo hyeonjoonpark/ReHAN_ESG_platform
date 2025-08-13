@@ -32,6 +32,8 @@ class SocketHandler {
     this.pendingCommand = null; // 보류 중인 명령
     this.serialOpening = false; // 시리얼 열기 진행 상태
     this._lastCmdTs = Object.create(null); // 명령 디듀프 타임스탬프 저장
+    this._currentCycle = 0; // belt_separator 사이클 구분자
+    this._gateOpenedInCycle = false; // 현재 사이클에서 투입구 열기 전송 여부
 
     this.setupSocketEvents();
     log.info('🔌 Socket.IO 서버가 초기화되었습니다.');
@@ -277,10 +279,17 @@ class SocketHandler {
           return socket.emit('serial_port_error', { message: '시리얼 핸들러가 초기화되지 않았습니다.' });
         }
         
+        // 사이클당 1회만 투입구 열기 명령 허용
+        if (this._gateOpenedInCycle) {
+          log.debug('open_gate 요청 무시: 이미 현재 사이클에서 투입구 열림 명령 전송됨');
+          return;
+        }
+
         try {
           if (this.serialHandler.isConnected()) {
             const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-            this.sendCommand('open_gate:already_connected', command, 'hopper_open');
+            this.sendCommand('open_gate:already_connected', command, `hopper_open:cycle:${this._currentCycle}`);
+            this._gateOpenedInCycle = true;
             return;
           }
           // 이미 열기 진행 중이면 연결 완료까지 대기 후 전송
@@ -288,7 +297,8 @@ class SocketHandler {
             log.info('⏳ 시리얼 포트 열기 진행 중, 연결 완료 후 명령 전송 예정');
             this.serialHandler.once('connected', () => {
               const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-              this.sendCommand('open_gate:after_connect', command, 'hopper_open');
+              this.sendCommand('open_gate:after_connect', command, `hopper_open:cycle:${this._currentCycle}`);
+              this._gateOpenedInCycle = true;
               socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
             });
             return;
@@ -299,7 +309,8 @@ class SocketHandler {
           this.serialHandler.once('connected', () => {
             this.serialOpening = false;
             const command = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-            this.sendCommand('open_gate:after_connect', command, 'hopper_open');
+            this.sendCommand('open_gate:after_connect', command, `hopper_open:cycle:${this._currentCycle}`);
+            this._gateOpenedInCycle = true;
             socket.emit('serial_port_opened', { status: 'opened', message: '시리얼 포트가 성공적으로 열리고 명령이 전송되었습니다.' });
           });
           this.serialHandler.once('error', (err) => {
@@ -399,6 +410,9 @@ class SocketHandler {
 
     // 투입구가 열렸다는 신호를 받으면, 프론트엔드에 투입구 열 준비 완료를 알림
     if (type === 'belt_separator_complete') {
+      // 새 사이클 시작: 게이트 오픈 허용 상태 초기화
+      this._currentCycle += 1;
+      this._gateOpenedInCycle = false;
       this.broadcastToPage('band-split', 'hopper_ready', {
         message: 'Hopper is ready to be opened.'
       });
@@ -424,6 +438,13 @@ class SocketHandler {
       // 프론트엔드에 투입 알림 브로드캐스트
       this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
       log.info('🐾 페트병 투입 감지, 프론트엔드에 알림.');
+
+      // 현재 사이클에서 추가 open_gate를 명시적으로 봉인하여 중복 열림 방지
+      if (!this._gateOpenedInCycle) {
+        // 안전: 만약 아직 표시되지 않았다면 상태를 잠급니다
+        this._gateOpenedInCycle = true;
+      }
+      log.debug('cycle gate locked after input_pet');
     }
 
     // 올바른 제품 감지 시 -> 그라인더 정방향 회전
