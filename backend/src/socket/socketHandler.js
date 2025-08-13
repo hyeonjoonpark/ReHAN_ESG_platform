@@ -156,6 +156,13 @@ class SocketHandler {
         }
 
         try {
+          // 엣지/사이클 상태를 항상 초기화하여 다음 belt=1을 상승엣지로 수용
+          if (typeof this.serialHandler.resetEdgeState === 'function') {
+            this.serialHandler.resetEdgeState();
+          }
+          this._gateOpenedInCycle = false;
+          this._lastBeltAt = 0;
+
           if (this.serialHandler.isConnected()) {
             socket.emit('serial_port_opened', {
               status: 'already_open',
@@ -164,10 +171,6 @@ class SocketHandler {
           } else {
             // 시리얼 포트 열기 시도
             if (this.serialHandler.connect) {
-              // 엣지 상태 리셋: 다음 belt=1을 상승엣지로 인식
-              if (typeof this.serialHandler.resetEdgeState === 'function') {
-                this.serialHandler.resetEdgeState();
-              }
               this.serialHandler.connect();
               
               // 연결 상태 확인 후 응답
