@@ -34,6 +34,13 @@ class SerialHandler extends EventEmitter {
     }
   }
 
+  /**
+   * 상승엣지 기준 상태를 초기화 (다음 belt=1을 상승엣지로 인식)
+   */
+  resetEdgeState() {
+    this.prevState = { belt_separator: 0, input_pet: 0, clear_pet: 0, grinder: null, err_pet: 0 };
+  }
+
   connect() {
     if (this._isConnected) {
       log.info('이미 연결되어 있습니다.');

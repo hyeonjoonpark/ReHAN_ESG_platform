@@ -243,7 +243,7 @@ const BandSplit = () => {
     }
   }, [sectionType]);
 
-  // START_SPLIT_BAND로 전환될 때마다 초기 시퀀스 재실행(시리얼 재연결 유도)
+  // START_SPLIT_BAND로 전환될 때마다 초기 시퀀스 재실행(불필요한 포트 닫기 제거)
   useEffect(() => {
     if (!socket) return;
     if (sectionType !== SectionType.START_SPLIT_BAND) return;
@@ -251,13 +251,10 @@ const BandSplit = () => {
     // 페이지 룸 재참여(중복 참여는 socket.io에서 안전)
     joinPage('band-split');
 
-    // 재연결 유도: 닫고 다시 열기 + 상태 요청 (open_gate는 hopper_ready에서만 보냄)
-    console.log('📡 START_SPLIT_BAND 진입 - 시리얼 재연결 및 상태 요청 (open_gate 지연)');
-    socket.emit('serial_port_close');
-    setTimeout(() => {
-      socket.emit('serial_port_open');
-      requestHardwareStatus();
-    }, 300);
+    // 포트를 닫지 않고 상태 요청 + 포트 열기만 수행 (이미 열려있으면 서버가 already_open 응답)
+    console.log('📡 START_SPLIT_BAND 진입 - 상태 요청 및 포트 열기 (close 제거)');
+    socket.emit('serial_port_open');
+    requestHardwareStatus();
   }, [sectionType, socket, joinPage, requestHardwareStatus]);
 
   // 대기 상태에서 belt_separator를 못 받으면 자동 재시도 (최대 3회, 5초 간격)

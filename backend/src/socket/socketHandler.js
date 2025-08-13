@@ -164,6 +164,10 @@ class SocketHandler {
           } else {
             // 시리얼 포트 열기 시도
             if (this.serialHandler.connect) {
+              // 엣지 상태 리셋: 다음 belt=1을 상승엣지로 인식
+              if (typeof this.serialHandler.resetEdgeState === 'function') {
+                this.serialHandler.resetEdgeState();
+              }
               this.serialHandler.connect();
               
               // 연결 상태 확인 후 응답
