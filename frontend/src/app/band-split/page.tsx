@@ -185,12 +185,21 @@ const BandSplit = () => {
     }
   }, [beltSeparatorCompleted, socket]);
 
-  // 투입 완료 버튼 클릭 시 데이터 전송
+  // 투입 완료 버튼 클릭 시 자원 확인 중 페이지 표시
   const handleCompleteClick = () => {
     if (socket && sectionType === SectionType.OPEN_GATE) {
-      console.log('✅ 투입 완료 버튼 클릭 - 투입 완료 데이터 전송');
+      console.log('✅ 투입 완료 버튼 클릭 - 자원 확인 중 페이지로 전환');
       socket.emit('serial_data', { input_pet: 1 });
       setSectionType(SectionType.CHECK_RESOURCE);
+
+      // 일정 시간 후 정상 배출 페이지로 전환
+      setTimeout(() => {
+        if (socket) {
+          const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
+          socket.emit('serial_data', grinderForwardCommand);
+        }
+        setSectionType(SectionType.NORMALLY_END);
+      }, 5000); // 5초 후 정상 배출 페이지로 전환
     }
   };
 
@@ -243,12 +252,7 @@ const BandSplit = () => {
           />
         );
       case SectionType.NORMALLY_END:
-        return <NormallyEndSection onHomeClick={() => router.replace('/')} onAddMore={() => { 
-          resetFlags();
-          setRetryCount(0);
-          setWaitingForHardware(true);
-          setSectionType(SectionType.START_SPLIT_BAND); 
-        }} />;
+        return <NormallyEndSection onHomeClick={() => router.replace('/')} onAddMore={handleAddMoreClick} />;
       default:
         return <StartSplitBandSections />;
     }
@@ -314,6 +318,20 @@ const BandSplit = () => {
 
     return () => clearTimeout(timer);
   }, [waitingForHardware, beltSeparatorCompleted, retryCount, sectionType, socket, requestHardwareStatus]);
+
+  // 추가 투입 버튼 클릭 시 데이터 초기화 및 상태 재설정
+  const handleAddMoreClick = () => {
+    console.log('🔄 추가 투입 버튼 클릭 - 데이터 초기화 및 상태 재설정');
+    resetFlags(); // 모든 플래그 초기화
+    setRetryCount(0);
+    setWaitingForHardware(true);
+    setSectionType(SectionType.START_SPLIT_BAND);
+    if (socket) {
+      joinPage('band-split'); // 페이지 룸 재참여
+      socket.emit('serial_port_open'); // 시리얼 포트 열기 요청
+      requestHardwareStatus(); // 하드웨어 상태 요청
+    }
+  };
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
