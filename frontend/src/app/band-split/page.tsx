@@ -191,15 +191,6 @@ const BandSplit = () => {
       console.log('✅ 투입 완료 버튼 클릭 - 자원 확인 중 페이지로 전환');
       socket.emit('serial_data', { input_pet: 1 });
       setSectionType(SectionType.CHECK_RESOURCE);
-
-      // 일정 시간 후 정상 배출 페이지로 전환
-      setTimeout(() => {
-        if (socket) {
-          const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
-          socket.emit('serial_data', grinderForwardCommand);
-        }
-        setSectionType(SectionType.NORMALLY_END);
-      }, 5000); // 5초 후 정상 배출 페이지로 전환
     }
   };
 
