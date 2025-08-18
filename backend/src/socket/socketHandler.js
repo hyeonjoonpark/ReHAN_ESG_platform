@@ -79,6 +79,52 @@ class SocketHandler {
       this.notifyHardwareStatus(type, data);
     });
 
+    // 띠분리 완료 신호 수신 시 뚜껑 열기
+    this.serialHandler.on('belt_separator_complete', () => {
+      log.info('띠분리 완료 신호 수신, 투입구 오픈 데이터 전송');
+      const openGateCommand = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+      this.sendCommand('belt_separator_complete:open_gate', openGateCommand, 'hopper_open');
+    });
+
+    // 투입 완료 데이터 수신 시 정상 상태 데이터 전송
+    this.serialHandler.on('input_pet_detected', () => {
+      log.info('투입 완료 데이터 수신, 정상 상태 데이터 전송');
+      const normalStateCommand = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+      this.sendCommand('input_pet_detected:normal_state', normalStateCommand, 'status_ok');
+    });
+
+    // 그라인더 작동 데이터 수신 시 그라인더 정방향 작동 데이터 전송
+    this.serialHandler.on('clear_pet_detected', () => {
+      log.info('그라인더 작동 데이터 수신, 그라인더 정방향 작동 데이터 전송');
+      const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
+      this.sendCommand('clear_pet_detected:grinder_forward', grinderForwardCommand, 'grinder_foword');
+    });
+
+    // 투입 물품 에러 신호 수신 시 처리
+    this.serialHandler.on('err_pet_detected', () => {
+      log.info('투입 물품 에러 감지, 배출 방향 신호 전송 및 에러 화면 표시');
+      const errorCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":1,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+      this.sendCommand('err_pet_detected:status_error', errorCommand, 'status_error');
+      this.broadcastToAll('hardware_status', { type: 'resource_error', data: {}, timestamp: new Date().toISOString() });
+    });
+
+    // 정상 투입 시 인버터 동작 및 10초 후 정지
+    this.serialHandler.on('input_pet_detected', () => {
+      log.info('정상 투입 감지, 인버터 동작 시작');
+      const grinderStartCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":1,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+      this.sendCommand('input_pet_detected:grinder_on', grinderStartCommand, 'grinder_on');
+      this.broadcastToAll('hardware_status', { type: 'grinding', data: {}, timestamp: new Date().toISOString() });
+
+      // 10초 후 인버터 정지
+      setTimeout(() => {
+        log.info('인버터 정지');
+        const grinderStopCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":1};
+        this.sendCommand('grinder_stop', grinderStopCommand, 'grinder_stop');
+      }, 10000); // 10초 후 정지
+    });
+
+    // 추가 투입 및 종료 처리 로직은 기존 로직을 유지하며 필요 시 추가 구현
+
     log.info('🔗 시리얼 핸들러가 소켓 핸들러에 연결되었습니다.');
   }
 

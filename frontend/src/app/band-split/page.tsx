@@ -174,6 +174,50 @@ const BandSplit = () => {
     };
   }, [beltSeparatorCompleted, petInserted, normallyEnd, sectionType, socket]);
 
+  // 띠분리 완료 데이터 수신 시 투입구 오픈 데이터 전송
+  useEffect(() => {
+    if (beltSeparatorCompleted) {
+      console.log('✅ 띠분리 완료 - 투입구 오픈 데이터 전송');
+      if (socket) {
+        const openGateCommand = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+        socket.emit('serial_data', openGateCommand);
+      }
+    }
+  }, [beltSeparatorCompleted, socket]);
+
+  // 투입 완료 버튼 클릭 시 데이터 전송
+  const handleCompleteClick = () => {
+    if (socket && sectionType === SectionType.OPEN_GATE) {
+      console.log('✅ 투입 완료 버튼 클릭 - 투입 완료 데이터 전송');
+      socket.emit('serial_data', { input_pet: 1 });
+      setSectionType(SectionType.CHECK_RESOURCE);
+    }
+  };
+
+  // 투입 완료 데이터 수신 후 정상 상태 데이터 전송 및 화면 전환
+  useEffect(() => {
+    if (petInserted) {
+      console.log('✅ 투입 완료 데이터 수신 - 정상 상태 데이터 전송 및 화면 전환');
+      if (socket) {
+        const normalStateCommand = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
+        socket.emit('serial_data', normalStateCommand);
+      }
+      setSectionType(SectionType.CHECK_RESOURCE);
+    }
+  }, [petInserted, socket]);
+
+  // 그라인더 작동 데이터 수신 시 그라인더 정방향 작동 데이터 전송 및 화면 전환
+  useEffect(() => {
+    if (normallyEnd) {
+      console.log('✅ 그라인더 작동 데이터 수신 - 그라인더 정방향 작동 데이터 전송 및 화면 전환');
+      if (socket) {
+        const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
+        socket.emit('serial_data', grinderForwardCommand);
+      }
+      setSectionType(SectionType.NORMALLY_END);
+    }
+  }, [normallyEnd, socket]);
+
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
     switch (sectionType) {
@@ -207,15 +251,6 @@ const BandSplit = () => {
         }} />;
       default:
         return <StartSplitBandSections />;
-    }
-  };
-
-  const handleCompleteClick = () => {
-    if (socket && sectionType === SectionType.OPEN_GATE) {
-      console.log('✅ 투입 완료 버튼 클릭 - 백엔드에 {"input_pet":1} 신호 전송');
-      socket.emit('serial_data', { input_pet: 1 });
-      // 7초동안 대기
-      setSectionType(SectionType.CHECK_RESOURCE);
     }
   };
 
