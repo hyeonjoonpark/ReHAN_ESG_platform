@@ -1,5 +1,6 @@
 const User = require('./user/User');
 const UsageUser = require('./usage_user/UsageUser');
+const ErrorReport = require('./error_report/ErrorReport');
 
 // 모델 간 관계 설정
 User.hasMany(UsageUser, { 
@@ -14,5 +15,6 @@ UsageUser.belongsTo(User, {
 
 module.exports = {
   User,
-  UsageUser
+  UsageUser,
+  ErrorReport
 }; 

@@ -1,4 +1,5 @@
 export enum KeypadSizeType {
     SMALL,
-    LARGE
+    LARGE,
+    MEDIUM
 }

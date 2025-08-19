@@ -16,6 +16,10 @@ interface ErrorInquireModalProps {
   locationError?: string | null;
   address?: string | null;
   addressError?: string | null;
+  errorContent?: string | null;
+  onSave: () => void;
+  phoneNumber: string;
+  setPhoneNumber: (value: string) => void;
 }
 
 export default function ErrorInquireModal({ 
@@ -25,7 +29,11 @@ export default function ErrorInquireModal({
   location, 
   locationError,
   address,
-  addressError
+  addressError,
+  errorContent,
+  onSave,
+  phoneNumber,
+  setPhoneNumber
 }: ErrorInquireModalProps) {
   const [displayNumber, setDisplayNumber] = useState('');
   const [modalStep, setModalStep] = useState<'phone-input' | 'confirmation'>('phone-input');
@@ -144,6 +152,7 @@ export default function ErrorInquireModal({
               </button>
               <button
                 onClick={() => {
+                  setPhoneNumber(displayNumber.replace(/-/g, ''));
                   setModalStep('confirmation');
                 }}
                 disabled={!isPhoneNumberComplete()}
@@ -184,8 +193,7 @@ export default function ErrorInquireModal({
               <button
                 onClick={() => {
                   // 최종 제출 로직
-                  console.log('전화번호:', displayNumber);
-                  console.log('제출 완료');
+                  onSave();
                   onClose();
                   router.replace('/repair');
                 }}

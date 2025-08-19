@@ -183,6 +183,21 @@ export default function LoginPage() {
     router.push('/');
   };
 
+  const handleSave = async () => {
+    try {
+      const response = await axios.post('/api/v1/error-report', {
+        phone_number: phoneNumber,
+        error_content: selectedErrorType,
+      });
+      if (response.status === 201) {
+        alert('Error report saved successfully!');
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Failed to save error report:', error);
+    }
+  };
+
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
@@ -268,6 +283,9 @@ export default function LoginPage() {
         locationError={locationError}
         address={address}
         addressError={addressError}
+        onSave={handleSave}
+        phoneNumber={phoneNumber}
+        setPhoneNumber={setPhoneNumber}
       />
       
       {/* 회원정보 확인 모달 */}

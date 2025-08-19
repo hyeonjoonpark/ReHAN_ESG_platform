@@ -144,11 +144,10 @@ export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: 
             </button>
           </div>
           
-          <Keypad size={keypadSize}
+          <Keypad size={KeypadSizeType.LARGE}
                   onNumberClick={handleNumberClick}
                   onDelete={handleDelete}
-                  onClear={handleClear} 
-          />
+                  onClear={handleClear} />
          </div>
       </div>
       <AlertModal

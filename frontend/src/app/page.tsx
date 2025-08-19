@@ -13,12 +13,20 @@ import { ScreenType } from '@/types/ScreenType';
 import { useRouter } from 'next/navigation';
 import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
 import { getFormattedCurrentTime } from '@/utils/updateTime';
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// axios 기본 설정
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = 'http://localhost:3001';
 
 export default function Home() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<ScreenType>(ScreenType.MAIN);
   const [selectedErrorType, setSelectedErrorType] = useState<string | undefined>();
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [location, setLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -97,8 +105,25 @@ export default function Home() {
 
   const handleErrorTypeSelect = (errorType: string) => {
     setSelectedErrorType(errorType);
-    setCurrentScreen(ScreenType.MAIN);
     setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      console.log(phoneNumber, selectedErrorType);
+      const response = await axios.post('/api/v1/error-report', {
+        phone_number: phoneNumber,
+        error_content: selectedErrorType,
+      });
+      console.log("response", response.status);
+      if (response.status === 201) {
+        toast.success('오류 내용이 페트몬 담당자한테 보내졌습니다!', { autoClose: 10000 }); // 10 second
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error saving report:', error);
+      toast.error('오류 내용을 전송하는데 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleInquireClick = () => {
@@ -187,7 +212,7 @@ export default function Home() {
         rightButtons={[{
           text: "시작하기",
           onClick: () => router.replace('/login'),
-          className: "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-12 py-8 rounded-4xl text-white font-extrabold text-4xl transition-all duration-300 hover:scale-115 hover:shadow-2xl text-center"
+          className: "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-12 py-6 rounded-4xl text-white font-extrabold text-4xl transition-all duration-300 hover:scale-115 hover:shadow-2xl text-center"
         }]}
       />
       
@@ -196,11 +221,15 @@ export default function Home() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         errorType={selectedErrorType}
+        onSave={handleSave}
+        phoneNumber={phoneNumber}
+        setPhoneNumber={setPhoneNumber}
         location={location}
         locationError={locationError}
         address={address}
         addressError={addressError}
       />
+      <ToastContainer position="top-right" autoClose={10000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 }

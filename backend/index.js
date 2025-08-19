@@ -8,6 +8,7 @@ const http = require("http");
 const { testConnection } = require("./src/database/sequelize");
 const authRoutes = require("./src/routes/auth");
 const usageRoutes = require("./src/routes/usage");
+const errorReportRoutes = require("./src/routes/error_report")
 
 // 시리얼 통신 및 소켓 핸들러 추가
 const SerialHandler = require("./src/serial/serialHandler");
@@ -234,6 +235,7 @@ app.post('/api/v1/hardware/test', (req, res) => {
 // 라우터 설정
 app.use('/api/v1', authRoutes);
 app.use('/api/v1', usageRoutes);
+app.use('/api/v1', errorReportRoutes);
 
 // 기본 라우트
 app.get("/", (req, res) => {

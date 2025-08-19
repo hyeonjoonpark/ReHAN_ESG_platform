@@ -16,9 +16,9 @@ export default function Keypad({
   onClear 
 }: KeypadProps) {
   // SMALL 사이즈: 전체 키패드를 더 작게 표시
-  const buttonSize = size === KeypadSizeType.SMALL ? 'w-6 h-6 text-base' : 'w-20 h-20 text-2xl';
-  const containerPadding = size === KeypadSizeType.SMALL ? 'p-1' : 'p-6';
-  const gap = size === KeypadSizeType.SMALL ? 'gap-1' : 'gap-3';
+  const buttonSize = size === KeypadSizeType.SMALL ? 'w-10 h-10 text-base' : size === KeypadSizeType.MEDIUM ? 'w-12 h-12 text-lg' : 'w-15 h-15 text-2xl';
+  const containerPadding = size === KeypadSizeType.SMALL ? 'p-2' : 'p-6';
+  const gap = size === KeypadSizeType.SMALL ? 'gap-2' : 'gap-3';
   const scaleClass = size === KeypadSizeType.SMALL ? 'scale-90' : '';
 
   // 색상 테마 정의

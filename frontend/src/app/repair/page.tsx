@@ -18,6 +18,8 @@ export default function RepairPage() {
   const [adminLongitude, setAdminLongitude] = useState<number>(126.7994);
   const [dispatchAddress, setDispatchAddress] = useState<string>('');
 
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+
   useEffect(() => {
     // 현재 시간 업데이트
     const updateTime = () => {
@@ -94,6 +96,12 @@ export default function RepairPage() {
   }, []);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.google) {
+      setIsGoogleLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
     // 주소를 위도와 경도로 변환
     const fetchCoordinates = async () => {
       const response = await fetch(
@@ -123,29 +131,31 @@ export default function RepairPage() {
             <div className="lg:col-span-2 flex flex-col justify-center">
               <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[600px] relative">
                 {/* 지도 배경 */}
-                <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-                  <GoogleMap
-                    mapContainerClassName="w-full h-full"
-                    center={{ lat: latitude, lng: longitude }}
-                    zoom={14}
-                  >
-                    {/* 내 위치 마커 */}
-                    {latitude && longitude && (
+                {!isGoogleLoaded && (
+                  <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+                    <GoogleMap
+                      mapContainerClassName="w-full h-full"
+                      center={{ lat: latitude, lng: longitude }}
+                      zoom={14}
+                    >
+                      {/* 내 위치 마커 */}
+                      {latitude && longitude && (
+                        <Marker
+                          position={{ lat: latitude, lng: longitude }}
+                          title={'현재 위치'}
+                        />
+                      )}
+                      {/* 출동 중 마커 */}
                       <Marker
-                        position={{ lat: latitude, lng: longitude }}
-                        title={'현재 위치'}
+                        position={{ lat: adminLatitude, lng: adminLongitude }}
+                        title={'출동 중'}
+                        icon={{
+                          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                        }}
                       />
-                    )}
-                    {/* 출동 중 마커 */}
-                    <Marker
-                      position={{ lat: adminLatitude, lng: adminLongitude }}
-                      title={'출동 중'}
-                      icon={{
-                        url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-                      }}
-                    />
-                  </GoogleMap>
-                </LoadScript>
+                    </GoogleMap>
+                  </LoadScript>
+                )}
                 {/* 하단 정보 */}
                 <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-700 p-6">
                   <div className="flex items-center justify-between">
