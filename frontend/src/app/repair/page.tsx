@@ -121,7 +121,7 @@ export default function RepairPage() {
           <div className="grid lg:grid-cols-3 gap-8 h-full">
             {/* 왼쪽 - 지도 영역 */}
             <div className="lg:col-span-2 flex flex-col justify-center">
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[400px] relative">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[600px] relative">
                 {/* 지도 배경 */}
                 <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
                   <GoogleMap
