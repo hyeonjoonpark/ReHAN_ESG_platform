@@ -4,11 +4,19 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import RightSection from '@/components/RightSection';
 import BottomInquire from '@/components/BottomInquire';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
 
 export default function RepairPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
-  const [arrivalTime, setArrivalTime] = useState(3);
+  const [arrivalTime, setArrivalTime] = useState<number>(0);
   const [userAddress, setUserAddress] = useState<string>('위치를 찾을 수 없습니다.');
+  const [latitude, setLatitude] = useState<number>(37.4842);
+  const [longitude, setLongitude] = useState<number>(-122.4194);
+
+  const [adminLatitude, setAdminLatitude] = useState<number>(37.4842);
+  const [adminLongitude, setAdminLongitude] = useState<number>(126.7994);
+  const [dispatchAddress, setDispatchAddress] = useState<string>('');
 
   useEffect(() => {
     // 현재 시간 업데이트
@@ -38,12 +46,46 @@ export default function RepairPage() {
     // 도착 시간 카운트다운
     const arrivalInterval = setInterval(() => {
       setArrivalTime(prev => {
-        if (prev > 0) {
-          return prev - 1;
+        const current = prev ?? 0; // Use nullish coalescing to default to 0
+        if (current > 0) {
+          return current - 1;
         }
         return 0;
       });
     }, 60000); // 1분마다 감소
+
+    // 브라우저의 현재 위치 가져오기
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          setLatitude(latitude);
+          setLongitude(longitude);
+
+          // Google Maps Distance Matrix API 사용
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${latitude},${longitude}&destinations=37.4842,126.7994&key=AIzaSyDvJwY-VzBk9VJc0Lz1wihaGOl4QNr38wI`
+          );
+          const data = await response.json();
+          if (data.rows[0].elements[0].status === 'OK') {
+            const duration = data.rows[0].elements[0].duration;
+            setArrivalTime(Math.ceil(duration.value / 60));
+          }
+
+          // 주소 변환
+          const addressResult = await getAddressFromCoords(37.4842, 126.7994);
+          if (!addressResult.error) {
+            setDispatchAddress(addressResult.address || '');
+          }
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+    }
 
     return () => {
       clearInterval(timeInterval);
@@ -51,12 +93,28 @@ export default function RepairPage() {
     };
   }, []);
 
+  useEffect(() => {
+    // 주소를 위도와 경도로 변환
+    const fetchCoordinates = async () => {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=경기도+부천시+소사구+양지로+237&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+      const data = await response.json();
+      if (data.status === 'OK') {
+        const location = data.results[0].geometry.location;
+        setAdminLatitude(location.lat);
+        setAdminLongitude(location.lng);
+      }
+    };
+    fetchCoordinates();
+  }, []);
+
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
       {/* 헤더 */}
       <Header currentTime={currentTime} />
 
-      {/* 메인 컨텐츠 */}
+      {/* 메인 콘텐츠 */}
       <main className="flex-1 px-6 lg:px-8 overflow-hidden">
         <div className="max-w-7xl mx-auto h-full">
           {/* 좌우 분할 레이아웃 */}
@@ -65,43 +123,41 @@ export default function RepairPage() {
             <div className="lg:col-span-2 flex flex-col justify-center">
               <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[400px] relative">
                 {/* 지도 배경 */}
-                <div className="w-full h-full bg-gradient-to-br from-green-200 via-green-300 to-green-100 relative">
-                  {/* 도로 라인들 */}
-                  <svg className="absolute inset-0 w-full h-full">
-                    <line x1="0" y1="50%" x2="100%" y2="50%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="3" />
-                    <line x1="30%" y1="0" x2="30%" y2="100%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="3" />
-                    <line x1="70%" y1="0" x2="70%" y2="100%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="3" />
-                    <line x1="0" y1="20%" x2="100%" y2="20%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="2" />
-                    <line x1="0" y1="80%" x2="100%" y2="80%" className="stroke-gray-300 dark:stroke-gray-600" strokeWidth="2" />
-                  </svg>
-                  
-                  {/* 내 위치 마커 */}
-                  <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="bg-gray-800 dark:bg-black text-white px-3 py-1 rounded-lg text-sm font-medium">
-                      {userAddress}
-                    </div>
-                  </div>
-                  
-                  {/* 출동 중 마커 */}
-                  <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                      출동 중
-                    </div>
-                  </div>
-                </div>
-                
+                <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+                  <GoogleMap
+                    mapContainerClassName="w-full h-full"
+                    center={{ lat: latitude, lng: longitude }}
+                    zoom={14}
+                  >
+                    {/* 내 위치 마커 */}
+                    {latitude && longitude && (
+                      <Marker
+                        position={{ lat: latitude, lng: longitude }}
+                        title={'현재 위치'}
+                      />
+                    )}
+                    {/* 출동 중 마커 */}
+                    <Marker
+                      position={{ lat: adminLatitude, lng: adminLongitude }}
+                      title={'출동 중'}
+                      icon={{
+                        url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                      }}
+                    />
+                  </GoogleMap>
+                </LoadScript>
                 {/* 하단 정보 */}
                 <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-700 p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                       <div>
-                        <p className="text-blue-600 font-semibold">페트몬 매니저가 출동 중입니다.</p>
+                        <p className="text-blue-600 font-semibold">페트병 매니저가 출동 중입니다.</p>
                         <p className="text-gray-600 dark:text-gray-300">잠시만 기다려주세요.</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{arrivalTime}</div>
+                      <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{arrivalTime !== null ? arrivalTime : 'N/A'}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">분 후 도착 예정</div>
                     </div>
                   </div>
@@ -109,8 +165,8 @@ export default function RepairPage() {
               </div>
             </div>
 
-                         {/* 오른쪽 - 사이드바 */}
-             <RightSection />
+            {/* 오른쪽 - 사이드바 */}
+            <RightSection />
           </div>
         </div>
       </main>
