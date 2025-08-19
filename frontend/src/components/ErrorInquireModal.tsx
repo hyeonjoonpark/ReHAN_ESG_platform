@@ -135,7 +135,7 @@ export default function ErrorInquireModal({
             />
 
             {/* 하단 버튼 */}
-            <div className="flex gap-3">
+            <div className="flex gap-4 mt-4">
               <button
                 onClick={onClose}
                 className="flex-1 bg-gray-700 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
@@ -150,7 +150,7 @@ export default function ErrorInquireModal({
                 className={`flex-1 ${
                   isPhoneNumberComplete() 
                     ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600' 
-                    : 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-black-100 dark:bg-black-200 text-gray-400 dark:text-gray-400 cursor-not-allowed'
                 } text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300`}
               >
                 완료
