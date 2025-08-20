@@ -30,9 +30,7 @@ export default function ErrorInquireModal({
   locationError,
   address,
   addressError,
-  errorContent,
   onSave,
-  phoneNumber,
   setPhoneNumber
 }: ErrorInquireModalProps) {
   const [displayNumber, setDisplayNumber] = useState('');
