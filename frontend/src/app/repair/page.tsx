@@ -66,9 +66,7 @@ export default function RepairPage() {
           setLongitude(longitude);
 
           // Google Maps Distance Matrix API 사용
-          const response = await fetch(
-            `https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${latitude},${longitude}&destinations=37.4842,126.7994&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
-          );
+          const response = await fetch(`/api/google-maps?latitude=${latitude}&longitude=${longitude}`);
           const data = await response.json();
           if (data.rows[0].elements[0].status === 'OK') {
             const duration = data.rows[0].elements[0].duration;
