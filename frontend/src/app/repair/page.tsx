@@ -10,13 +10,11 @@ import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
 export default function RepairPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [arrivalTime, setArrivalTime] = useState<number>(0);
-  const [userAddress, setUserAddress] = useState<string>('위치를 찾을 수 없습니다.');
   const [latitude, setLatitude] = useState<number>(37.4842);
   const [longitude, setLongitude] = useState<number>(-122.4194);
 
   const [adminLatitude, setAdminLatitude] = useState<number>(37.4842);
   const [adminLongitude, setAdminLongitude] = useState<number>(126.7994);
-  const [dispatchAddress, setDispatchAddress] = useState<string>('');
 
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
@@ -42,7 +40,7 @@ export default function RepairPage() {
     // localStorage에서 주소 가져오기
     const savedAddress = localStorage.getItem('address');
     if (savedAddress) {
-      setUserAddress(savedAddress);
+      // setUserAddress(savedAddress); // This line is removed
     }
 
     // 도착 시간 카운트다운
@@ -76,7 +74,7 @@ export default function RepairPage() {
           // 주소 변환
           const addressResult = await getAddressFromCoords(37.4842, 126.7994);
           if (!addressResult.error) {
-            setDispatchAddress(addressResult.address || '');
+            // setDispatchAddress(addressResult.address || ''); // This line is removed
           }
         },
         (error) => {
