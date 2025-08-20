@@ -9,7 +9,7 @@ interface RegisterProps {
   keypadSize?: KeypadSizeType
 }
 
-export default function Register({ onBack, keypadSize = KeypadSizeType.LARGE }: RegisterProps) {
+export default function Register({ onBack }: RegisterProps) {
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
