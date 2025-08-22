@@ -12,22 +12,19 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine AS runner
+FROM base AS runner
 WORKDIR /app
 
-# 빌드된 정적 파일을 nginx 디렉토리로 복사
-COPY --from=builder /app/out /usr/share/nginx/html
+# 프로덕션 의존성만 설치
+COPY package*.json ./
+RUN npm ci --only=production
 
-# nginx 설정 파일 복사
-COPY nginx.conf /etc/nginx/nginx.conf
+# 빌드된 애플리케이션 복사
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 
-# nginx 로그 디렉토리 권한 설정
-RUN mkdir -p /var/log/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /usr/share/nginx/html
+# 포트 3000 노출
+EXPOSE 3000
 
-# 포트 80 노출
-EXPOSE 80
-
-# nginx 실행
-CMD ["nginx", "-g", "daemon off;"]
+# Next.js 서버 실행
+CMD ["npm", "start"]
