@@ -3,7 +3,7 @@ FROM node:20.14.0 AS base
 FROM base AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --production
 
 FROM base AS builder
 WORKDIR /app
@@ -17,7 +17,7 @@ WORKDIR /app
 
 # 프로덕션 의존성만 설치
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --production
 
 # 빌드된 애플리케이션 복사
 COPY --from=builder /app/.next ./.next
