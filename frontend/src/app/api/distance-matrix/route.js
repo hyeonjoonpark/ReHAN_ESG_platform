@@ -170,18 +170,8 @@ export async function GET(request) {
         const averageSpeed = 25; // km/h
         const estimatedDurationSeconds = Math.round((estimatedRoadDistance / 1000) * 3600 / averageSpeed);
         
-        // 실제 도로 경로 대신 마커만 표시 (경로 없음)
-        const generateNoRoute = () => {
-          // 경로를 표시하지 않고 마커만 표시
-          return [];
-        };
-
-
         
-        // 경로 없이 마커만 표시
-        const routePoints = generateNoRoute();
-        
-        // 추정 거리와 시간 사용 (경로 없이)
+        // 경로 없이 마커만 표시 (routePoints 사용하지 않음)
         const actualRoadDistance = estimatedRoadDistance;
         const actualDurationSeconds = estimatedDurationSeconds;
         

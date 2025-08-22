@@ -64,17 +64,7 @@ export default function RepairPage() {
     return points;
   };
 
-  // 경로 설정 함수
-  const setRouteFromPolyline = (polylineString: string) => {
-    console.log('Polyline 디코딩 시작:', polylineString.substring(0, 50) + '...');
-    const decodedPath = decodePolyline(polylineString);
-    console.log('디코딩된 경로 포인트 수:', decodedPath.length);
-    if (decodedPath.length > 0) {
-      console.log('첫 번째 포인트:', decodedPath[0]);
-      console.log('마지막 포인트:', decodedPath[decodedPath.length - 1]);
-      setRoutePath(decodedPath);
-    }
-  };
+
 
   useEffect(() => {
     // 현재 시간 업데이트
@@ -157,7 +147,8 @@ export default function RepairPage() {
                     // 실제 경로 데이터가 있는 경우
                     console.log('실제 경로 polyline 사용');
                     setRoutePolyline(data.route_data.polyline);
-                    setRouteFromPolyline(data.route_data.polyline);
+                    const decodedPath = decodePolyline(data.route_data.polyline);
+                    setRoutePath(decodedPath);
                     setIsEstimatedRoute(false);
                   } else if (data.route_data.is_estimated) {
                     // 추정 모드인 경우
@@ -220,32 +211,6 @@ export default function RepairPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.google) {
-      const mapElement = document.getElementById('map');
-      if (mapElement) {
-        const map = new google.maps.Map(mapElement, {
-          center: { lat: latitude, lng: longitude },
-          zoom: 14,
-        });
-
-        new google.maps.Marker({
-          map,
-          position: { lat: latitude, lng: longitude },
-          title: '현재 위치',
-        });
-
-        new google.maps.Marker({
-          map,
-          position: { lat: adminLatitude, lng: adminLongitude },
-          title: '출동 중',
-          icon: {
-            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-          }
-        });
-      }
-    }
-  }, [latitude, longitude, adminLatitude, adminLongitude]);
 
   useEffect(() => {
     // 주소를 위도와 경도로 변환
