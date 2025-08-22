@@ -28,9 +28,6 @@ export default function ErrorTypeSelect({ onBack, onErrorTypeSelect }: ErrorType
         <h2 className="text-2xl lg:text-3xl font-bold mb-4 text-white">
           기계가 작동하지 않나요?
         </h2>
-        <p className="text-lg text-gray-300 mb-12">
-          해당하는 버튼을 눌러주세요.
-        </p>
         
         <div className="w-full border-b border-white/30 mb-8"></div>
         

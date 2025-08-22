@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import RightSection from '@/components/RightSection';
-import BottomInquire from '@/components/BottomInquire';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
 
@@ -120,12 +119,12 @@ export default function RepairPage() {
 
       {/* 메인 콘텐츠 */}
       <main className="flex-1 px-6 lg:px-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto h-full">
+        <div className="max-w-6xl mx-auto h-full">
           {/* 좌우 분할 레이아웃 */}
-          <div className="grid lg:grid-cols-3 gap-8 h-full">
+          <div className="grid lg:grid-cols-3 gap-6 h-full">
             {/* 왼쪽 - 지도 영역 */}
-            <div className="lg:col-span-2 flex flex-col justify-center">
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[600px] relative">
+            <div className="lg:col-span-2 flex-col justify-center">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[650px] relative">
                 {/* 지도 배경 */}
                 {!isGoogleLoaded && (
                   <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
@@ -176,14 +175,6 @@ export default function RepairPage() {
           </div>
         </div>
       </main>
-
-      {/* 하단 */}
-      <BottomInquire 
-        rightButtons={[{
-          text: "수리 중",
-          className: "bg-gray-600 hover:bg-gray-700 px-8 py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-        }]}
-      />
     </div>
   );
 }

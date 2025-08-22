@@ -77,6 +77,9 @@ export default function RightSection({ mode = 'percent', remainingCount = 100, c
           </div>
         )}
       </div>
+      <button className="w-full bg-gray-600 hover:bg-gray-700 px-8 py-4 rounded-2xl text-white font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl mt-4">
+        수리 중
+      </button>
     </section>
   );
 } 
