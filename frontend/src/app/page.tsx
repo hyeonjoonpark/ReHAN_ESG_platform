@@ -130,12 +130,16 @@ export default function Home() {
     } catch (error: unknown) {
       console.error('=== 에러 리포트 저장 실패 ===');
       console.error('Error details:', error);
-      if (error && typeof error === 'object' && 'response' in error) {
-        console.error('Error response:', (error as any).response);
+      
+      // 타입 안전한 에러 처리
+      const errorObj = error as Record<string, unknown>;
+      if (errorObj.response) {
+        console.error('Error response:', errorObj.response);
       }
-      if (error && typeof error === 'object' && 'message' in error) {
-        console.error('Error message:', (error as any).message);
+      if (errorObj.message) {
+        console.error('Error message:', errorObj.message);
       }
+      
       toast.error('오류 내용을 전송하는데 실패했습니다. 다시 시도해주세요.');
     }
   };
