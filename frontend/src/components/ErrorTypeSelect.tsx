@@ -12,7 +12,7 @@ export default function ErrorTypeSelect({ onBack, onErrorTypeSelect }: ErrorType
   ];
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-full">
+    <div className="relative flex flex-col h-full">
       {/* 이전으로 버튼 */}
       <div className="absolute top-0 right-0">
         <button 
@@ -24,14 +24,13 @@ export default function ErrorTypeSelect({ onBack, onErrorTypeSelect }: ErrorType
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="text-start w-full max-w-4xl px-4">
-        <h2 className="text-2xl lg:text-3xl font-bold mb-4 text-white">
+      <div className="text-start w-full max-w-4xl">
+        <h2 className="text-xl lg:text-3xl font-bold text-white mb-6">
           기계가 작동하지 않나요?
         </h2>
-        
         <div className="w-full border-b border-white/30 mb-8"></div>
         
-        <p className="text-base text-gray-300 mb-8">
+        <p className="text-base text-gray-300 mb-4">
           페트몬 고객센터로 해당 내용이 전송되며<br />
           허위 신고 시 서비스 이용에 제한을 받을 수 있습니다.
         </p>

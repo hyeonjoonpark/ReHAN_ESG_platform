@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import RightSection from '@/components/RightSection';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
 import { getAddressFromCoords } from '@/utils/getAddressFromCoords';
 
 export default function RepairPage() {
@@ -16,6 +16,66 @@ export default function RepairPage() {
   const [adminLongitude, setAdminLongitude] = useState<number>(126.7994);
 
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
+  const [routePolyline, setRoutePolyline] = useState<string | null>(null);
+  const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
+  const [isEstimatedRoute, setIsEstimatedRoute] = useState(false);
+
+  // Polyline 디코딩 함수
+  const decodePolyline = (encoded: string): google.maps.LatLngLiteral[] => {
+    if (!encoded) return [];
+    
+    const points: google.maps.LatLngLiteral[] = [];
+    let index = 0;
+    let lat = 0;
+    let lng = 0;
+    
+    while (index < encoded.length) {
+      let shift = 0;
+      let result = 0;
+      let byte;
+      
+      do {
+        byte = encoded.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+      
+      const dlat = ((result & 1) !== 0 ? ~(result >> 1) : (result >> 1));
+      lat += dlat;
+      
+      shift = 0;
+      result = 0;
+      
+      do {
+        byte = encoded.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+      
+      const dlng = ((result & 1) !== 0 ? ~(result >> 1) : (result >> 1));
+      lng += dlng;
+      
+      points.push({
+        lat: lat / 1e5,
+        lng: lng / 1e5
+      });
+    }
+    
+    return points;
+  };
+
+  // 경로 설정 함수
+  const setRouteFromPolyline = (polylineString: string) => {
+    console.log('Polyline 디코딩 시작:', polylineString.substring(0, 50) + '...');
+    const decodedPath = decodePolyline(polylineString);
+    console.log('디코딩된 경로 포인트 수:', decodedPath.length);
+    if (decodedPath.length > 0) {
+      console.log('첫 번째 포인트:', decodedPath[0]);
+      console.log('마지막 포인트:', decodedPath[decodedPath.length - 1]);
+      setRoutePath(decodedPath);
+    }
+  };
 
   useEffect(() => {
     // 현재 시간 업데이트
@@ -62,12 +122,83 @@ export default function RepairPage() {
           setLatitude(latitude);
           setLongitude(longitude);
 
-          // Google Maps Distance Matrix API 사용
-          const response = await fetch(`/api/google-maps?latitude=${latitude}&longitude=${longitude}`);
-          const data = await response.json();
-          if (data.rows[0].elements[0].status === 'OK') {
-            const duration = data.rows[0].elements[0].duration;
-            setArrivalTime(Math.ceil(duration.value / 60));
+          try {
+            const apiUrl = `/api/distance-matrix?latitude=${latitude}&longitude=${longitude}&adminLatitude=${adminLatitude}&adminLongitude=${adminLongitude}`;
+            console.log('Distance Matrix API 호출:', apiUrl);
+            
+            const response = await fetch(apiUrl);
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(`API 에러 ${response.status}:`, errorText);
+              throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+              const responseText = await response.text();
+              console.error('JSON이 아닌 응답:', responseText);
+              throw new Error('응답이 JSON 형식이 아닙니다');
+            }
+            
+            const data = await response.json();
+            console.log('API Response:', data);
+            
+            if (data.rows && data.rows[0] && data.rows[0].elements && data.rows[0].elements[0]) {
+              if (data.rows[0].elements[0].status === 'OK') {
+                const duration = data.rows[0].elements[0].duration;
+                console.log('Duration:', duration);
+                setArrivalTime(Math.ceil(duration.value / 60));
+                
+                // 경로 데이터 처리
+                if (data.route_data) {
+                  console.log('경로 데이터 수신:', data.route_data);
+                  
+                  if (data.route_data.polyline) {
+                    // 실제 경로 데이터가 있는 경우
+                    console.log('실제 경로 polyline 사용');
+                    setRoutePolyline(data.route_data.polyline);
+                    setRouteFromPolyline(data.route_data.polyline);
+                    setIsEstimatedRoute(false);
+                  } else if (data.route_data.is_estimated) {
+                    // 추정 모드인 경우
+                    console.log('추정 모드: 마커만 표시');
+                    
+                    if (data.route_data.no_route) {
+                      // 경로 없음 - 마커만 표시
+                      console.log('경로 없음 - 마커만 표시');
+                      setRoutePath([]); // 경로 없음
+                      console.log('직선 거리:', data.route_data.straight_distance + 'm');
+                      console.log('추정 거리:', data.route_data.estimated_distance + 'm');
+                    } else if (data.route_data.route_points && data.route_data.route_points.length > 0) {
+                      // 실제 경로가 있는 경우
+                      console.log('실제 경로 사용:', data.route_data.route_points);
+                      setRoutePath(data.route_data.route_points);
+                    }
+                    
+                    setIsEstimatedRoute(true);
+                    console.log('마커만 표시 설정 완료');
+                  }
+                } else {
+                  console.log('경로 데이터가 없습니다. 기본 마커만 표시합니다.');
+                }
+              } else {
+                console.error('Google Maps API 에러:', data.rows[0].elements[0].status);
+                setArrivalTime(30); // 기본값 설정
+              }
+            } else {
+              console.error('API 응답 형식이 올바르지 않습니다:', data);
+              setArrivalTime(30); // 기본값 설정
+            }
+          } catch (error) {
+            console.error('Routes API 호출 실패:', error);
+            
+            // Routes API 활성화 안내 메시지
+            if (error instanceof Error && error.message.includes('Routes API가 활성화되지 않았습니다')) {
+              console.error('⚠️ Routes API를 활성화해주세요: https://console.cloud.google.com/apis/library/routes.googleapis.com');
+            }
+            
+            setArrivalTime(30); // 기본값 설정
           }
 
           // 주소 변환
@@ -92,15 +223,42 @@ export default function RepairPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.google) {
-      setIsGoogleLoaded(true);
+      const mapElement = document.getElementById('map');
+      if (mapElement) {
+        const map = new google.maps.Map(mapElement, {
+          center: { lat: latitude, lng: longitude },
+          zoom: 14,
+        });
+
+        new google.maps.Marker({
+          map,
+          position: { lat: latitude, lng: longitude },
+          title: '현재 위치',
+        });
+
+        new google.maps.Marker({
+          map,
+          position: { lat: adminLatitude, lng: adminLongitude },
+          title: '출동 중',
+          icon: {
+            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+          }
+        });
+      }
     }
   }, []);
 
   useEffect(() => {
     // 주소를 위도와 경도로 변환
     const fetchCoordinates = async () => {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        console.error('Google Maps API Key가 설정되지 않았습니다.');
+        return;
+      }
+      
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=경기도+부천시+소사구+양지로+237&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+        `https://maps.googleapis.com/maps/api/geocode/json?address=경기도+부천시+소사구+양지로+237&key=${apiKey}`
       );
       const data = await response.json();
       if (data.status === 'OK') {
@@ -126,21 +284,49 @@ export default function RepairPage() {
             <div className="lg:col-span-2 flex-col justify-center">
               <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden h-[650px] relative">
                 {/* 지도 배경 */}
-                {!isGoogleLoaded && (
-                  <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+                {/* 디버깅 정보 */}
+                <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded text-xs z-10">
+                  <div>Google Loaded: {isGoogleLoaded ? 'Yes' : 'No'}</div>
+                  <div>Route Path: {routePath.length} points</div>
+                  <div>Route Type: {isEstimatedRoute ? 'Markers Only (마커만)' : 'Actual (실제)'}</div>
+                  <div>Polyline: {routePolyline ? 'Yes' : 'No'}</div>
+                </div>
+                
+                <LoadScript 
+                  googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+                  onLoad={() => {
+                    console.log('Google Maps API 로드 완료');
+                    setIsGoogleLoaded(true);
+                  }}
+                >
                     <GoogleMap
                       mapContainerClassName="w-full h-full"
                       center={{ lat: latitude, lng: longitude }}
-                      zoom={14}
+                      zoom={10}
                     >
-                      {/* 내 위치 마커 */}
+                      {/* 경로 표시 (실제 경로가 있을 때만) */}
+                      {routePath.length > 0 && (
+                        <Polyline
+                          path={routePath}
+                          options={{
+                            strokeColor: isEstimatedRoute ? '#FFA500' : '#FF0000', // 추정: 주황색, 실제: 빨간색
+                            strokeWeight: 6,
+                            strokeOpacity: isEstimatedRoute ? 0.7 : 0.9
+                          }}
+                        />
+                      )}
+                      
+                      {/* 마커 표시 (항상 표시) */}
                       {latitude && longitude && (
                         <Marker
                           position={{ lat: latitude, lng: longitude }}
                           title={'현재 위치'}
+                          icon={{
+                            url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+                          }}
                         />
                       )}
-                      {/* 출동 중 마커 */}
+                      
                       <Marker
                         position={{ lat: adminLatitude, lng: adminLongitude }}
                         title={'출동 중'}
@@ -150,7 +336,6 @@ export default function RepairPage() {
                       />
                     </GoogleMap>
                   </LoadScript>
-                )}
                 {/* 하단 정보 */}
                 <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-700 p-6">
                   <div className="flex items-center justify-between">
@@ -162,7 +347,7 @@ export default function RepairPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{arrivalTime !== null ? arrivalTime : 'N/A'}</div>
+                      <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{arrivalTime !== null ? arrivalTime : 0}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">분 후 도착 예정</div>
                     </div>
                   </div>
