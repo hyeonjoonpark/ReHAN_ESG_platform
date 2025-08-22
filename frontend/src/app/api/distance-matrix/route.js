@@ -176,31 +176,7 @@ export async function GET(request) {
           return [];
         };
 
-        // 실제 도로 거리 계산 (맨하탄 거리 + 도로 보정)
-        const calculateRoadDistance = (points) => {
-          let totalDistance = 0;
-          
-          for (let i = 1; i < points.length; i++) {
-            const prev = points[i - 1];
-            const curr = points[i];
-            
-            // 두 점 사이의 실제 거리 계산 (Haversine formula)
-            const R = 6371000; // 지구 반지름 (미터)
-            const φ1 = prev.lat * Math.PI / 180;
-            const φ2 = curr.lat * Math.PI / 180;
-            const Δφ = (curr.lat - prev.lat) * Math.PI / 180;
-            const Δλ = (curr.lng - prev.lng) * Math.PI / 180;
-            
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                      Math.cos(φ1) * Math.cos(φ2) *
-                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            
-            totalDistance += R * c;
-          }
-          
-          return Math.round(totalDistance);
-        };
+
         
         // 경로 없이 마커만 표시
         const routePoints = generateNoRoute();
@@ -210,10 +186,9 @@ export async function GET(request) {
         const actualDurationSeconds = estimatedDurationSeconds;
         
         console.log(`직선 거리: ${Math.round(straightDistance)}m`);
-        console.log(`추정 도로 거리: ${estimatedRoadDistance}m`);
-        console.log(`실제 도로 거리: ${actualRoadDistance}m`);
+        console.log(`추정 거리: ${actualRoadDistance}m`);
         console.log(`예상 시간: ${actualDurationSeconds}초 (${Math.round(actualDurationSeconds/60)}분)`);
-        console.log('생성된 경로 포인트:', routePoints.length, '개');
+        console.log('경로 표시: 없음 (마커만 표시)');
         
         const legacyResponse = {
           status: 'OK',
@@ -253,7 +228,7 @@ export async function GET(request) {
           }
         };
         
-        console.log('추정 도로거리 기반 응답:', JSON.stringify(legacyResponse, null, 2));
+        console.log('마커만 표시 응답:', JSON.stringify(legacyResponse, null, 2));
         return NextResponse.json(legacyResponse);
       }
       

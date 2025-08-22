@@ -16,7 +16,6 @@ export default function RepairPage() {
   const [adminLongitude, setAdminLongitude] = useState<number>(126.7994);
 
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
   const [routePolyline, setRoutePolyline] = useState<string | null>(null);
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [isEstimatedRoute, setIsEstimatedRoute] = useState(false);
@@ -246,7 +245,7 @@ export default function RepairPage() {
         });
       }
     }
-  }, []);
+  }, [latitude, longitude, adminLatitude, adminLongitude]);
 
   useEffect(() => {
     // 주소를 위도와 경도로 변환
