@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const latitude = searchParams.get('latitude');
