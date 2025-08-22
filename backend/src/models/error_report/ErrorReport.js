@@ -9,12 +9,7 @@ const ErrorReport = sequelize.define('ErrorReport', {
   },
   phone_number: {
     type: DataTypes.STRING(11),
-    allowNull: false,
-    foreignKey: true,
-    references: {
-      model: 'TBL_USER',
-      key: 'phone_number'
-    }
+    allowNull: false
   },
   error_content: {
     type: DataTypes.STRING(255),

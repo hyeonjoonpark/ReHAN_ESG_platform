@@ -110,18 +110,28 @@ export default function Home() {
 
   const handleSave = async () => {
     try {
-      console.log(phoneNumber, selectedErrorType);
+      console.log('=== 에러 리포트 저장 시도 ===');
+      console.log('phoneNumber:', phoneNumber);
+      console.log('selectedErrorType:', selectedErrorType);
+      console.log('axios.defaults.baseURL:', axios.defaults.baseURL);
+      console.log('전체 URL:', axios.defaults.baseURL + '/api/v1/error-report');
+      
       const response = await axios.post('/api/v1/error-report', {
         phone_number: phoneNumber,
         error_content: selectedErrorType,
       });
-      console.log("response", response.status);
+      console.log("response status:", response.status);
+      console.log("response data:", response.data);
+      
       if (response.status === 201) {
         toast.success('오류 내용이 페트몬 담당자한테 보내졌습니다!', { autoClose: 10000 }); // 10 second
         setIsModalOpen(false);
       }
-    } catch (error) {
-      console.error('Error saving report:', error);
+    } catch (error: any) {
+      console.error('=== 에러 리포트 저장 실패 ===');
+      console.error('Error details:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
       toast.error('오류 내용을 전송하는데 실패했습니다. 다시 시도해주세요.');
     }
   };

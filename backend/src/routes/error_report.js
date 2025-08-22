@@ -4,8 +4,11 @@ const { ErrorReport } = require('../models');
 
 router.post('/error-report', async (req, res) => {
   console.log("=== Error Report API 호출 ===");
+  console.log("요청 URL:", req.url);
+  console.log("요청 메서드:", req.method);
   console.log("req.body", req.body);
   console.log("req.headers", req.headers);
+  console.log("Content-Type:", req.headers['content-type']);
   
   const { phone_number, error_content } = req.body;
   console.log("phone_number", phone_number);
