@@ -127,11 +127,15 @@ export default function Home() {
         toast.success('오류 내용이 페트몬 담당자한테 보내졌습니다!', { autoClose: 10000 }); // 10 second
         setIsModalOpen(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('=== 에러 리포트 저장 실패 ===');
       console.error('Error details:', error);
-      console.error('Error response:', error.response);
-      console.error('Error message:', error.message);
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('Error response:', (error as any).response);
+      }
+      if (error && typeof error === 'object' && 'message' in error) {
+        console.error('Error message:', (error as any).message);
+      }
       toast.error('오류 내용을 전송하는데 실패했습니다. 다시 시도해주세요.');
     }
   };
