@@ -230,7 +230,7 @@ export default function Home() {
         rightButtons={[{
           text: "시작하기",
           onClick: () => router.replace('/login'),
-          className: "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-10 py-4 rounded-4xl text-white font-extrabold text-4xl transition-all duration-300 hover:scale-115 hover:shadow-2xl text-center"
+          className: "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-30 py-6 rounded-4xl text-white font-extrabold text-4xl transition-all duration-300 hover:scale-115 hover:shadow-2xl text-center"
         }]}
       />
       
