@@ -232,7 +232,7 @@ export default function RepairPage() {
       }
     };
     fetchCoordinates();
-  }, []);
+  }, [adminLatitude, adminLongitude]);
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">

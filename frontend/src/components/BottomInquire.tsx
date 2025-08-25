@@ -43,10 +43,11 @@ export default function BottomInquire({ onInquireClick, rightButtons }: BottomIn
             </button>
           )}
         </div>
+
         <div className="flex space-x-4">
           {rightButtons.map((button, index) => {
             const finalClass = button.disabled
-              ? 'bg-gray-400 text-white px-6 py-3 rounded-xl opacity-50 cursor-not-allowed'
+              ? 'bg-gray-400 text-white px-10 py-6 rounded-xl opacity-50 cursor-not-allowed'
               : button.className;
             return (
               <button

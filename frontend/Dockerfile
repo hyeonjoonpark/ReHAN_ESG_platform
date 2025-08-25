@@ -26,5 +26,5 @@ COPY --from=builder /app/public ./public
 # 포트 3000 노출
 EXPOSE 3000
 
-# Next.js 서버 실행
-CMD ["npm", "start"]
+# Next.js 개발 서버 실행
+CMD ["npm", "run", "dev"]
