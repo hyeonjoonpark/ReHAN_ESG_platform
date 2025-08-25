@@ -34,6 +34,9 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: srv123!
       MYSQL_DATABASE: petmon
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password --init-connect="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
@@ -48,7 +51,7 @@ services:
       - backend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_BACKEND_URL: http://backend:3001
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
     ports:
       - "3000:3000"
     restart: unless-stopped
