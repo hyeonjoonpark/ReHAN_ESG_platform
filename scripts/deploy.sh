@@ -67,7 +67,7 @@ sleep 15
 
 # 백엔드 헬스 체크
 for i in {1..5}; do
-    if curl -f http://localhost:3001/api/v1/error-report > /dev/null 2>&1; then
+    if curl -f http://localhost:3001/health > /dev/null 2>&1; then
         log_success "Backend is healthy"
         break
     else

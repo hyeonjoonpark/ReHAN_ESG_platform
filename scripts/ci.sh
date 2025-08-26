@@ -92,7 +92,7 @@ log_info "Step 6: Health Check"
 sleep 10
 
 # 백엔드 헬스 체크
-if curl -f http://localhost:3001/api/v1/error-report > /dev/null 2>&1; then
+if curl -f http://localhost:3001/health > /dev/null 2>&1; then
     log_success "Backend is healthy"
 else
     log_error "Backend health check failed"
