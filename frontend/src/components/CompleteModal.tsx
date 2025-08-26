@@ -10,7 +10,13 @@ interface CompleteModalProps {
   totalPoints: number;
 }
 
-const CompleteModal: React.FC<CompleteModalProps> = ({ isOpen, onClose, userHavedPoints = 0, earnedPoints, totalPoints }) => {
+const CompleteModal: React.FC<CompleteModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  userHavedPoints = 0, 
+  earnedPoints, 
+  totalPoints 
+}: CompleteModalProps) => {
   const router = useRouter();
   if (!isOpen) return null;
 

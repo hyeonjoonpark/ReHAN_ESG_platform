@@ -1,3 +1,4 @@
+import React from 'react';
 import { KeypadSizeType } from "@/types/KeypadSizeType";
 
 interface KeypadProps {

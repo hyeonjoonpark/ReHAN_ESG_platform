@@ -23,10 +23,17 @@ const GlobalErrorBanner: React.FC = () => {
   const [message, setMessage] = useState('');
   const [details, setDetails] = useState<ErrorEventPayload | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const serverUrl = useMemo(() => process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', []);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const socket: Socket = io(serverUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling']
@@ -58,7 +65,7 @@ const GlobalErrorBanner: React.FC = () => {
       socket.off('build_error', handleBuildError);
       socket.disconnect();
     };
-  }, [serverUrl]);
+  }, [serverUrl, mounted]);
 
   useEffect(() => {
     if (!visible) return;
@@ -66,6 +73,8 @@ const GlobalErrorBanner: React.FC = () => {
     return () => clearTimeout(timer);
   }, [visible]);
 
+  // 서버 사이드 렌더링 시에는 아무것도 렌더링하지 않음
+  if (!mounted) return null;
   if (!visible) return null;
 
   const theme = type === 'server' ? 'from-red-500 to-pink-500' : 'from-amber-500 to-orange-500';
