@@ -104,10 +104,30 @@ export default function RepairPage() {
 
     // 브라우저의 현재 위치 가져오기
     if (navigator.geolocation) {
+      // 위치 권한 확인
+      if (navigator.permissions) {
+        navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+          if (permissionStatus.state === 'denied') {
+            console.warn('위치 권한이 거부되었습니다. 기본 위치를 사용합니다.');
+            setLatitude(37.4842);
+            setLongitude(126.7994);
+            setArrivalTime(30);
+            return;
+          }
+        });
+      }
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      };
+
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
+          console.log('위치 정보 획득 성공:', { latitude, longitude });
           setLatitude(latitude);
           setLongitude(longitude);
 
@@ -198,11 +218,39 @@ export default function RepairPage() {
           }
         },
         (error) => {
-          console.error('Error getting location:', error);
-        }
+          console.error('위치 정보 획득 실패:', {
+            code: error.code,
+            message: error.message
+          });
+          
+          // 오류 코드별 상세 메시지
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              console.warn('위치 권한이 거부되었습니다. 기본 위치를 사용합니다.');
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.warn('위치 정보를 사용할 수 없습니다. 기본 위치를 사용합니다.');
+              break;
+            case error.TIMEOUT:
+              console.warn('위치 정보 요청 시간이 초과되었습니다. 기본 위치를 사용합니다.');
+              break;
+            default:
+              console.warn('알 수 없는 위치 오류가 발생했습니다. 기본 위치를 사용합니다.');
+          }
+          
+          // 기본 위치 설정
+          setLatitude(37.4842);
+          setLongitude(126.7994);
+          setArrivalTime(30);
+        },
+        options
       );
     } else {
       console.error('Geolocation is not supported by this browser.');
+      // 기본 위치 설정
+      setLatitude(37.4842);
+      setLongitude(126.7994);
+      setArrivalTime(30);
     }
 
     return () => {
