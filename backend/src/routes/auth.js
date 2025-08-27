@@ -48,7 +48,6 @@ router.post('/signup', async (req, res) => {
     console.log('새 사용자 생성 중...');
     await User.create({
       phone_number: cleanPhoneNumber,
-      user_name: ""
     });
 
     const responseData = {
