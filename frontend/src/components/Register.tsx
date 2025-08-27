@@ -144,7 +144,7 @@ export default function Register({ onBack }: RegisterProps) {
             </button>
           </div>
           
-          <Keypad size={KeypadSizeType.LARGE}
+          <Keypad size={KeypadSizeType.MEDIUM}
                   onNumberClick={handleNumberClick}
                   onDelete={handleDelete}
                   onClear={handleClear} />
