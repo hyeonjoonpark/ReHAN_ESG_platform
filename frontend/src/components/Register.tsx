@@ -64,6 +64,10 @@ export default function Register({ onBack }: RegisterProps) {
         setAlertOpen(true);
         // 성공 후 뒤로 가기 콜백은 모달 닫힌 뒤 수행
         return;
+      } else if(res.data.status === 409) {
+        setAlertMsg(res.data.message || "이미 가입된 전화번호입니다.");
+        setAlertType("error");
+        setAlertOpen(true);
       } else {
         setAlertMsg(res.data?.error || "회원가입에 실패했습니다.");
         setAlertType("error");
