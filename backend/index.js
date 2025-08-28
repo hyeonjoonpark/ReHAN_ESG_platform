@@ -73,7 +73,8 @@ const defaultAllowedOrigins = [
   'http://127.0.0.1:3000',
   'http://localhost',
   'http://127.0.0.1',
-  'http://petmon.iptime.org:3000'
+  'http://petmon.iptime.org:3000',
+  'http://petmon.iptime.org'
 ];
 const allowedOrigins = (process.env.CORS_ORIGINS || defaultAllowedOrigins.join(',')).split(',').map(o => o.trim());
 
