@@ -16,7 +16,7 @@ import LoginErrorModal from '@/components/LoginErrorModal';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://petmon.iptime.org:3001';
+axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://petmon.iptime.org:3001';
 
 export default function LoginPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -145,9 +145,14 @@ export default function LoginPage() {
   // 나중에 API 연동
   const handleConfirm = async () => {
     try {
+      console.log("로그인 API 호출 URL:", `${axios.defaults.baseURL}/api/v1/login`);
+      
       const response = await axios.post('/api/v1/login', {
         phone_number: phoneNumber
+      }, {
+        timeout: 10000 // 10초 타임아웃 설정
       });
+      
       if (response.status === 200) {
         const token = response.data.token;
         const userPoint = response.data.user?.user_point ?? 0;
@@ -160,6 +165,17 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('로그인 실패:', error);
+      
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+          console.error('로그인 요청 시간 초과');
+        } else if (error.code === 'ERR_NETWORK') {
+          console.error('네트워크 연결 실패');
+        } else if (error.response) {
+          console.error('서버 응답 오류:', error.response.status, error.response.data);
+        }
+      }
+      
       setIsLoginErrorModalOpen(true);
     }
   };
@@ -185,16 +201,31 @@ export default function LoginPage() {
 
   const handleSave = async () => {
     try {
+      console.log("에러 리포트 API 호출 URL:", `${axios.defaults.baseURL}/api/v1/error-report`);
+      
       const response = await axios.post('/api/v1/error-report', {
         phone_number: phoneNumber,
         error_content: selectedErrorType,
+      }, {
+        timeout: 10000 // 10초 타임아웃 설정
       });
+      
       if (response.status === 201) {
         alert('Error report saved successfully!');
         setIsModalOpen(false);
       }
     } catch (error) {
       console.error('Failed to save error report:', error);
+      
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+          console.error('에러 리포트 요청 시간 초과');
+        } else if (error.code === 'ERR_NETWORK') {
+          console.error('네트워크 연결 실패');
+        } else if (error.response) {
+          console.error('서버 응답 오류:', error.response.status, error.response.data);
+        }
+      }
     }
   };
 
