@@ -281,6 +281,19 @@ const BandSplit = () => {
     }
   }, [sectionType]);
 
+  // NORMALLY_END 화면에서 5초 후 자동으로 메인 페이지로 이동
+  useEffect(() => {
+    if (sectionType === SectionType.NORMALLY_END) {
+      console.log('⏰ 정상 종료 화면 진입, 5초 후 메인 페이지로 자동 이동합니다.');
+      const timer = setTimeout(() => {
+        console.log('🔄 5초 타임아웃 - 메인 페이지로 자동 이동');
+        router.replace('/');
+      }, 5000);
+
+      return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 정리
+    }
+  }, [sectionType, router]);
+
   // START_SPLIT_BAND로 전환될 때마다 초기 시퀀스 재실행(불필요한 포트 닫기 제거)
   useEffect(() => {
     if (!socket) return;
