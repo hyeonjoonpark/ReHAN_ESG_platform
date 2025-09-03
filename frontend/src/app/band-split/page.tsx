@@ -125,12 +125,20 @@ const BandSplit = () => {
       }
     };
 
-    // 띠분리 완료 시 섹션 타입 변경
-    if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
-      console.log('✅ 띠 분리 완료 - 섹션 타입을 OPEN_GATE로 변경');
-      setWaitingForHardware(false);
-      setSectionType(SectionType.OPEN_GATE);
-    }
+      // 띠분리 완료 시 섹션 타입 변경
+  if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
+    console.log('✅ 띠 분리 완료 - 섹션 타입을 OPEN_GATE로 변경');
+    setWaitingForHardware(false);
+    setSectionType(SectionType.OPEN_GATE);
+  }
+
+  // belt_separator: 1 데이터 수신 시 START_SPLIT_BAND로 전환 (추가 투입 모드)
+  if (!beltSeparatorCompleted && sectionType === SectionType.NORMALLY_END) {
+    console.log('🔄 belt_separator: 1 수신 - START_SPLIT_BAND로 전환하여 추가 투입 모드 시작');
+    setWaitingForHardware(true);
+    setRetryCount(0);
+    setSectionType(SectionType.START_SPLIT_BAND);
+  }
     
     if (socket) socket.on('hopper_ready', handleHopperReady);
 
@@ -243,7 +251,7 @@ const BandSplit = () => {
           />
         );
       case SectionType.NORMALLY_END:
-        return <NormallyEndSection onHomeClick={() => router.replace('/')} onAddMore={handleAddMoreClick} />;
+        return <NormallyEndSection onHomeClick={() => router.replace('/')} />;
       default:
         return <StartSplitBandSections />;
     }
@@ -261,13 +269,13 @@ const BandSplit = () => {
     return () => clearInterval(timeInterval);
   }, []);
 
-  // 7초 후 정상 종료 화면으로 전환하는 로직
+  // 3초 후 정상 종료 화면으로 전환하는 로직
   useEffect(() => {
     if (sectionType === SectionType.CHECK_RESOURCE) {
-      console.log('✅ 검사 화면 진입, 7초 후 정상 종료 화면으로 전환합니다.');
+      console.log('✅ 검사 화면 진입, 3초 후 정상 종료 화면으로 전환합니다.');
       const timer = setTimeout(() => {
         setSectionType(SectionType.NORMALLY_END);
-      }, 7000);
+      }, 3000);
 
       return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 정리
     }
@@ -310,19 +318,7 @@ const BandSplit = () => {
     return () => clearTimeout(timer);
   }, [waitingForHardware, beltSeparatorCompleted, retryCount, sectionType, socket, requestHardwareStatus]);
 
-  // 추가 투입 버튼 클릭 시 데이터 초기화 및 상태 재설정
-  const handleAddMoreClick = () => {
-    console.log('🔄 추가 투입 버튼 클릭 - 데이터 초기화 및 상태 재설정');
-    resetFlags(); // 모든 플래그 초기화
-    setRetryCount(0);
-    setWaitingForHardware(true);
-    setSectionType(SectionType.START_SPLIT_BAND);
-    if (socket) {
-      joinPage('band-split'); // 페이지 룸 재참여
-      socket.emit('serial_port_open'); // 시리얼 포트 열기 요청
-      requestHardwareStatus(); // 하드웨어 상태 요청
-    }
-  };
+
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">

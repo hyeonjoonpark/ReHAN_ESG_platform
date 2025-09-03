@@ -106,6 +106,15 @@ export const useSocket = (): UseSocketReturn => {
         setHopperOpened(true); // 투입구 열림 상태도 함께 활성화하여 화면 전환 유도
       }
 
+      // belt_separator: 1 데이터 처리 (추가 투입 시)
+      if (data.type === 'belt_separator' && data.data && typeof data.data === 'object' && 'value' in data.data && data.data.value === 1) {
+        console.log('🔄 belt_separator: 1 수신 - 추가 투입 모드로 전환');
+        setBeltSeparatorCompleted(false); // 띠분리 상태 초기화
+        setHopperOpened(false); // 투입구 상태 초기화
+        setPetInserted(false); // 페트병 투입 상태 초기화
+        setNormallyEnd(false); // 정상 종료 상태 초기화
+      }
+
       // 페트병 투입 이벤트 처리
       if (data.type === 'pet_inserted') {
         setPetInserted(true);
