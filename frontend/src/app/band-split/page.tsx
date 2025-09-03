@@ -73,10 +73,22 @@ const BandSplit = () => {
     socket.on('serial_port_opened', handleSerialOpened);
     socket.on('serial_port_error', handleSerialError);
 
+    // 백엔드에서 전화번호 요청 시 응답
+    socket.on('request_phone_number', () => {
+      const phoneNumber = localStorage.getItem('phone_number');
+      if (phoneNumber) {
+        console.log('📱 백엔드에서 전화번호 요청, 응답 전송:', phoneNumber);
+        socket.emit('phone_number_response', phoneNumber);
+      } else {
+        console.warn('⚠️ localStorage에 전화번호가 없어 응답하지 않습니다.');
+      }
+    });
+
     return () => {
       leavePage('band-split');
       socket.off('serial_port_opened', handleSerialOpened);
       socket.off('serial_port_error', handleSerialError);
+      socket.off('request_phone_number');
       initializedRef.current = false;
     };
   }, [isConnected, socket, joinPage, leavePage, requestHardwareStatus]);

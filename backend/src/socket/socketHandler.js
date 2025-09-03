@@ -11,8 +11,10 @@
  */
 
 const { Server } = require('socket.io');
-const { createLogger } = require('../utils/logger');
-const log = createLogger('Socket');
+const log = require('../utils/logger');
+const SerialHandler = require('../serial/serialHandler');
+const UsageUser = require('../models/usage_user/UsageUser');
+const PetBottle = require('../models/pet_bottle/PetBottle');
 
 class SocketHandler {
   constructor(server) {
@@ -389,6 +391,9 @@ class SocketHandler {
             const command = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
             this.sendCommand('frontend:status_ok', command, 'status_ok');
             
+            // PetBottle 테이블에 사용자 전화번호 저장
+            this.savePetBottleRecord(socket);
+            
             // 프론트엔드에 정상 종료 알림
             this.broadcastToAll('hardware_status', { 
               type: 'normally_end', 
@@ -495,6 +500,9 @@ class SocketHandler {
       };
       this.sendCommand('hw_detected:status_ok', command, 'status_ok');
 
+      // PetBottle 테이블에 사용자 전화번호 저장 (band-split 페이지 클라이언트에게만)
+      this.savePetBottleRecordForHardwareEvent();
+
       // 프론트엔드에 투입 알림 브로드캐스트
       this.broadcastToAll('hardware_status', { type: 'pet_inserted', data, timestamp: new Date().toISOString() });
       log.info('🐾 페트병 투입 감지, 프론트엔드에 알림.');
@@ -579,6 +587,97 @@ class SocketHandler {
       roomsInfo[page] = clients.size;
     }
     return roomsInfo;
+  }
+
+  /**
+   * PetBottle 테이블에 사용자 전화번호 저장
+   * @param {Socket} socket - 클라이언트 소켓 객체
+   */
+  async savePetBottleRecord(socket) {
+    try {
+      // 클라이언트가 band-split 페이지에 있는지 확인
+      const bandSplitClients = this.pageRooms.get('band-split');
+      if (!bandSplitClients || !bandSplitClients.has(socket.id)) {
+        log.debug('클라이언트가 band-split 페이지에 없어 PetBottle 기록을 저장하지 않습니다.');
+        return;
+      }
+
+      // 사용자 전화번호를 가져오기 위해 프론트엔드에 요청
+      socket.emit('request_phone_number');
+      
+      // 전화번호 응답을 받아서 PetBottle 테이블에 저장
+      socket.once('phone_number_response', async (phoneNumber) => {
+        if (phoneNumber) {
+          try {
+            await PetBottle.create({
+              phone_number: phoneNumber,
+              created_at: new Date(),
+              updated_at: new Date()
+            });
+            log.info(`✅ PetBottle 테이블에 전화번호 ${phoneNumber} 저장 완료`);
+          } catch (error) {
+            log.error(`❌ PetBottle 테이블 저장 실패: ${error.message}`);
+          }
+        } else {
+          log.warn('전화번호를 받지 못해 PetBottle 기록을 저장하지 않습니다.');
+        }
+      });
+
+      // 5초 후 응답이 없으면 타임아웃 처리
+      setTimeout(() => {
+        log.warn('전화번호 응답 타임아웃으로 PetBottle 기록을 저장하지 않습니다.');
+      }, 5000);
+
+    } catch (error) {
+      log.error(`❌ PetBottle 기록 저장 중 오류 발생: ${error.message}`);
+    }
+  }
+
+  /**
+   * 하드웨어 이벤트로 인한 PetBottle 테이블에 사용자 전화번호 저장
+   * band-split 페이지에 있는 모든 클라이언트에게 전화번호 요청
+   */
+  async savePetBottleRecordForHardwareEvent() {
+    try {
+      const bandSplitClients = this.pageRooms.get('band-split');
+      if (!bandSplitClients || bandSplitClients.size === 0) {
+        log.debug('band-split 페이지에 클라이언트가 없어 PetBottle 기록을 저장하지 않습니다.');
+        return;
+      }
+
+      // band-split 페이지의 모든 클라이언트에게 전화번호 요청
+      for (const [clientId, client] of bandSplitClients.entries()) {
+        const socket = this.io.sockets.sockets.get(clientId);
+        if (socket) {
+          socket.emit('request_phone_number');
+          
+          // 전화번호 응답을 받아서 PetBottle 테이블에 저장
+          socket.once('phone_number_response', async (phoneNumber) => {
+            if (phoneNumber) {
+              try {
+                await PetBottle.create({
+                  phone_number: phoneNumber,
+                  created_at: new Date(),
+                  updated_at: new Date()
+                });
+                log.info(`✅ PetBottle 테이블에 전화번호 ${phoneNumber} 저장 완료 (하드웨어 이벤트)`);
+                return; // 첫 번째 응답만 처리
+              } catch (error) {
+                log.error(`❌ PetBottle 테이블 저장 실패: ${error.message}`);
+              }
+            }
+          });
+
+          // 5초 후 응답이 없으면 다음 클라이언트로
+          setTimeout(() => {
+            log.debug('전화번호 응답 타임아웃, 다음 클라이언트로 진행');
+          }, 5000);
+        }
+      }
+
+    } catch (error) {
+      log.error(`❌ 하드웨어 이벤트 PetBottle 기록 저장 중 오류 발생: ${error.message}`);
+    }
   }
 }
 

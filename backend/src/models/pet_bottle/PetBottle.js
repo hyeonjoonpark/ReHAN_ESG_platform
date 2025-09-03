@@ -1,8 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../../database/sequelize');
 
-// USAGE_COUNT 테이블 모델
-const UsageUser = sequelize.define('UsageUser', {
+const PetBottle = sequelize.define('PetBottle', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -15,17 +14,17 @@ const UsageUser = sequelize.define('UsageUser', {
   },
   created_at: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    allowNull: false
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   },
   updated_at: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    allowNull: false
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'TBL_USAGE_USER',
+  tableName: 'TBL_PET_BOTTLE',
   timestamps: false
 });
 
-module.exports = UsageUser; 
+module.exports = PetBottle;
