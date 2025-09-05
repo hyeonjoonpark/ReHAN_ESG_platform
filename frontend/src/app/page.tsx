@@ -16,6 +16,7 @@ import { getFormattedCurrentTime } from '@/utils/updateTime';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CommingSoon from '@/components/CommingSoon';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
@@ -34,6 +35,7 @@ export default function Home() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
+  const isCommingSoon = true;
   const router = useRouter();
 
   // 위치 정보 가져오기
@@ -150,89 +152,92 @@ export default function Home() {
 
   return (
     <div className="h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white flex flex-col overflow-hidden">
-      {/* 헤더 */}
-      <Header currentTime={currentTime} />
+      
+      {isCommingSoon ? <CommingSoon /> : (
+        <>
+        {/* 헤더 */}
+        <Header currentTime={currentTime} />
+          {/* 메인 컨텐츠 */}
+          <main className="flex-1 px-6 lg:px-8 overflow-hidden">
+            <div className="max-w-7xl mx-auto h-full flex flex-col">
+              {/* 메인 타이틀 */}
+              <div className="text-left mb-8">
+                <h2 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
+                  페트몬 입문자를 위한 안내 가이드
+                </h2>
+                <div className="w-full h-0.5 bg-gray-300 dark:bg-gray-600 mb-4"></div>
+                <p className="text-base text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
+                  투명 생수병 ai 무인회수기 페트몬을 찾아주셔서 감사합니다.<br />
+                  궁금하신 내용을 아래 버튼을 터치해 알아보세요.
+                </p>
+              </div>
 
-      {/* 메인 컨텐츠 */}
-      <main className="flex-1 px-6 lg:px-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto h-full flex flex-col">
-          {/* 메인 타이틀 */}
-          <div className="text-left mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
-              페트몬 입문자를 위한 안내 가이드
-            </h2>
-            <div className="w-full h-0.5 bg-gray-300 dark:bg-gray-600 mb-4"></div>
-            <p className="text-base text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">
-              투명 생수병 ai 무인회수기 페트몬을 찾아주셔서 감사합니다.<br />
-              궁금하신 내용을 아래 버튼을 터치해 알아보세요.
-            </p>
-          </div>
+              {/* 좌우 분할 레이아웃 */}
+              <section className="grid lg:grid-cols-3 gap-8 flex-1">
+                {/* 왼쪽 - 메인 컨텐츠 */}
+                <section className="lg:col-span-2 flex flex-col justify-center">
+                  {currentScreen === ScreenType.MAIN ? (
+                    // 메인 화면 - 기능 카드들
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <button 
+                        onClick={() => setCurrentScreen(ScreenType.REGISTER)}
+                        className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                      >
+                        <h3 className="text-xl font-bold text-white">회원가입하기</h3>
+                      </button>
 
-          {/* 좌우 분할 레이아웃 */}
-          <section className="grid lg:grid-cols-3 gap-8 flex-1">
-            {/* 왼쪽 - 메인 컨텐츠 */}
-            <section className="lg:col-span-2 flex flex-col justify-center">
-              {currentScreen === ScreenType.MAIN ? (
-                // 메인 화면 - 기능 카드들
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <button 
-                    onClick={() => setCurrentScreen(ScreenType.REGISTER)}
-                    className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                  >
-                    <h3 className="text-xl font-bold text-white">회원가입하기</h3>
-                  </button>
+                      <button 
+                        onClick={() => setCurrentScreen(ScreenType.HOW_TO_USE)}
+                        className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                      >
+                        <h3 className="text-xl font-bold text-white">이용 방법</h3>
+                      </button>
 
-                  <button 
-                    onClick={() => setCurrentScreen(ScreenType.HOW_TO_USE)}
-                    className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                  >
-                    <h3 className="text-xl font-bold text-white">이용 방법</h3>
-                  </button>
+                      <button 
+                        onClick={() => setCurrentScreen(ScreenType.POINT_GUIDE)}
+                        className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                      >
+                        <h3 className="text-xl font-bold text-white">포인트 적립<br />안내</h3>
+                      </button>
 
-                  <button 
-                    onClick={() => setCurrentScreen(ScreenType.POINT_GUIDE)}
-                    className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl"
-                  >
-                    <h3 className="text-xl font-bold text-white">포인트 적립<br />안내</h3>
-                  </button>
+                      <button className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                        <h3 className="text-xl font-bold text-white">투입 가능 물품</h3>
+                      </button>
+                    </div>
+                  ) : currentScreen === ScreenType.REGISTER ? (
+                    // 회원가입 화면
+                    <Register onBack={() => setCurrentScreen(ScreenType.MAIN)} />
+                  ) : currentScreen === ScreenType.HOW_TO_USE ? (
+                    // 이용방법 화면
+                    <HowToUse onBack={() => setCurrentScreen(ScreenType.MAIN)} />
+                  ) : currentScreen === ScreenType.POINT_GUIDE ? (
+                    // 포인트 적립 안내 화면
+                    <PointGuide onBack={() => setCurrentScreen(ScreenType.MAIN)} />
+                  ) : currentScreen === ScreenType.ERROR_TYPE_SELECT ? (
+                    // 오류 유형 선택 화면
+                    <ErrorTypeSelect 
+                      onBack={() => setCurrentScreen(ScreenType.MAIN)} 
+                      onErrorTypeSelect={handleErrorTypeSelect}
+                    />
+                  ) : null}
+                </section>
 
-                  <button className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl">
-                    <h3 className="text-xl font-bold text-white">투입 가능 물품</h3>
-                  </button>
-                </div>
-              ) : currentScreen === ScreenType.REGISTER ? (
-                // 회원가입 화면
-                <Register onBack={() => setCurrentScreen(ScreenType.MAIN)} />
-              ) : currentScreen === ScreenType.HOW_TO_USE ? (
-                // 이용방법 화면
-                <HowToUse onBack={() => setCurrentScreen(ScreenType.MAIN)} />
-              ) : currentScreen === ScreenType.POINT_GUIDE ? (
-                // 포인트 적립 안내 화면
-                <PointGuide onBack={() => setCurrentScreen(ScreenType.MAIN)} />
-              ) : currentScreen === ScreenType.ERROR_TYPE_SELECT ? (
-                // 오류 유형 선택 화면
-                <ErrorTypeSelect 
-                  onBack={() => setCurrentScreen(ScreenType.MAIN)} 
-                  onErrorTypeSelect={handleErrorTypeSelect}
-                />
-              ) : null}
-            </section>
-
-            {/* 오른쪽 - 사이드바 */}
-            <RightSection />
-          </section>
-        </div>
-      </main>
-
-      {/* 하단 */}
-      <BottomInquire 
-        onInquireClick={handleInquireClick}
-        rightButtons={[{
-          text: "시작하기",
-          onClick: () => router.replace('/login'),
-          className: "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-30 py-6 rounded-4xl text-white font-extrabold text-4xl transition-all duration-300 hover:scale-115 hover:shadow-2xl text-center"
-        }]}
-      />
+                {/* 오른쪽 - 사이드바 */}
+                <RightSection />
+              </section>
+            </div>
+          </main>
+        
+          <BottomInquire 
+            onInquireClick={handleInquireClick}
+            rightButtons={[{
+              text: "시작하기",
+              onClick: () => router.replace('/login'),
+              className: "bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-blue-600 hover:to-cyan-600 px-30 py-6 rounded-4xl text-white font-extrabold text-4xl transition-all duration-300 hover:scale-115 hover:shadow-2xl text-center"
+            }]}
+          />
+        </>
+      )} 
       
       {/* 모달 */}
       <ErrorInquireModal 
