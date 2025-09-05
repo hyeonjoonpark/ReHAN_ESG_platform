@@ -11,8 +11,10 @@
  */
 
 const { Server } = require('socket.io');
-const log = require('../utils/logger');
+const { createLogger } = require('../utils/logger');
 const SerialHandler = require('../serial/serialHandler');
+
+const log = createLogger('SocketHandler');
 const UsageUser = require('../models/usage_user/UsageUser');
 const PetBottle = require('../models/pet_bottle/PetBottle');
 
