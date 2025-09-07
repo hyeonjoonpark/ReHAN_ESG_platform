@@ -35,7 +35,7 @@ export default function Home() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
-  const isCommingSoon = true;
+  const isCommingSoon = false;
   const router = useRouter();
 
   // 위치 정보 가져오기
