@@ -14,6 +14,7 @@ services:
       DB_PASSWORD: srv123!
       JWT_SECRET: pEtMon_rEhAN_esG_PLatFoRM_Authorization_Secret_KEY
       SERIAL_PORT: /dev/ttyUSB0
+      CORS_ORIGINS: http://localhost:3000, http://127.0.0.1:3000,http://localhost,http://127.0.0.1,http://petmon.iptime.org:3000,http://petmon.iptime.org,http://221.165.223.169:3001
     volumes:
       - ./backend:/app
       - /app/node_modules
