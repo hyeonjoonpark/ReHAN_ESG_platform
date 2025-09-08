@@ -57,3 +57,59 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Next.js 개발 도구 오버레이 숨기기 */
+[data-nextjs-scroll-focus-boundary] {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 패널 숨기기 */
+[data-nextjs-dialog-overlay] {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 버튼 숨기기 */
+[data-nextjs-dialog] {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 오버레이 전체 숨기기 */
+[data-nextjs-toast] {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 인디케이터 숨기기 */
+[data-nextjs-dev-indicator] {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 오버레이 (일반적인 클래스명들) */
+.__nextjs_original-stack-frames,
+.__nextjs_original-stack-frame,
+.__nextjs_original-stack-frame-file,
+.__nextjs_original-stack-frame-line,
+.__nextjs_original-stack-frame-method,
+.__nextjs_original-stack-frame-args,
+.__nextjs_original-stack-frame-source,
+.__nextjs_original-stack-frame-source-file,
+.__nextjs_original-stack-frame-source-line,
+.__nextjs_original-stack-frame-source-method,
+.__nextjs_original-stack-frame-source-args {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 오버레이 (더 구체적인 선택자) */
+div[data-nextjs-scroll-focus-boundary],
+div[data-nextjs-dialog-overlay],
+div[data-nextjs-dialog],
+div[data-nextjs-toast],
+div[data-nextjs-dev-indicator] {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 오버레이 (위치 기반 숨기기) */
+div[style*="position: fixed"][style*="bottom"][style*="right"] {
+  display: none !important;
+}
+
+/* Next.js 개발 도구 오버레이 (JavaScript로 처리) */

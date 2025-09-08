@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
@@ -45,7 +45,7 @@ const BandSplit = () => {
     normallyEnd,
     joinPage,
     leavePage,
-    requestHardwareStatus,
+    requestHardwareStatus
   } = useSocket();
 
   const errorMessage: string = '내용물을 제거해주세요!';
@@ -237,11 +237,17 @@ const BandSplit = () => {
     }
   }, [normallyEnd, socket]);
 
+  // 투입구 오픈 완료 핸들러
+  const handleGateOpened = () => {
+    console.log('✅ 투입구 오픈 완료 - OpenGateSection으로 전환');
+    setSectionType(SectionType.OPEN_GATE);
+  };
+
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
     switch (sectionType) {
       case SectionType.START_SPLIT_BAND:
-        return <StartSplitBandSections />;
+        return <StartSplitBandSections onGateOpened={handleGateOpened} />;
       case SectionType.BAND_SPLIT_COMPLETE:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center">
