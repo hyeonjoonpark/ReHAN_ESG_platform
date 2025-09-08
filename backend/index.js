@@ -75,6 +75,7 @@ const defaultAllowedOrigins = [
   'http://127.0.0.1',
   'http://petmon.iptime.org:3000',
   'http://petmon.iptime.org',
+  'http://petmon.iptime.org:3001',
   'http://221.165.223.169:3001'
 ];
 const allowedOrigins = (process.env.CORS_ORIGINS || defaultAllowedOrigins.join(',')).split(',').map(o => o.trim());
