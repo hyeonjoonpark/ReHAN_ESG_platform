@@ -257,7 +257,7 @@ export default function RepairPage() {
       clearInterval(timeInterval);
       clearInterval(arrivalInterval);
     };
-  }, []);
+  }, [adminLatitude, adminLongitude]);
 
 
   useEffect(() => {

@@ -46,7 +46,6 @@ const BandSplit = () => {
     joinPage,
     leavePage,
     requestHardwareStatus,
-    resetFlags
   } = useSocket();
 
   const errorMessage: string = '내용물을 제거해주세요!';

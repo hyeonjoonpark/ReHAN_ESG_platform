@@ -68,22 +68,13 @@ app.use((req, res, next) => {
   next();
 });
 // CORS 허용 오리진 (환경변수 CORS_ORIGINS로 덮어쓰기 가능, 콤마 구분)
-const defaultAllowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://localhost',
-  'http://127.0.0.1',
-  'http://petmon.iptime.org:3000',
-  'http://petmon.iptime.org',
-  'http://petmon.iptime.org:3001',
-  'http://221.165.223.169:3001'
-];
-const allowedOrigins = (process.env.CORS_ORIGINS || defaultAllowedOrigins.join(',')).split(',').map(o => o.trim());
+const defaultAllowedOrigins = "*"
+const allowedOrigins = (defaultAllowedOrigins);
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // 모바일 앱/서버 간 통신 등 Origin 없음 허용
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOrigins === "*" || allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,

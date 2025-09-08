@@ -4,11 +4,9 @@ import { useState } from 'react';
 
 const CommingSoon = () => {
   const [isClicked, setIsClicked] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
 
   const handleCharacterClick = () => {
     setIsClicked(true);
-    setClickCount(prev => prev + 1);
     
     // 애니메이션 후 상태 리셋
     setTimeout(() => {

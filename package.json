@@ -1,11 +1,13 @@
 {
   "dependencies": {
+    "@react-google-maps/api": "^2.20.7",
     "axios": "^1.11.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",
+    "@types/node": "^24.3.1",
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7"
   }
