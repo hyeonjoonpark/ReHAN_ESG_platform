@@ -1,0 +1,9 @@
+# USB 디바이스가 없을 때 사용할 오버라이드 설정
+# 사용법: ENABLE_HARDWARE=false docker compose up
+services:
+  backend:
+    environment:
+      ENABLE_HARDWARE: false
+      SERIAL_PORT: /dev/null
+    # USB 디바이스 마운트 제거
+    devices: []

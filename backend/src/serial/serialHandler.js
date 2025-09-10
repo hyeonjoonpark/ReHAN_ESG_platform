@@ -13,7 +13,8 @@ class SerialHandler extends EventEmitter {
     this._isConnected = false;
     this._opening = false;   // 동시 열기 방지
     this._closing = false;   // 동시 닫기 방지
-    this.testMode = process.env.NODE_ENV === 'development' && !this.path;
+    this.enableHardware = process.env.ENABLE_HARDWARE !== 'false';
+    this.testMode = !this.enableHardware || (process.env.NODE_ENV === 'development' && !this.path);
     this.testInterval = null;
     this.prevState = { belt_separator: 0, input_pet: 0, clear_pet: 0, grinder: null, err_pet: 0 };
 
@@ -31,6 +32,7 @@ class SerialHandler extends EventEmitter {
 
     if (this.testMode) {
       console.log('🔌 시리얼 핸들러가 테스트 모드에서 실행됩니다.');
+      console.log(`하드웨어 활성화: ${this.enableHardware}`);
     }
   }
 
@@ -54,6 +56,10 @@ class SerialHandler extends EventEmitter {
     if (this.testMode) {
       this._isConnected = true;
       log.info('✅ 테스트 모드 연결 성공.');
+      if (!this.enableHardware) {
+        log.info('🔧 하드웨어 비활성화 모드 - 시리얼 통신 없이 실행됩니다.');
+        return;
+      }
       // 5초 후에 띠 분리 완료 신호 발생
       this.testTimeout = setTimeout(() => {
         const testData = JSON.stringify({ belt_separator: 1 });

@@ -1,0 +1,8 @@
+# 하드웨어가 연결된 경우 사용할 설정
+services:
+  backend:
+    environment:
+      ENABLE_HARDWARE: true
+      SERIAL_PORT: /dev/ttyUSB0
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0:rw"
