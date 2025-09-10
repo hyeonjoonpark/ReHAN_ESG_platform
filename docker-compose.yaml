@@ -14,14 +14,14 @@ services:
       DB_PASSWORD: srv123!
       JWT_SECRET: pEtMon_rEhAN_esG_PLatFoRM_Authorization_Secret_KEY
       SERIAL_PORT: /dev/ttyUSB0
+      ENABLE_HARDWARE: ${ENABLE_HARDWARE:-true}
     volumes:
       - ./backend:/app
       - /app/node_modules
-    devices:
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
     ports:
       - "3001:3001"
     restart: unless-stopped
+    # USB 디바이스는 docker-compose.hardware.yaml에서만 마운트
 
   mysql:
     image: mysql:8.0
@@ -36,7 +36,7 @@ services:
       MYSQL_DATABASE: petmon
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password --init-connect="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=caching_sha2_password --init-connect="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
     volumes:
       - mysql_data:/var/lib/mysql
     ports:

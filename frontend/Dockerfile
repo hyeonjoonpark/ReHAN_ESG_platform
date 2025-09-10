@@ -22,9 +22,12 @@ RUN npm install --production
 # 빌드된 애플리케이션 복사
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/next.config.ts ./
+COPY --from=builder /app/package.json ./
 
 # 포트 3000 노출
 EXPOSE 3000
 
-# Next.js 개발 서버 실행
-CMD ["npm", "run", "dev"]
+# Next.js 프로덕션 서버 실행
+CMD ["npm", "start"]
