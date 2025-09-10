@@ -192,6 +192,10 @@ class SerialHandler extends EventEmitter {
         // RX JSON은 기본 info 레벨로 노출하여 가시성 향상
         log.info(`RX_JSON ${JSON.stringify(json)}`);
 
+        if (json.movement === 1) {
+          this.emit('hardware_event', { type: 'movement', data: json });
+        }
+
         const prev = this.prevState || {};
 
         // 상승엣지: belt_separator 0->1
@@ -235,7 +239,7 @@ class SerialHandler extends EventEmitter {
 
   send(data) {
     if (this.testMode) {
-      log.debug(`[TEST MODE] 데이터 전송 시뮬레이션: ${data}`);
+      log.info(`[TEST MODE] 데이터 전송 시뮬레이션: ${data}`);
       try {
         const command = JSON.parse(data);
 
@@ -257,6 +261,10 @@ class SerialHandler extends EventEmitter {
         else if (command.grinder_stop === 1) {
           log.info('[TEST MODE] 그라인더 정지 명령 수신. 시나리오 종료.');
           if (this.testTimeout) clearTimeout(this.testTimeout);
+        }
+        // movement 명령 수신 시
+        else if (command.movement === 1) {
+          log.info('[TEST MODE] movement: 1 명령 수신 - 하드웨어로 전송됨');
         }
 
       } catch (e) {

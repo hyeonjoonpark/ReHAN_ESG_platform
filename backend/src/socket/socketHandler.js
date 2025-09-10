@@ -383,9 +383,24 @@ class SocketHandler {
         }
       });
 
+      // socket.on('movement', (data) => {
+      //   log.info(`💻 클라이언트 ${socket.id}로부터 움직임 데이터 수신: ${JSON.stringify(data)}`);
+      //   this.broadcastToAll('movement', data);
+      // });
+
       // 시리얼 데이터 수신 (프론트엔드로부터)
       socket.on('serial_data', (data) => {
         log.info(`💻 클라이언트 ${socket.id}로부터 시리얼 데이터 수신: ${JSON.stringify(data)}`);
+
+        // 프론트엔드에서 movement 데이터를 보낼 때
+        if (data && data.movement === 1) {
+          log.info('🚀 movement: 1 데이터 수신 - 하드웨어로 전송');
+          if (this.serialHandler && this.serialHandler.isConnected()) {
+            this.serialHandler.send(JSON.stringify(data));
+          } else {
+            log.error('❌ 시리얼 핸들러가 연결되지 않아 movement 데이터를 보낼 수 없습니다.');
+          }
+        }
 
         // 프론트엔드에서 투입 완료 버튼을 눌렀을 때
         if (data && data.input_pet === 1) {

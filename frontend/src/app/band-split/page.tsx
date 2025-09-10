@@ -41,6 +41,7 @@ const BandSplit = () => {
     socket, 
     isConnected, 
     beltSeparatorCompleted, 
+    hopperOpened,
     petInserted,
     normallyEnd,
     joinPage,
@@ -131,21 +132,24 @@ const BandSplit = () => {
   useEffect(() => {
     const handleHopperReady = () => {
       console.log('✅ 투입구 준비 완료, 투입구 열기 요청');
-      if (socket) {
+      // belt_separator: 1 데이터를 실제로 받았을 때만 투입구 열기 명령 전송
+      if (socket && beltSeparatorCompleted) {
         socket.emit('open_gate');
+      } else {
+        console.log('⚠️ belt_separator: 1 데이터를 받지 않았으므로 투입구 열기 명령을 전송하지 않습니다.');
       }
     };
 
-      // 띠분리 완료 시 섹션 타입 변경
+      // 띠분리 완료 시 투입구 열기 명령 전송은 별도 useEffect에서 처리
   if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
-    console.log('✅ 띠 분리 완료 - 섹션 타입을 OPEN_GATE로 변경');
+    console.log('✅ 띠 분리 완료 - 투입구 열기 대기 중');
     setWaitingForHardware(false);
-    setSectionType(SectionType.OPEN_GATE);
   }
 
-  // belt_separator: 1 데이터 수신 시 START_SPLIT_BAND로 전환 (추가 투입 모드)
-  if (!beltSeparatorCompleted && sectionType === SectionType.NORMALLY_END) {
-    console.log('🔄 belt_separator: 1 수신 - START_SPLIT_BAND로 전환하여 추가 투입 모드 시작');
+  // belt_separator: 1 데이터 수신 시 START_SPLIT_BAND로 전환 (새로운 띠 분리 시작)
+  // 단, 정상 배출 완료 후에는 다시 띠 분리 화면으로 돌아가지 않음
+  if (!beltSeparatorCompleted && sectionType === SectionType.NORMALLY_END && !normallyEnd) {
+    console.log('🔄 belt_separator: 1 수신 - START_SPLIT_BAND로 전환하여 새로운 띠 분리 시작');
     setWaitingForHardware(true);
     setRetryCount(0);
     setSectionType(SectionType.START_SPLIT_BAND);
@@ -193,6 +197,14 @@ const BandSplit = () => {
     };
   }, [beltSeparatorCompleted, petInserted, normallyEnd, sectionType, socket]);
 
+  // 투입구 열림 상태에 따른 화면 전환
+  useEffect(() => {
+    if (hopperOpened && sectionType === SectionType.START_SPLIT_BAND) {
+      console.log('✅ 투입구 열림 확인 - OpenGateSection으로 전환');
+      setSectionType(SectionType.OPEN_GATE);
+    }
+  }, [hopperOpened, sectionType]);
+
   // 로그아웃 핸들러
   const handleLogout = () => {
     if (socket) {
@@ -201,16 +213,15 @@ const BandSplit = () => {
     router.replace('/');
   };
 
-  // 띠분리 완료 데이터 수신 시 투입구 오픈 데이터 전송
+  // 띠분리 완료 데이터 수신 시 투입구 오픈 명령 전송 (open_gate 이벤트 사용)
   useEffect(() => {
-    if (beltSeparatorCompleted) {
-      console.log('✅ 띠분리 완료 - 투입구 오픈 데이터 전송');
+    if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
+      console.log('✅ 띠분리 완료 - 투입구 오픈 명령 전송');
       if (socket) {
-        const openGateCommand = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-        socket.emit('serial_data', openGateCommand);
+        socket.emit('open_gate');
       }
     }
-  }, [beltSeparatorCompleted, socket]);
+  }, [beltSeparatorCompleted, sectionType, socket]);
 
   // 투입 완료 버튼 클릭 시 자원 확인 중 페이지 표시
   const handleCompleteClick = () => {
@@ -245,17 +256,17 @@ const BandSplit = () => {
     }
   }, [normallyEnd, socket]);
 
-  // 투입구 오픈 완료 핸들러
-  const handleGateOpened = () => {
-    console.log('✅ 투입구 오픈 완료 - OpenGateSection으로 전환');
-    setSectionType(SectionType.OPEN_GATE);
-  };
+  // // 투입구 오픈 완료 핸들러
+  // const handleGateOpened = () => {
+  //   console.log('✅ 투입구 오픈 완료 - OpenGateSection으로 전환');
+  //   setSectionType(SectionType.OPEN_GATE);
+  // };
 
   // 안내 섹션 렌더링 함수
   const renderSection = () => {
     switch (sectionType) {
       case SectionType.START_SPLIT_BAND:
-        return <StartSplitBandSections onGateOpened={handleGateOpened} />;
+        return <StartSplitBandSections />;
       case SectionType.BAND_SPLIT_COMPLETE:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center">

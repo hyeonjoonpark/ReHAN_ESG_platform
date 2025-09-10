@@ -103,16 +103,22 @@ export const useSocket = (): UseSocketReturn => {
       // 띠분리 완료 이벤트 처리
       if (data.type === 'belt_separator_complete') {
         setBeltSeparatorCompleted(true);
-        setHopperOpened(true); // 투입구 열림 상태도 함께 활성화하여 화면 전환 유도
+        // 투입구 열림 상태는 투입구가 실제로 열린 후에만 설정
       }
 
-      // belt_separator: 1 데이터 처리 (추가 투입 시)
+      // belt_separator: 1 데이터 처리 (새로운 띠 분리 시작 시에만 상태 초기화)
       if (data.type === 'belt_separator' && data.data && typeof data.data === 'object' && 'value' in data.data && data.data.value === 1) {
-        console.log('🔄 belt_separator: 1 수신 - 추가 투입 모드로 전환');
+        console.log('🔄 belt_separator: 1 수신 - 새로운 띠 분리 시작');
+        // 정상 종료 상태가 아닐 때만 상태 초기화 (정상 배출 완료 후에는 초기화하지 않음)
         setBeltSeparatorCompleted(false); // 띠분리 상태 초기화
         setHopperOpened(false); // 투입구 상태 초기화
         setPetInserted(false); // 페트병 투입 상태 초기화
-        setNormallyEnd(false); // 정상 종료 상태 초기화
+        // normallyEnd는 정상 배출 완료 후에는 초기화하지 않음
+      }
+
+      // 투입구 열림 이벤트 처리
+      if (data.type === 'hopper_opened') {
+        setHopperOpened(true);
       }
 
       // 페트병 투입 이벤트 처리

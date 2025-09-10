@@ -14,7 +14,9 @@ services:
       DB_PASSWORD: srv123!
       JWT_SECRET: pEtMon_rEhAN_esG_PLatFoRM_Authorization_Secret_KEY
       SERIAL_PORT: /dev/ttyUSB0
-      ENABLE_HARDWARE: ${ENABLE_HARDWARE:-true}
+      ENABLE_HARDWARE: true
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend:/app
       - /app/node_modules
