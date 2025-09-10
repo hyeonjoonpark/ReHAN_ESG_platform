@@ -66,7 +66,7 @@ class SocketHandler {
         this._lastCmdTs[dedupKey] = now;
       }
       this.serialHandler.send(JSON.stringify(command));
-      log.info(`TX_CMD reason=${reason} cmd=${JSON.stringify(command)}`);
+      log.info(`🔼 [서버→하드웨어] TX_CMD reason=${reason} cmd=${JSON.stringify(command)}`);
     } catch (e) {
       log.error(`CMD_ERROR reason=${reason} err=${e?.message || e}`);
     }
@@ -390,11 +390,11 @@ class SocketHandler {
 
       // 시리얼 데이터 수신 (프론트엔드로부터)
       socket.on('serial_data', (data) => {
-        log.info(`💻 클라이언트 ${socket.id}로부터 시리얼 데이터 수신: ${JSON.stringify(data)}`);
+        log.info(`📱 [웹클라이언트→서버] 클라이언트 ${socket.id}로부터 데이터 수신: ${JSON.stringify(data)}`);
 
         // 프론트엔드에서 movement 데이터를 보낼 때
         if (data && data.movement === 1) {
-          log.info('🚀 movement: 1 데이터 수신 - 하드웨어로 전송');
+          log.info('🚀 [서버→하드웨어] movement: 1 데이터를 하드웨어로 전송');
           if (this.serialHandler && this.serialHandler.isConnected()) {
             this.serialHandler.send(JSON.stringify(data));
           } else {
@@ -482,7 +482,7 @@ class SocketHandler {
       timestamp: new Date().toISOString()
     };
     
-    log.info(`🔧 하드웨어 상태 알림: ${JSON.stringify(statusData)}`);
+    log.info(`🔧 [하드웨어→웹클라이언트] 하드웨어 상태 알림: ${JSON.stringify(statusData)}`);
     this.broadcastToAll('hardware_status', statusData);
 
     // 투입구가 열렸다는 신호를 받으면, 프론트엔드에 투입구 열 준비 완료를 알림

@@ -189,8 +189,8 @@ class SerialHandler extends EventEmitter {
     if (receivedString.startsWith('{') && receivedString.endsWith('}')) {
       try {
         const json = JSON.parse(receivedString);
-        // RX JSON은 기본 info 레벨로 노출하여 가시성 향상
-        log.info(`RX_JSON ${JSON.stringify(json)}`);
+        // 하드웨어에서 받은 데이터 - 명확한 구분을 위한 로그 형식
+        log.info(`🔽 [하드웨어→서버] RX: ${JSON.stringify(json)}`);
 
         if (json.movement === 1) {
           this.emit('hardware_event', { type: 'movement', data: json });
@@ -239,7 +239,7 @@ class SerialHandler extends EventEmitter {
 
   send(data) {
     if (this.testMode) {
-      log.info(`[TEST MODE] 데이터 전송 시뮬레이션: ${data}`);
+      log.info(`🧪 [TEST MODE] [서버→하드웨어] 데이터 전송 시뮬레이션: ${data}`);
       try {
         const command = JSON.parse(data);
 
@@ -264,7 +264,7 @@ class SerialHandler extends EventEmitter {
         }
         // movement 명령 수신 시
         else if (command.movement === 1) {
-          log.info('[TEST MODE] movement: 1 명령 수신 - 하드웨어로 전송됨');
+          log.info('🧪 [TEST MODE] [서버→하드웨어] movement: 1 명령 수신 - 하드웨어로 전송됨');
         }
 
       } catch (e) {
@@ -279,7 +279,7 @@ class SerialHandler extends EventEmitter {
           return log.error(`TX_FAIL ${err.message} | payload=${data}`);
         }
         // 성공 시 단일 라인으로 페이로드를 기록
-        log.info(`TX ${data}`);
+        log.info(`🔼 [서버→하드웨어] TX: ${data}`);
       });
     } else {
       log.error(`TX_SKIP Port not open | payload=${data}`);
