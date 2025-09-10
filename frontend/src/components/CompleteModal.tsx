@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useSocket } from '@/hooks/useSocket';
 
 interface CompleteModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ const CompleteModal: React.FC<CompleteModalProps> = ({
   totalPoints 
 }: CompleteModalProps) => {
   const router = useRouter();
+  const { socket } = useSocket();
   if (!isOpen) return null;
 
   const handleComplete = async () => {
@@ -38,6 +40,10 @@ const CompleteModal: React.FC<CompleteModalProps> = ({
       // 로깅만 하고 UX는 계속 진행
       console.error('사용 이력 저장 실패:', e);
     } finally {
+      // 로그아웃 데이터 { logout: 1 } 전송
+      if (socket) {
+        socket.emit('serial_data', { logout: 1 });
+      }
       // 로그인에서 저장한 키(accessToken)에 맞춰 삭제
       localStorage.removeItem('access_token');
       localStorage.removeItem('phone_number');

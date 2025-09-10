@@ -193,6 +193,14 @@ const BandSplit = () => {
     };
   }, [beltSeparatorCompleted, petInserted, normallyEnd, sectionType, socket]);
 
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    if (socket) {
+      socket.emit('serial_data', { logout: 1 });
+    }
+    router.replace('/');
+  };
+
   // 띠분리 완료 데이터 수신 시 투입구 오픈 데이터 전송
   useEffect(() => {
     if (beltSeparatorCompleted) {
@@ -268,7 +276,7 @@ const BandSplit = () => {
           />
         );
       case SectionType.NORMALLY_END:
-        return <NormallyEndSection onHomeClick={() => router.replace('/')} />;
+        return <NormallyEndSection onHomeClick={handleLogout} />;
       default:
         return <StartSplitBandSections />;
     }

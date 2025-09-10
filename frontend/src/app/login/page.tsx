@@ -13,6 +13,7 @@ import { getFormattedCurrentTime } from '@/utils/updateTime';
 import axios from 'axios';
 import { KeypadSizeType } from '@/types/KeypadSizeType';
 import LoginErrorModal from '@/components/LoginErrorModal';
+import { useSocket } from '@/hooks/useSocket';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const [isLoginErrorModalOpen, setIsLoginErrorModalOpen] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
   const router = useRouter();
+  const { socket } = useSocket();
 
   // 위치 정보 가져오기
   const getCurrentLocation = () => {
@@ -182,6 +184,9 @@ export default function LoginPage() {
 
   const handleUserInfoConfirm = () => {
     setIsUserInfoModalOpen(false);
+    if (socket) {
+      socket.emit('serial_data', { "movement": 1 });
+    }
     router.replace('/band-split');
   };
 
