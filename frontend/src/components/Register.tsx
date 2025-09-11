@@ -51,7 +51,7 @@ export default function Register({ onBack }: RegisterProps) {
     }
 
     try {
-      const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://petmon.iptime.org:3001";
+      const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
       console.log("API 호출 URL:", `${baseURL}/api/v1/signup`);
       
       const res = await axios.post(

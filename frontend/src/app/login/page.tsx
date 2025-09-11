@@ -17,7 +17,7 @@ import { useSocket } from '@/hooks/useSocket';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://petmon.iptime.org:3001';
+axios.defaults.baseURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function LoginPage() {
   const [currentTime, setCurrentTime] = useState<string>('');

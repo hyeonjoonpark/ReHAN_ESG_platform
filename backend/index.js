@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const http = require("http");
+
 const { testConnection } = require("./src/database/sequelize");
 const authRoutes = require("./src/routes/auth");
 const usageRoutes = require("./src/routes/usage");
@@ -245,6 +246,8 @@ app.use('/api/v1', authRoutes);
 app.use('/api/v1', usageRoutes);
 app.use('/api/v1', errorReportRoutes);
 
+testConnection(); // 데이터베이스 연결 테스트
+
 // 기본 라우트
 app.get("/", (req, res) => {
   res.json({ 
@@ -279,12 +282,6 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
 });
 
-// 데이터베이스 연결 테스트 및 시드 데이터 생성
-const initializeDatabase = async () => {
-  await testConnection();
-};
-
-initializeDatabase();
 
 // 서버 시작
 const PORT = process.env.PORT || 3001;
