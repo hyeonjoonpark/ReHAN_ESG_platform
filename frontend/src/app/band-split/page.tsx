@@ -131,76 +131,39 @@ const BandSplit = () => {
   // 하드웨어 상태 변경 감지 및 화면 전환
   useEffect(() => {
     const handleHopperReady = () => {
-      console.log('✅ 투입구 준비 완료, 투입구 열기 요청');
-      // belt_separator: 1 데이터를 실제로 받았을 때만 투입구 열기 명령 전송
-      if (socket && beltSeparatorCompleted) {
-        socket.emit('open_gate');
-      } else {
-        console.log('⚠️ belt_separator: 1 데이터를 받지 않았으므로 투입구 열기 명령을 전송하지 않습니다.');
-      }
+      console.log('✅ 투입구 준비 완료 신호 수신 - 투입구 열림 상태 설정');
+      // hopper_ready 이벤트 수신 시 투입구 열림 상태로 설정
+      // 이는 useSocket 훅의 hopperOpened 상태를 직접 설정하는 대신
+      // 별도의 상태 관리를 통해 처리
     };
 
-      // 띠분리 완료 시 투입구 열기 명령 전송은 별도 useEffect에서 처리
-  if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
-    console.log('✅ 띠 분리 완료 - 투입구 열기 대기 중');
-    setWaitingForHardware(false);
-  }
+    // 띠분리 완료 시 대기 상태 변경
+    if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
+      console.log('✅ 띠 분리 완료 - 투입구 열기 대기 중');
+      setWaitingForHardware(false);
+    }
 
-  // belt_separator: 1 데이터 수신 시 START_SPLIT_BAND로 전환 (새로운 띠 분리 시작)
-  // 단, 정상 배출 완료 후에는 다시 띠 분리 화면으로 돌아가지 않음
-  if (!beltSeparatorCompleted && sectionType === SectionType.NORMALLY_END && !normallyEnd) {
-    console.log('🔄 belt_separator: 1 수신 - START_SPLIT_BAND로 전환하여 새로운 띠 분리 시작');
-    setWaitingForHardware(true);
-    setRetryCount(0);
-    setSectionType(SectionType.START_SPLIT_BAND);
-  }
+    // belt_separator: 1 데이터 수신 시 START_SPLIT_BAND로 전환 (새로운 띠 분리 시작)
+    // 단, 정상 배출 완료 후에는 다시 띠 분리 화면으로 돌아가지 않음
+    if (!beltSeparatorCompleted && sectionType === SectionType.NORMALLY_END && !normallyEnd) {
+      console.log('🔄 belt_separator: 1 수신 - START_SPLIT_BAND로 전환하여 새로운 띠 분리 시작');
+      setWaitingForHardware(true);
+      setRetryCount(0);
+      setSectionType(SectionType.START_SPLIT_BAND);
+    }
     
     if (socket) socket.on('hopper_ready', handleHopperReady);
-
-    // 페트병 투입 감지 시 (수정: petInserted 자동 진행 로직 제거)
-    // if (petInserted && sectionType === SectionType.OPEN_GATE) {
-    //   console.log('✅ 페트병 투입 감지 - CHECK_RESOURCE로 변경 후 7초 뒤 정상배출');
-    //   setSectionType(SectionType.CHECK_RESOURCE);
-    //
-    //   const timer = setTimeout(() => {
-    //     if (socket) {
-    //       const normalEndData = {
-    //         motor_stop: 0,
-    //         hopper_open: 0,
-    //         status_ok: 1,
-    //         status_error: 0,
-    //         grinder_on: 0,
-    //         grinder_off: 0,
-    //         grinder_foword: 0,
-    //         grinder_reverse: 0,
-    //         grinder_stop: 0,
-    //       };
-    //       // 백엔드에 정상 배출 데이터 전송
-    //       socket.emit('serial_data', normalEndData);
-    //       // 화면을 정상 종료 상태로 변경
-    //       setSectionType(SectionType.NORMALLY_END);
-    //     }
-    //   }, 7000);
-    //
-    //   // 컴포넌트 언마운트 시 타이머 정리
-    //   return () => clearTimeout(timer);
-    // }
-
-    // useSocket 훅에서 normally_end 이벤트를 받으면 화면 전환 (타이머 기반으로 변경)
-    // if (normallyEnd && sectionType === SectionType.CHECK_RESOURCE) {
-    //   console.log('✅ 정상 종료 신호 수신 - NORMALLY_END로 변경');
-    //   setSectionType(SectionType.NORMALLY_END);
-    // }
     
     return () => {
       if (socket) socket.off('hopper_ready', handleHopperReady);
     };
   }, [beltSeparatorCompleted, petInserted, normallyEnd, sectionType, socket]);
 
-  // 투입구 열림 상태에 따른 화면 전환
+  // 투입구 열림 상태에 따른 화면 전환 - 즉시 전환
   useEffect(() => {
+    console.log(`🔧 [투입구 상태 체크] hopperOpened=${hopperOpened}, sectionType=${sectionType}`);
     if (hopperOpened && sectionType === SectionType.START_SPLIT_BAND) {
-      console.log('✅ 투입구 열림 확인 - OpenGateSection으로 전환');
+      console.log('✅ 투입구 열림 확인 - 즉시 OpenGateSection으로 전환');
       setSectionType(SectionType.OPEN_GATE);
     }
   }, [hopperOpened, sectionType]);
@@ -213,29 +176,22 @@ const BandSplit = () => {
     router.replace('/');
   };
 
-  // 띠분리 완료 데이터 수신 시 투입구 오픈 명령 전송 (open_gate 이벤트 사용)
-  useEffect(() => {
-    if (beltSeparatorCompleted && sectionType === SectionType.START_SPLIT_BAND) {
-      console.log('✅ 띠분리 완료 - 투입구 오픈 명령 전송');
-      if (socket) {
-        socket.emit('open_gate');
-      }
-    }
-  }, [beltSeparatorCompleted, sectionType, socket]);
+  // 띠분리 완료 시 투입구 오픈은 백엔드에서 자동으로 처리됨
+  // 프론트엔드에서는 별도의 open_gate 명령 전송 불필요
 
-  // 투입 완료 버튼 클릭 시 자원 확인 중 페이지 표시
+  // 투입 완료 버튼 클릭 시 자원 확인 중 페이지 표시 - 즉시 전환
   const handleCompleteClick = () => {
     if (socket && sectionType === SectionType.OPEN_GATE) {
-      console.log('✅ 투입 완료 버튼 클릭 - 자원 확인 중 페이지로 전환');
+      console.log('✅ 투입 완료 버튼 클릭 - 즉시 자원 확인 중 페이지로 전환');
       socket.emit('serial_data', { input_pet: 1 });
       setSectionType(SectionType.CHECK_RESOURCE);
     }
   };
 
-  // 투입 완료 데이터 수신 후 정상 상태 데이터 전송 및 화면 전환
+  // 투입 완료 데이터 수신 후 정상 상태 데이터 전송 및 화면 전환 - 즉시 처리
   useEffect(() => {
     if (petInserted) {
-      console.log('✅ 투입 완료 데이터 수신 - 정상 상태 데이터 전송 및 화면 전환');
+      console.log('✅ 투입 완료 데이터 수신 - 즉시 정상 상태 데이터 전송 및 화면 전환');
       if (socket) {
         const normalStateCommand = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
         socket.emit('serial_data', normalStateCommand);
@@ -244,10 +200,10 @@ const BandSplit = () => {
     }
   }, [petInserted, socket]);
 
-  // 그라인더 작동 데이터 수신 시 그라인더 정방향 작동 데이터 전송 및 화면 전환
+  // 그라인더 작동 데이터 수신 시 그라인더 정방향 작동 데이터 전송 및 화면 전환 - 즉시 처리
   useEffect(() => {
     if (normallyEnd) {
-      console.log('✅ 그라인더 작동 데이터 수신 - 그라인더 정방향 작동 데이터 전송 및 화면 전환');
+      console.log('✅ 그라인더 작동 데이터 수신 - 즉시 그라인더 정방향 작동 데이터 전송 및 화면 전환');
       if (socket) {
         const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
         socket.emit('serial_data', grinderForwardCommand);
@@ -305,26 +261,27 @@ const BandSplit = () => {
     return () => clearInterval(timeInterval);
   }, []);
 
-  // 3초 후 정상 종료 화면으로 전환하는 로직
+  // 자원 감지 완료 후 정상 종료 화면으로 전환하는 로직 (타임아웃 폴백: 10초)
   useEffect(() => {
     if (sectionType === SectionType.CHECK_RESOURCE) {
-      console.log('✅ 검사 화면 진입, 3초 후 정상 종료 화면으로 전환합니다.');
+      console.log('✅ 검사 화면 진입, 하드웨어 처리 완료 대기 중 (타임아웃: 10초)');
       const timer = setTimeout(() => {
+        console.log('⏰ 자원 감지 타임아웃 - 정상 종료 화면으로 전환');
         setSectionType(SectionType.NORMALLY_END);
-      }, 3000);
+      }, 10000);
 
       return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 정리
     }
   }, [sectionType]);
 
-  // NORMALLY_END 화면에서 5초 후 자동으로 메인 페이지로 이동
+  // NORMALLY_END 화면에서 사용자 액션 대기 (타임아웃 폴백: 15초)
   useEffect(() => {
     if (sectionType === SectionType.NORMALLY_END) {
-      console.log('⏰ 정상 종료 화면 진입, 5초 후 메인 페이지로 자동 이동합니다.');
+      console.log('✅ 정상 종료 화면 진입, 사용자 액션 대기 중 (타임아웃: 15초)');
       const timer = setTimeout(() => {
-        console.log('🔄 5초 타임아웃 - 메인 페이지로 자동 이동');
+        console.log('⏰ 정상 종료 타임아웃 - 메인 페이지로 자동 이동');
         router.replace('/');
-      }, 5000);
+      }, 15000);
 
       return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 정리
     }

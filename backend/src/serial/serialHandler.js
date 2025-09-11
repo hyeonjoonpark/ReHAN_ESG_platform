@@ -200,6 +200,8 @@ class SerialHandler extends EventEmitter {
 
         // 상승엣지: belt_separator 0->1
         if (prev.belt_separator !== 1 && json.belt_separator === 1) {
+          log.info(`✅ belt_separator 상승엣지 감지: ${prev.belt_separator} -> ${json.belt_separator}`);
+          log.info(`🔧 hardware_event 발생: belt_separator_complete`);
           this.emit('hardware_event', { type: 'belt_separator_complete', data: json });
         }
 
@@ -208,10 +210,21 @@ class SerialHandler extends EventEmitter {
           this.emit('hardware_event', { type: 'input_pet_detected', data: json });
         }
 
-        // 상승엣지: clear_pet=1 && grinder=1 조합
-        const prevForward = prev.clear_pet === 1 && prev.grinder === 1;
-        const nowForward = json.clear_pet === 1 && json.grinder === 1;
-        if (nowForward && !prevForward) {
+        // 상승엣지: clear_pet 0->1 (input_pet_detected 이벤트)
+        if (prev.clear_pet !== 1 && json.clear_pet === 1) {
+          this.emit('hardware_event', { type: 'input_pet_detected', data: json });
+          
+          // grinder=1이 동시에 들어온 경우 1초 후 grinder_forward_detected 실행
+          if (json.grinder === 1) {
+            setTimeout(() => {
+              this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
+            }, 1000);
+          }
+        }
+
+        // 상승엣지: grinder 0->1 (clear_pet이 이미 1인 경우)
+        if (prev.grinder !== 1 && json.grinder === 1 && json.clear_pet === 1) {
+          // clear_pet이 이미 1이었다면 즉시 grinder_forward_detected 실행
           this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
         }
 
@@ -274,15 +287,20 @@ class SerialHandler extends EventEmitter {
     }
 
     if (this.port && this._isConnected) {
-      this.port.write(data, (err) => {
-        if (err) {
-          return log.error(`TX_FAIL ${err.message} | payload=${data}`);
-        }
-        // 성공 시 단일 라인으로 페이로드를 기록
-        log.info(`🔼 [서버→하드웨어] TX: ${data}`);
-      });
+      log.info(`🔧 [시리얼 전송 준비] payload=${data}, port=${this.port.path}, connected=${this._isConnected}`);
+      // 100ms 지연 후 하드웨어로 데이터 전송
+      setTimeout(() => {
+        log.info(`🚀 [시리얼 전송 실행] payload=${data}`);
+        this.port.write(data, (err) => {
+          if (err) {
+            return log.error(`❌ TX_FAIL ${err.message} | payload=${data}`);
+          }
+          // 성공 시 단일 라인으로 페이로드를 기록
+          log.info(`✅ [서버→하드웨어] TX 성공: ${data}`);
+        });
+      }, 100);
     } else {
-      log.error(`TX_SKIP Port not open | payload=${data}`);
+      log.error(`❌ TX_SKIP Port not open | payload=${data} | port=${this.port ? this.port.path : 'null'} | connected=${this._isConnected}`);
     }
   }
 

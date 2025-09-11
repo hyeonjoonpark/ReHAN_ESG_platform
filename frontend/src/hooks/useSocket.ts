@@ -96,19 +96,30 @@ export const useSocket = (): UseSocketReturn => {
     // 연결 해제 시 상태 업데이트
     socketRef.current.on('disconnect', () => setIsConnected(false));
     
+    // 투입구 준비 완료 이벤트 수신 처리
+    socketRef.current.on('hopper_ready', (data) => {
+      console.log('✅ 투입구 준비 완료 이벤트 수신:', data);
+      console.log('🔧 투입구 열림 상태 설정 중...');
+      setHopperOpened(true);
+      console.log('✅ 투입구 열림 상태 설정 완료');
+    });
+    
     // 하드웨어 상태 이벤트 수신 처리
     socketRef.current.on('hardware_status', (data: HardwareStatus) => {
       setHardwareStatus(data); // 최근 하드웨어 상태 저장
       
-      // 띠분리 완료 이벤트 처리
+      // 띠분리 완료 이벤트 처리 - 즉시 상태 변경
       if (data.type === 'belt_separator_complete') {
+        console.log('✅ 띠분리 완료 데이터 수신:', data);
+        console.log('🔧 띠분리 완료 상태 설정 중...');
         setBeltSeparatorCompleted(true);
+        console.log('✅ 띠분리 완료 상태 설정 완료');
         // 투입구 열림 상태는 투입구가 실제로 열린 후에만 설정
       }
 
-      // belt_separator: 1 데이터 처리 (새로운 띠 분리 시작 시에만 상태 초기화)
+      // belt_separator: 1 데이터 처리 (새로운 띠 분리 시작 시에만 상태 초기화) - 즉시 상태 변경
       if (data.type === 'belt_separator' && data.data && typeof data.data === 'object' && 'value' in data.data && data.data.value === 1) {
-        console.log('🔄 belt_separator: 1 수신 - 새로운 띠 분리 시작');
+        console.log('🔄 belt_separator: 1 수신 - 즉시 새로운 띠 분리 시작');
         // 정상 종료 상태가 아닐 때만 상태 초기화 (정상 배출 완료 후에는 초기화하지 않음)
         setBeltSeparatorCompleted(false); // 띠분리 상태 초기화
         setHopperOpened(false); // 투입구 상태 초기화
@@ -116,18 +127,21 @@ export const useSocket = (): UseSocketReturn => {
         // normallyEnd는 정상 배출 완료 후에는 초기화하지 않음
       }
 
-      // 투입구 열림 이벤트 처리
+      // 투입구 열림 이벤트 처리 - 즉시 상태 변경
       if (data.type === 'hopper_opened') {
+        console.log('✅ 투입구 열림 데이터 수신 - 즉시 상태 변경');
         setHopperOpened(true);
       }
 
-      // 페트병 투입 이벤트 처리
+      // 페트병 투입 이벤트 처리 - 즉시 상태 변경
       if (data.type === 'pet_inserted') {
+        console.log('✅ 페트병 투입 데이터 수신 - 즉시 상태 변경');
         setPetInserted(true);
       }
       
-      // 정상 종료 이벤트 처리
+      // 정상 종료 이벤트 처리 - 즉시 상태 변경
       if (data.type === 'normally_end') {
+        console.log('✅ 정상 종료 데이터 수신 - 즉시 상태 변경');
         setNormallyEnd(true);
       }
     });
