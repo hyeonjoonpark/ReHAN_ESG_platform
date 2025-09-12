@@ -81,9 +81,15 @@ export const useSocket = (): UseSocketReturn => {
    * 이미 연결되어 있으면 무시하고, 새로운 연결을 생성하여 이벤트 리스너를 설정합니다.
    */
   const connect = useCallback(() => {
+    console.log(`🔧 [WebSocket 연결 시도] serverUrl: ${serverUrl}`);
+    
     // 이미 연결되어 있으면 중복 연결 방지
-    if (socketRef.current?.connected) return;
+    if (socketRef.current?.connected) {
+      console.log('⚠️ WebSocket이 이미 연결되어 있음');
+      return;
+    }
 
+    console.log('🚀 Socket.IO 클라이언트 생성 중...');
     // Socket.IO 클라이언트 생성 및 연결
     socketRef.current = io(serverUrl, {
       withCredentials: true, // 인증 정보 포함
@@ -91,10 +97,27 @@ export const useSocket = (): UseSocketReturn => {
     });
 
     // 연결 성공 시 상태 업데이트
-    socketRef.current.on('connect', () => setIsConnected(true));
+    socketRef.current.on('connect', () => {
+      console.log('✅ WebSocket 연결 성공!');
+      setIsConnected(true);
+    });
     
     // 연결 해제 시 상태 업데이트
-    socketRef.current.on('disconnect', () => setIsConnected(false));
+    socketRef.current.on('disconnect', (reason) => {
+      console.log(`❌ WebSocket 연결 해제: ${reason}`);
+      setIsConnected(false);
+    });
+    
+    // 연결 오류 시 로그
+    socketRef.current.on('connect_error', (error) => {
+      console.error('❌ WebSocket 연결 오류:', error);
+      setIsConnected(false);
+    });
+    
+    // 서버에서 연결 확인 응답 수신
+    socketRef.current.on('connection_confirmed', (data) => {
+      console.log('✅ 서버 연결 확인 응답 수신:', data);
+    });
     
     // 투입구 준비 완료 이벤트 수신 처리
     socketRef.current.on('hopper_ready', (data) => {

@@ -19,11 +19,15 @@ const app = express();
 const server = http.createServer(app);
 
 // 시리얼 핸들러 및 소켓 핸들러 초기화
+console.log('🔧 시리얼 핸들러 초기화 중...');
 const serialHandler = new SerialHandler();
+console.log('🔧 소켓 핸들러 초기화 중...');
 const socketHandler = new SocketHandler(server);
 
 // 시리얼 핸들러와 소켓 핸들러 연결
+console.log('🔧 시리얼 핸들러와 소켓 핸들러 연결 중...');
 socketHandler.setSerialHandler(serialHandler);
+console.log('✅ 핸들러 연결 완료');
 
 // 프로세스 전역 에러 감지 및 브로드캐스트
 process.on('uncaughtException', (err) => {

@@ -49,6 +49,11 @@ const BandSplit = () => {
     requestHardwareStatus
   } = useSocket();
 
+  // WebSocket 연결 상태 로그
+  useEffect(() => {
+    console.log(`🔧 [WebSocket 상태] isConnected: ${isConnected}, socket: ${socket ? '존재' : '없음'}`);
+  }, [isConnected, socket]);
+
   const errorMessage: string = '내용물을 제거해주세요!';
 
   // 페이지 진입 시 소켓 통신 및 시리얼 포트 관리

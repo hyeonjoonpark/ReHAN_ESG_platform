@@ -20,6 +20,8 @@ const PetBottle = require('../models/pet_bottle/PetBottle');
 
 class SocketHandler {
   constructor(server) {
+    log.info('🔧 Socket.IO 서버 초기화 시작...');
+    
     // Socket.IO 서버 초기화
     this.io = new Server(server, {
       cors: {
@@ -42,7 +44,7 @@ class SocketHandler {
     this._beltDebounceMs = Number(process.env.BELT_DEBOUNCE_MS || 1500); // 중복 belt 신호 억제 시간
 
     this.setupSocketEvents();
-    log.info('🔌 Socket.IO 서버가 초기화되었습니다.');
+    log.info('✅ Socket.IO 서버가 초기화되었습니다.');
   }
 
   /**
@@ -144,6 +146,7 @@ class SocketHandler {
   setupSocketEvents() {
     this.io.on('connection', (socket) => {
       log.info(`🔗 클라이언트 연결됨: ${socket.id}`);
+      log.info(`🔧 클라이언트 정보: ${JSON.stringify(socket.handshake)}`);
       
       // 연결된 클라이언트 정보 저장
       this.connectedClients.set(socket.id, {
@@ -152,12 +155,16 @@ class SocketHandler {
         currentPage: null
       });
 
+      log.info(`📊 현재 연결된 클라이언트 수: ${this.connectedClients.size}`);
+
       // 연결 확인 응답
       socket.emit('connection_confirmed', {
         clientId: socket.id,
         timestamp: new Date().toISOString(),
         message: '서버에 성공적으로 연결되었습니다.'
       });
+      
+      log.info(`✅ 클라이언트 ${socket.id}에게 연결 확인 응답 전송`);
 
       // 페이지 룸 참여 이벤트
       socket.on('join_page', (data) => {
