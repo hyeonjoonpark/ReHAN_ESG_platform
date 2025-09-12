@@ -10,6 +10,18 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+
+# 빌드 전 필수 디렉토리 및 파일 존재 확인
+RUN echo "=== 빌드 전 파일 구조 확인 ===" && \
+    ls -la && \
+    echo "=== src 디렉토리 확인 ===" && \
+    ls -la src/ && \
+    echo "=== src/app 디렉토리 확인 ===" && \
+    ls -la src/app/ && \
+    echo "=== src/app 내부 파일 확인 ===" && \
+    find src/app -type f && \
+    echo "=== Next.js 빌드 시작 ==="
+
 RUN npm run build
 
 FROM base AS runner
