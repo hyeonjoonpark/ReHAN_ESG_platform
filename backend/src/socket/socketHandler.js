@@ -427,12 +427,12 @@ class SocketHandler {
             // PetBottle 테이블에 사용자 전화번호 저장
             this.savePetBottleRecord(socket);
             
-            // 프론트엔드에 정상 종료 알림
-            this.broadcastToAll('hardware_status', { 
-              type: 'normally_end', 
-              data: { source: 'frontend', command }, 
-              timestamp: new Date().toISOString() 
-            });
+            // 프론트엔드에 정상 종료 알림 -> grinder_end_detected 시점으로 이동
+            // this.broadcastToAll('hardware_status', { 
+            //   type: 'normally_end', 
+            //   data: { source: 'frontend', command }, 
+            //   timestamp: new Date().toISOString() 
+            // });
           } else {
             log.error('❌ 시리얼 핸들러가 연결되지 않아 정상 배출 명령을 보낼 수 없습니다.');
             socket.emit('hardware_status_error', {
@@ -454,6 +454,14 @@ class SocketHandler {
           clients.delete(socket.id);
           if (clients.size === 0) {
             this.pageRooms.delete(page);
+          }
+        }
+        
+        // 마지막 클라이언트 연결 해제 시 시리얼 포트 닫기
+        if (this.connectedClients.size === 0) {
+          log.info('🔌 모든 클라이언트 연결 해제됨. 시리얼 포트를 닫습니다.');
+          if (this.serialHandler && this.serialHandler.isConnected()) {
+            this.serialHandler.disconnect();
           }
         }
       });
@@ -565,9 +573,9 @@ class SocketHandler {
       this.sendCommand('hw_detected:grinder_foword', command, 'grinder_foword');
     }
     
-    // 분쇄 완료 시 -> 그라인더 정지
+    // 분쇄 완료 시 -> 그라인더 정지 및 정상 종료 알림
     if (type === 'grinder_end_detected') {
-      log.info('✅ 분쇄 완료, 그라인더 정지 명령 전송');
+      log.info('✅ 분쇄 완료, 그라인더 정지 명령 전송 및 정상 종료 알림');
       const command = {
         "motor_stop":0,
         "hopper_open":0,
@@ -580,6 +588,13 @@ class SocketHandler {
         "grinder_stop":1
       };
       this.sendCommand('hw_detected:grinder_stop', command, 'grinder_stop');
+      
+      // 프론트엔드에 정상 종료 알림
+      this.broadcastToAll('hardware_status', { 
+        type: 'normally_end', 
+        data: { source: 'hardware', event: 'grinder_end' },
+        timestamp: new Date().toISOString() 
+      });
     }
 
     // 불량 제품 감지 시 -> 비정상 반환
