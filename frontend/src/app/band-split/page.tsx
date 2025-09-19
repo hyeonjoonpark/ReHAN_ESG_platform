@@ -28,8 +28,7 @@ const BandSplit = () => {
   const [userHavedPoints, setUserHavedPoints] = useState<number>(0);
   const [currentCount, setCurrentCount] = useState<number>(0);
   const [remainingCount, setRemainingCount] = useState<number>(100);
-  const earnedPoints = 10; // TODO: 실제 데이터로 수정
-  const totalPoints = userHavedPoints ? Number(userHavedPoints) + earnedPoints : earnedPoints;
+  const earnedPoints = 10;
   const router = useRouter();
 
   const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND);
@@ -195,7 +194,7 @@ const BandSplit = () => {
 
   // 투입 완료 데이터 수신 후 정상 상태 데이터 전송 및 화면 전환 - 즉시 처리
   useEffect(() => {
-    if (petInserted) {
+    if (petInserted && sectionType === SectionType.OPEN_GATE) {
       console.log('✅ 투입 완료 데이터 수신 - 즉시 정상 상태 데이터 전송 및 화면 전환');
       if (socket) {
         const normalStateCommand = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
@@ -203,11 +202,11 @@ const BandSplit = () => {
       }
       setSectionType(SectionType.CHECK_RESOURCE);
     }
-  }, [petInserted, socket]);
+  }, [petInserted, socket, sectionType]);
 
   // 그라인더 작동 데이터 수신 시 그라인더 정방향 작동 데이터 전송 및 화면 전환 - 즉시 처리
   useEffect(() => {
-    if (normallyEnd) {
+    if (normallyEnd && sectionType === SectionType.CHECK_RESOURCE) {
       console.log('✅ 그라인더 작동 데이터 수신 - 즉시 그라인더 정방향 작동 데이터 전송 및 화면 전환');
       if (socket) {
         const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
@@ -215,7 +214,7 @@ const BandSplit = () => {
       }
       setSectionType(SectionType.NORMALLY_END);
     }
-  }, [normallyEnd, socket]);
+  }, [normallyEnd, socket, sectionType]);
 
   // // 투입구 오픈 완료 핸들러
   // const handleGateOpened = () => {
@@ -248,7 +247,7 @@ const BandSplit = () => {
           />
         );
       case SectionType.NORMALLY_END:
-        return <NormallyEndSection onHomeClick={handleLogout} />;
+        return <NormallyEndSection />;
       default:
         return <StartSplitBandSections />;
     }
@@ -279,18 +278,17 @@ const BandSplit = () => {
     }
   }, [sectionType]);
 
-  // NORMALLY_END 화면에서 사용자 액션 대기 (타임아웃 폴백: 15초)
+  // NORMALLY_END 화면에서 5초 후 포인트 적립 팝업 자동 표시
   useEffect(() => {
     if (sectionType === SectionType.NORMALLY_END) {
-      console.log('✅ 정상 종료 화면 진입, 사용자 액션 대기 중 (타임아웃: 15초)');
+      console.log('✅ 정상 종료 화면 진입, 5초 후 포인트 팝업을 표시합니다.');
       const timer = setTimeout(() => {
-        console.log('⏰ 정상 종료 타임아웃 - 메인 페이지로 자동 이동');
-        router.replace('/');
-      }, 15000);
+        setIsCompleteModalOpen(true);
+      }, 5000);
 
       return () => clearTimeout(timer); // 컴포넌트 언마운트 시 타이머 정리
     }
-  }, [sectionType, router]);
+  }, [sectionType]);
 
   // START_SPLIT_BAND로 전환될 때마다 초기 시퀀스 재실행(불필요한 포트 닫기 제거)
   useEffect(() => {
@@ -370,7 +368,6 @@ const BandSplit = () => {
         onClose={() => setIsCompleteModalOpen(false)}
         userHavedPoints={userHavedPoints}
         earnedPoints={earnedPoints}
-        totalPoints={totalPoints}
       />
     </div>
   );

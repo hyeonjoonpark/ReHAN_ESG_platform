@@ -8,7 +8,6 @@ interface CompleteModalProps {
   onClose: () => void;
   userHavedPoints?: number;
   earnedPoints: number;
-  totalPoints: number;
 }
 
 const CompleteModal: React.FC<CompleteModalProps> = ({ 
@@ -64,11 +63,11 @@ const CompleteModal: React.FC<CompleteModalProps> = ({
         <div className="space-y-4">
           <div className="flex justify-between text-lg">
             <span className="font-semibold text-gray-600 dark:text-gray-300">적립 포인트</span>
-            <span className="font-semibold text-gray-900 dark:text-white">{userHavedPoints + earnedPoints} P</span>
+            <span className="font-semibold text-gray-900 dark:text-white">{earnedPoints} P</span>
           </div>
           <div className="flex justify-between text-lg">
             <span className="font-semibold text-gray-600 dark:text-gray-300">누적 포인트</span>
-            <span className="font-semibold text-cyan-500 dark:text-cyan-400">{totalPoints} P</span>
+            <span className="font-semibold text-cyan-500 dark:text-cyan-400">{userHavedPoints + earnedPoints} P</span>
           </div>
         </div>
 
