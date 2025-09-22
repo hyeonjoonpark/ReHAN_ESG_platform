@@ -14,8 +14,7 @@ const CompleteModal: React.FC<CompleteModalProps> = ({
   isOpen, 
   onClose, 
   userHavedPoints = 0, 
-  earnedPoints, 
-  totalPoints 
+  earnedPoints
 }: CompleteModalProps) => {
   const router = useRouter();
   const { socket } = useSocket();
