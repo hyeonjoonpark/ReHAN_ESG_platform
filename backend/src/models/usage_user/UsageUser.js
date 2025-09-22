@@ -9,7 +9,7 @@ const UsageUser = sequelize.define('UsageUser', {
     primaryKey: true
   },
   phone_number: {
-    type: DataTypes.STRING(11),
+    type: DataTypes.STRING(20),
     allowNull: false,
     foreignKey: true
   },
