@@ -73,13 +73,13 @@ app.use((req, res, next) => {
   next();
 });
 // CORS 허용 오리진 (환경변수 CORS_ORIGINS로 덮어쓰기 가능, 콤마 구분)
-const defaultAllowedOrigins = "*"
+const defaultAllowedOrigins = ["http://localhost:3000", "http://srvpositioning.tplinkdns.com:3000"]
 const allowedOrigins = (defaultAllowedOrigins);
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true); // 모바일 앱/서버 간 통신 등 Origin 없음 허용
-    if (allowedOrigins === "*" || allowedOrigins.includes(origin)) return callback(null, true);
+    if (Array.isArray(allowedOrigins) && allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,

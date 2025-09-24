@@ -25,12 +25,7 @@ const GlobalErrorBanner: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const serverUrl = useMemo(() => 
-    process.env.NEXT_PUBLIC_SOCKET_URL || 
-    (typeof window !== 'undefined' 
-      ? `http://${window.location.hostname}:3001`
-      : 'http://localhost:3001'), 
-    []);
+  const serverUrl = useMemo(() => 'http://localhost:3001', []);  // localhost 강제 설정
 
   useEffect(() => {
     setMounted(true);

@@ -59,7 +59,7 @@ export default function Register({ onBack }: RegisterProps) {
         { phone_number: digits },
         { 
           withCredentials: true,
-          timeout: 10000 // 10초 타임아웃 설정
+          timeout: 30000 // 30초 타임아웃 설정
         }
       );
 

@@ -17,7 +17,7 @@ import { useSocket } from '@/hooks/useSocket';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+axios.defaults.baseURL = 'http://localhost:3001';  // localhost 강제 설정
 
 export default function LoginPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -152,7 +152,7 @@ export default function LoginPage() {
       const response = await axios.post('/api/v1/login', {
         phone_number: phoneNumber
       }, {
-        timeout: 10000 // 10초 타임아웃 설정
+        timeout: 30000 // 30초 타임아웃 설정
       });
       
       if (response.status === 200) {
@@ -212,7 +212,7 @@ export default function LoginPage() {
         phone_number: phoneNumber,
         error_content: selectedErrorType,
       }, {
-        timeout: 10000 // 10초 타임아웃 설정
+        timeout: 30000 // 30초 타임아웃 설정
       });
       
       if (response.status === 201) {

@@ -25,8 +25,9 @@ class SocketHandler {
     // Socket.IO 서버 초기화
     this.io = new Server(server, {
       cors: {
-        origin: "*",
+        origin: ["http://localhost:3000", "http://srvpositioning.tplinkdns.com:3000"],
         methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
       },
       transports: ['polling', 'websocket'], // Polling 우선, WebSocket 대체
@@ -34,6 +35,7 @@ class SocketHandler {
       pingInterval: 25000, // 핑 간격 25초
       upgradeTimeout: 10000, // 업그레이드 타임아웃 10초
       allowEIO3: true, // Engine.IO v3 호환성
+      allowEIO4: true, // Engine.IO v4 호환성
     });
 
     this.serialHandler = null;

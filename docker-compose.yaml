@@ -55,7 +55,7 @@ services:
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
-      NEXT_PUBLIC_SOCKET_URL: http://srvpositioning.tplinkdns.com:3001
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:3001
     ports:
       - "3000:3000"
     restart: unless-stopped

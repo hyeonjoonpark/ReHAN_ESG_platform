@@ -74,10 +74,7 @@ export const useSocket = (): UseSocketReturn => {
   const socketRef = useRef<Socket | null>(null);
   
   // 백엔드 서버 URL (환경변수 또는 기본값)
-  const serverUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 
-    (typeof window !== 'undefined' 
-      ? `http://${window.location.hostname}:3001`
-      : 'http://localhost:3001');
+  const serverUrl = 'http://localhost:3001';  // localhost 강제 설정
 
   /**
    * WebSocket 서버에 연결하는 함수

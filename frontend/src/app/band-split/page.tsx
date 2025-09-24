@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+
+// axios 기본 설정
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = 'http://localhost:3001';  // localhost 강제 설정
 import Header from '@/components/Header';
 import BottomInquire from '@/components/BottomInquire';
 import RightSection from '@/components/RightSection';

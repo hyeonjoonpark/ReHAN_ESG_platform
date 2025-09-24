@@ -20,7 +20,7 @@ import CommingSoon from '@/components/CommingSoon';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+axios.defaults.baseURL = 'http://localhost:3001';  // localhost 강제 설정
 
 export default function Home() {
   const [currentTime, setCurrentTime] = useState<string>('');
