@@ -289,8 +289,9 @@ app.use((err, req, res, next) => {
 
 // 서버 시작
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`ReHAN ESG 플랫폼의 서버가 ${PORT}번 포트에서 실행중입니다.`);
+const HOST = process.env.HOST || '0.0.0.0'; // 모든 인터페이스에서 접근 가능
+server.listen(PORT, HOST, () => {
+  console.log(`ReHAN ESG 플랫폼의 서버가 ${HOST}:${PORT}번 포트에서 실행중입니다.`);
   console.log(`환경: ${process.env.NODE_ENV || 'development'}`);
   console.log(`데이터베이스 호스트: ${process.env.DB_HOST || 'localhost'}`);
 });

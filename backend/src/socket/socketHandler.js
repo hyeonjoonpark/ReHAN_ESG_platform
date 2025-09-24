@@ -29,7 +29,11 @@ class SocketHandler {
         methods: ['GET', 'POST'],
         credentials: true
       },
-      transports: ['websocket', 'polling']
+      transports: ['polling', 'websocket'], // Polling 우선, WebSocket 대체
+      pingTimeout: 60000, // 핑 타임아웃 60초
+      pingInterval: 25000, // 핑 간격 25초
+      upgradeTimeout: 10000, // 업그레이드 타임아웃 10초
+      allowEIO3: true, // Engine.IO v3 호환성
     });
 
     this.serialHandler = null;

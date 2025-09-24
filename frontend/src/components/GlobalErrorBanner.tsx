@@ -25,7 +25,12 @@ const GlobalErrorBanner: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const serverUrl = useMemo(() => process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', []);
+  const serverUrl = useMemo(() => 
+    process.env.NEXT_PUBLIC_SOCKET_URL || 
+    (typeof window !== 'undefined' 
+      ? `http://${window.location.hostname}:3001`
+      : 'http://localhost:3001'), 
+    []);
 
   useEffect(() => {
     setMounted(true);
@@ -36,7 +41,13 @@ const GlobalErrorBanner: React.FC = () => {
 
     const socket: Socket = io(serverUrl, {
       withCredentials: true,
-      transports: ['websocket', 'polling']
+      transports: ['polling', 'websocket'], // Polling 우선, WebSocket 대체
+      timeout: 20000, // 연결 타임아웃 20초
+      forceNew: true, // 새로운 연결 강제 생성
+      reconnection: true, // 자동 재연결 활성화
+      reconnectionAttempts: 5, // 재연결 시도 횟수
+      reconnectionDelay: 1000, // 재연결 지연 시간
+      reconnectionDelayMax: 5000, // 최대 재연결 지연 시간
     });
 
     const handleServerError = (payload: ErrorEventPayload) => {

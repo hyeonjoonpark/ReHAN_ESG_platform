@@ -4,7 +4,7 @@ const { sequelize } = require('../../database/sequelize');
 // USER 테이블 모델
 const User = sequelize.define('User', {
   phone_number: {
-    type: DataTypes.STRING(11),
+    type: DataTypes.STRING(20),
     primaryKey: true,
     allowNull: false,
     validate: {

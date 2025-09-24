@@ -237,6 +237,8 @@ class SerialHandler extends EventEmitter {
 
         // 하강엣지: grinder 1(or null/undefined) -> 0
         if (json.grinder === 0 && prev.grinder !== 0) {
+          // 로그 색상 출력
+          log.info('\x1b[31m%s\x1b[0m', '🔧 그라인더 종료 감지'); // 색상 : 빨간색
           this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
         }
 

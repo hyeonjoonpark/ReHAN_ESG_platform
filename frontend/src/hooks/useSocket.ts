@@ -74,7 +74,10 @@ export const useSocket = (): UseSocketReturn => {
   const socketRef = useRef<Socket | null>(null);
   
   // 백엔드 서버 URL (환경변수 또는 기본값)
-  const serverUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
+  const serverUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 
+    (typeof window !== 'undefined' 
+      ? `http://${window.location.hostname}:3001`
+      : 'http://localhost:3001');
 
   /**
    * WebSocket 서버에 연결하는 함수
@@ -93,7 +96,13 @@ export const useSocket = (): UseSocketReturn => {
     // Socket.IO 클라이언트 생성 및 연결
     socketRef.current = io(serverUrl, {
       withCredentials: true, // 인증 정보 포함
-      transports: ['websocket', 'polling'], // 전송 방식 (WebSocket 우선, Polling 대체)
+      transports: ['polling', 'websocket'], // 전송 방식 (Polling 우선, WebSocket 대체)
+      timeout: 20000, // 연결 타임아웃 20초
+      forceNew: true, // 새로운 연결 강제 생성
+      reconnection: true, // 자동 재연결 활성화
+      reconnectionAttempts: 5, // 재연결 시도 횟수
+      reconnectionDelay: 1000, // 재연결 지연 시간
+      reconnectionDelayMax: 5000, // 최대 재연결 지연 시간
     });
 
     // 연결 성공 시 상태 업데이트
