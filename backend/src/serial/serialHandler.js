@@ -202,31 +202,31 @@ class SerialHandler extends EventEmitter {
         if (prev.belt_separator !== 1 && json.belt_separator === 1) {
           log.info(`✅ belt_separator 상승엣지 감지: ${prev.belt_separator} -> ${json.belt_separator}`);
           log.info(`🔧 hardware_event 발생: belt_separator_complete`);
+          log.info(`🚀 [SerialHandler] belt_separator_complete 이벤트 emit 시작`);
           this.emit('hardware_event', { type: 'belt_separator_complete', data: json });
+          log.info(`🚀 [SerialHandler] belt_separator_complete 이벤트 emit 완료`);
         }
 
-        // 상승엣지: input_pet 0->1
-        if (prev.input_pet !== 1 && json.input_pet === 1) {
+        // 상승엣지: input_pet 0->1 (clear_pet이 없는 경우만)
+        if (prev.input_pet !== 1 && json.input_pet === 1 && !json.clear_pet) {
           this.emit('hardware_event', { type: 'input_pet_detected', data: json });
         }
 
         // 상승엣지: clear_pet 0->1 (input_pet_detected 이벤트)
         if (prev.clear_pet !== 1 && json.clear_pet === 1) {
           log.info(`🔍 clear_pet 상승엣지 감지: ${prev.clear_pet} -> ${json.clear_pet}`);
+          log.info(`🚀 [SerialHandler] input_pet_detected 이벤트 emit 시작`);
           this.emit('hardware_event', { type: 'input_pet_detected', data: json });
-          
-          // grinder=1이 동시에 들어온 경우 즉시 grinder_forward_detected 실행
-          if (json.grinder === 1) {
-            log.info(`🔍 clear_pet=1, grinder=1 동시 감지 - 즉시 grinder_foword_detected 실행`);
-            this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
-          }
+          log.info(`🚀 [SerialHandler] input_pet_detected 이벤트 emit 완료`);
         }
 
-        // 상승엣지: grinder 0->1 (clear_pet이 이미 1인 경우)
+        // 상승엣지: grinder 0->1 (clear_pet이 1인 경우)
         if (prev.grinder !== 1 && json.grinder === 1 && json.clear_pet === 1) {
           log.info(`🔍 grinder 상승엣지 감지 (clear_pet=1 상태): ${prev.grinder} -> ${json.grinder}`);
           log.info(`🚀 grinder_foword_detected 이벤트 즉시 발생`);
+          log.info(`🚀 [SerialHandler] grinder_foword_detected 이벤트 emit 시작`);
           this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
+          log.info(`🚀 [SerialHandler] grinder_foword_detected 이벤트 emit 완료`);
         }
 
         // 상승엣지: err_pet 조건 (clear_pet=0 && err_pet=1)
@@ -287,18 +287,24 @@ class SerialHandler extends EventEmitter {
       return;
     }
 
+    log.info(`🔍 [SerialHandler] write 호출됨 - 연결상태: ${this._isConnected}, 포트: ${this.port ? '존재' : '없음'}`);
+    
     if (this.port && this._isConnected) {
+      log.info(`🔍 [SerialHandler] 실제 하드웨어로 데이터 전송 시도: ${data.trim()}`);
       setTimeout(() => {
         this.port.write(data, (err) => {
           if (err) {
-            return log.error(`❌ TX_FAIL ${err.message} | payload=${data}`);
+            log.error(`❌ TX_FAIL ${err.message} | payload=${data}`);
+            return;
           }
           // CLI에 색상이 적용된 송신 로그 출력
           log.send(`📤 [시리얼→하드웨어] 송신: ${data}`);
+          log.info(`✅ [SerialHandler] 하드웨어로 데이터 전송 완료`);
         });
       }, 100);
     } else {
       log.error(`❌ TX_SKIP Port not open | payload=${data}`);
+      log.error(`❌ [SerialHandler] 시리얼 포트 연결 실패 - 연결상태: ${this._isConnected}, 포트존재: ${this.port ? '예' : '아니오'}`);
     }
   }
 

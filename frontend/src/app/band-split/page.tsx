@@ -210,17 +210,13 @@ const BandSplit = () => {
     }
   }, [petInserted, socket, sectionType]);
 
-  // 그라인더 작동 데이터 수신 시 그라인더 정방향 작동 데이터 전송 및 화면 전환 - 즉시 처리
+  // 그라인더 작동 데이터 수신 시 화면 전환 - 즉시 처리 (백엔드에서 자동으로 명령 전송)
   useEffect(() => {
     if (normallyEnd && sectionType === SectionType.CHECK_RESOURCE) {
-      console.log('✅ 그라인더 작동 데이터 수신 - 즉시 그라인더 정방향 작동 데이터 전송 및 화면 전환');
-      if (socket) {
-        const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
-        socket.emit('serial_data', grinderForwardCommand);
-      }
+      console.log('✅ 그라인더 작동 데이터 수신 - 백엔드에서 자동으로 명령 전송됨, 화면 전환');
       setSectionType(SectionType.NORMALLY_END);
     }
-  }, [normallyEnd, socket, sectionType]);
+  }, [normallyEnd, sectionType]);
 
   // // 투입구 오픈 완료 핸들러
   // const handleGateOpened = () => {

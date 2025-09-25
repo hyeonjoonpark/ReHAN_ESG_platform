@@ -18,6 +18,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+// 전역 소켓 인스턴스 (진짜 싱글톤)
+let globalSocket: Socket | null = null;
+
 /**
  * 하드웨어 상태 정보 타입
  * 백엔드에서 전송되는 하드웨어 이벤트 데이터 구조
@@ -83,6 +86,13 @@ export const useSocket = (): UseSocketReturn => {
   const connect = useCallback(() => {
     console.log(`🔧 [WebSocket 연결 시도] serverUrl: ${serverUrl}`);
     
+    // 전역 소켓 인스턴스가 이미 있으면 재사용
+    if (globalSocket?.connected) {
+      console.log('⚠️ 전역 WebSocket이 이미 연결되어 있음 - 재사용');
+      socketRef.current = globalSocket;
+      return;
+    }
+    
     // 이미 연결되어 있으면 중복 연결 방지
     if (socketRef.current?.connected) {
       console.log('⚠️ WebSocket이 이미 연결되어 있음');
@@ -91,7 +101,7 @@ export const useSocket = (): UseSocketReturn => {
 
     console.log('🚀 Socket.IO 클라이언트 생성 중...');
     // Socket.IO 클라이언트 생성 및 연결
-    socketRef.current = io(serverUrl, {
+    const newSocket = io(serverUrl, {
       withCredentials: true, // 인증 정보 포함
       transports: ['polling', 'websocket'], // 전송 방식 (Polling 우선, WebSocket 대체)
       timeout: 20000, // 연결 타임아웃 20초
@@ -102,31 +112,36 @@ export const useSocket = (): UseSocketReturn => {
       reconnectionDelayMax: 5000, // 최대 재연결 지연 시간
     });
 
+    // 전역 소켓 인스턴스에 저장
+    globalSocket = newSocket;
+    socketRef.current = newSocket;
+
     // 연결 성공 시 상태 업데이트
-    socketRef.current.on('connect', () => {
+    newSocket.on('connect', () => {
       console.log('✅ WebSocket 연결 성공!');
       setIsConnected(true);
     });
     
     // 연결 해제 시 상태 업데이트
-    socketRef.current.on('disconnect', (reason) => {
+    newSocket.on('disconnect', (reason) => {
       console.log(`❌ WebSocket 연결 해제: ${reason}`);
       setIsConnected(false);
     });
     
     // 연결 오류 시 로그
-    socketRef.current.on('connect_error', (error) => {
+    newSocket.on('connect_error', (error) => {
       console.error('❌ WebSocket 연결 오류:', error);
       setIsConnected(false);
     });
     
     // 서버에서 연결 확인 응답 수신
-    socketRef.current.on('connection_confirmed', (data) => {
+    newSocket.on('connection_confirmed', (data) => {
       console.log('✅ 서버 연결 확인 응답 수신:', data);
     });
     
-    // 데이터 로그 이벤트 수신 처리
-    socketRef.current.on('data_log', (logData) => {
+    // 데이터 로그 이벤트 수신 처리 (중복 등록 방지)
+    newSocket.off('data_log'); // 기존 리스너 제거
+    newSocket.on('data_log', (logData) => {
       console.log('📊 데이터 로그 수신:', logData);
       // 로그 데이터를 전역 상태로 관리하거나 콜백으로 전달
       if (window.dataLogCallback) {
@@ -134,16 +149,33 @@ export const useSocket = (): UseSocketReturn => {
       }
     });
     
+    // 서버 오류 이벤트 수신 처리 (중복 등록 방지)
+    newSocket.off('server_error');
+    newSocket.on('server_error', (payload) => {
+      console.error('❌ 서버 오류 수신:', payload);
+      // 전역 이벤트로 전달
+      window.dispatchEvent(new CustomEvent('server_error', { detail: payload }));
+    });
+    
+    // 빌드 오류 이벤트 수신 처리 (중복 등록 방지)
+    newSocket.off('build_error');
+    newSocket.on('build_error', (payload) => {
+      console.error('❌ 빌드 오류 수신:', payload);
+      // 전역 이벤트로 전달
+      window.dispatchEvent(new CustomEvent('build_error', { detail: payload }));
+    });
+    
     // 투입구 준비 완료 이벤트 수신 처리
-    socketRef.current.on('hopper_ready', (data) => {
+    newSocket.on('hopper_ready', (data) => {
       console.log('✅ 투입구 준비 완료 이벤트 수신:', data);
       console.log('🔧 투입구 열림 상태 설정 중...');
       setHopperOpened(true);
       console.log('✅ 투입구 열림 상태 설정 완료');
     });
     
-    // 하드웨어 상태 이벤트 수신 처리
-    socketRef.current.on('hardware_status', (data: HardwareStatus) => {
+    // 하드웨어 상태 이벤트 수신 처리 (중복 등록 방지)
+    newSocket.off('hardware_status');
+    newSocket.on('hardware_status', (data: HardwareStatus) => {
       setHardwareStatus(data); // 최근 하드웨어 상태 저장
       
       // 띠분리 완료 이벤트 처리 - 즉시 상태 변경

@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import React, { useEffect, useState } from 'react';
 
 type ErrorType = 'server' | 'build';
 
@@ -25,8 +24,6 @@ const GlobalErrorBanner: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const serverUrl = useMemo(() => 'http://localhost:3001', []);  // localhost 강제 설정
-
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -34,17 +31,7 @@ const GlobalErrorBanner: React.FC = () => {
   useEffect(() => {
     if (!mounted) return;
 
-    const socket: Socket = io(serverUrl, {
-      withCredentials: true,
-      transports: ['polling', 'websocket'], // Polling 우선, WebSocket 대체
-      timeout: 20000, // 연결 타임아웃 20초
-      forceNew: true, // 새로운 연결 강제 생성
-      reconnection: true, // 자동 재연결 활성화
-      reconnectionAttempts: 5, // 재연결 시도 횟수
-      reconnectionDelay: 1000, // 재연결 지연 시간
-      reconnectionDelayMax: 5000, // 최대 재연결 지연 시간
-    });
-
+    // 전역 소켓 이벤트 리스너 등록 (별도 소켓 연결 없이)
     const handleServerError = (payload: ErrorEventPayload) => {
       setType('server');
       setTitle('서버 오류 발생');
@@ -63,15 +50,23 @@ const GlobalErrorBanner: React.FC = () => {
       setVisible(true);
     };
 
-    socket.on('server_error', handleServerError);
-    socket.on('build_error', handleBuildError);
+    // 전역 이벤트 리스너 등록
+    const serverErrorListener = (event: CustomEvent) => {
+      handleServerError(event.detail);
+    };
+    
+    const buildErrorListener = (event: CustomEvent) => {
+      handleBuildError(event.detail);
+    };
+
+    window.addEventListener('server_error', serverErrorListener as EventListener);
+    window.addEventListener('build_error', buildErrorListener as EventListener);
 
     return () => {
-      socket.off('server_error', handleServerError);
-      socket.off('build_error', handleBuildError);
-      socket.disconnect();
+      window.removeEventListener('server_error', serverErrorListener as EventListener);
+      window.removeEventListener('build_error', buildErrorListener as EventListener);
     };
-  }, [serverUrl, mounted]);
+  }, [mounted]);
 
   useEffect(() => {
     if (!visible) return;

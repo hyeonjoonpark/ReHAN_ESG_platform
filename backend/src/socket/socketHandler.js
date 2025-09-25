@@ -99,9 +99,15 @@ class SocketHandler {
    * @param {SerialHandler} serialHandler - 시리얼 통신 핸들러 인스턴스
    */
   setSerialHandler(serialHandler) {
+    // 기존 이벤트 리스너 제거
+    if (this.serialHandler) {
+      this.serialHandler.removeAllListeners('hardware_event');
+    }
+    
     this.serialHandler = serialHandler;
 
     this.serialHandler.on('hardware_event', ({ type, data }) => {
+      log.info(`🔍 [SocketHandler] hardware_event 수신: ${type}`);
       this.notifyHardwareStatus(type, data);
       
       // 데이터 수신 로그를 클라이언트에게 전송
@@ -669,23 +675,31 @@ class SocketHandler {
       // 사용자 전화번호를 가져오기 위해 프론트엔드에 요청
       socket.emit('request_phone_number');
       
-      // 전화번호 응답을 받아서 PetBottle 테이블에 저장
-      socket.once('phone_number_response', async (phoneNumber) => {
-        if (phoneNumber) {
-          try {
-            await PetBottle.create({
-              phone_number: phoneNumber,
-              created_at: new Date(),
-              updated_at: new Date()
-            });
-            log.info(`✅ PetBottle 테이블에 전화번호 ${phoneNumber} 저장 완료`);
-          } catch (error) {
-            log.error(`❌ PetBottle 테이블 저장 실패: ${error.message}`);
-          }
-        } else {
-          log.warn('전화번호를 받지 못해 PetBottle 기록을 저장하지 않습니다.');
-        }
-      });
+          // 전화번호 응답을 받아서 PetBottle 테이블에 저장
+          socket.once('phone_number_response', async (phoneNumber) => {
+            if (phoneNumber) {
+              try {
+                // 먼저 사용자가 존재하는지 확인
+                const User = require('../models/user/User');
+                const user = await User.findByPk(phoneNumber);
+                if (!user) {
+                  log.warn(`❌ 전화번호 ${phoneNumber}가 TBL_USER 테이블에 존재하지 않아 PetBottle 기록을 저장하지 않습니다.`);
+                  return;
+                }
+                
+                await PetBottle.create({
+                  phone_number: phoneNumber,
+                  created_at: new Date(),
+                  updated_at: new Date()
+                });
+                log.info(`✅ PetBottle 테이블에 전화번호 ${phoneNumber} 저장 완료`);
+              } catch (error) {
+                log.error(`❌ PetBottle 테이블 저장 실패: ${error.message}`);
+              }
+            } else {
+              log.warn('전화번호를 받지 못해 PetBottle 기록을 저장하지 않습니다.');
+            }
+          });
 
       // 5초 후 응답이 없으면 타임아웃 처리
       setTimeout(() => {
@@ -719,6 +733,14 @@ class SocketHandler {
           socket.once('phone_number_response', async (phoneNumber) => {
             if (phoneNumber) {
               try {
+                // 먼저 사용자가 존재하는지 확인
+                const User = require('../models/user/User');
+                const user = await User.findByPk(phoneNumber);
+                if (!user) {
+                  log.warn(`❌ 전화번호 ${phoneNumber}가 TBL_USER 테이블에 존재하지 않아 PetBottle 기록을 저장하지 않습니다. (하드웨어 이벤트)`);
+                  return;
+                }
+                
                 await PetBottle.create({
                   phone_number: phoneNumber,
                   created_at: new Date(),
