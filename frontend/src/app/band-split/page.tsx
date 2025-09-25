@@ -19,6 +19,7 @@ import ResourceErrorSection from '@/components/ResourceErrorSection';
 import NormallyEndSection from '@/components/NormallyEndSection';
 import { SectionType } from '@/types/SectionType';
 import { useSocket } from '@/hooks/useSocket';
+import DataLogViewer from '@/components/DataLogViewer';
 
 // 시리얼 포트 응답 데이터 타입 정의
 interface SerialPortResponse {
@@ -38,6 +39,7 @@ const BandSplit = () => {
   const [sectionType, setSectionType] = useState<SectionType>(SectionType.START_SPLIT_BAND);
   const [waitingForHardware, setWaitingForHardware] = useState<boolean>(false);
   const [retryCount, setRetryCount] = useState<number>(0);
+  const [isLogViewerVisible, setIsLogViewerVisible] = useState<boolean>(false);
 
   // 소켓 통신 훅 사용
   const { 
@@ -372,6 +374,12 @@ const BandSplit = () => {
         onClose={() => setIsCompleteModalOpen(false)}
         userHavedPoints={userHavedPoints}
         earnedPoints={earnedPoints}
+      />
+      
+      {/* 데이터 로그 뷰어 */}
+      <DataLogViewer
+        isVisible={isLogViewerVisible}
+        onToggle={() => setIsLogViewerVisible(!isLogViewerVisible)}
       />
     </div>
   );

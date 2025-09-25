@@ -142,8 +142,8 @@ class SerialHandler extends EventEmitter {
     let start, end;
     while ((start = this.buffer.indexOf('{')) !== -1 && (end = this.buffer.indexOf('}', start)) !== -1) {
       const potentialJson = this.buffer.substring(start, end + 1);
-      // JSON 후보를 info 레벨로 노출하여 파싱 전/후를 쉽게 추적
-      log.info(`RX_JSON_CANDIDATE ${potentialJson}`);
+      // CLI에 색상이 적용된 수신 로그 출력
+      log.receive(`📥 [하드웨어→시리얼] 수신: ${potentialJson}`);
       
       this.handleSerialData(potentialJson);
 
@@ -212,19 +212,20 @@ class SerialHandler extends EventEmitter {
 
         // 상승엣지: clear_pet 0->1 (input_pet_detected 이벤트)
         if (prev.clear_pet !== 1 && json.clear_pet === 1) {
+          log.info(`🔍 clear_pet 상승엣지 감지: ${prev.clear_pet} -> ${json.clear_pet}`);
           this.emit('hardware_event', { type: 'input_pet_detected', data: json });
           
-          // grinder=1이 동시에 들어온 경우 1초 후 grinder_forward_detected 실행
+          // grinder=1이 동시에 들어온 경우 즉시 grinder_forward_detected 실행
           if (json.grinder === 1) {
-            setTimeout(() => {
-              this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
-            }, 1000);
+            log.info(`🔍 clear_pet=1, grinder=1 동시 감지 - 즉시 grinder_foword_detected 실행`);
+            this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
           }
         }
 
         // 상승엣지: grinder 0->1 (clear_pet이 이미 1인 경우)
         if (prev.grinder !== 1 && json.grinder === 1 && json.clear_pet === 1) {
-          // clear_pet이 이미 1이었다면 즉시 grinder_forward_detected 실행
+          log.info(`🔍 grinder 상승엣지 감지 (clear_pet=1 상태): ${prev.grinder} -> ${json.grinder}`);
+          log.info(`🚀 grinder_foword_detected 이벤트 즉시 발생`);
           this.emit('hardware_event', { type: 'grinder_foword_detected', data: json });
         }
 
@@ -237,8 +238,6 @@ class SerialHandler extends EventEmitter {
 
         // 하강엣지: grinder 1(or null/undefined) -> 0
         if (json.grinder === 0 && prev.grinder !== 0) {
-          // 로그 색상 출력
-          log.info('\x1b[31m%s\x1b[0m', '🔧 그라인더 종료 감지'); // 색상 : 빨간색
           this.emit('hardware_event', { type: 'grinder_end_detected', data: json });
         }
 
@@ -289,20 +288,17 @@ class SerialHandler extends EventEmitter {
     }
 
     if (this.port && this._isConnected) {
-      log.info(`🔧 [시리얼 전송 준비] payload=${data}, port=${this.port.path}, connected=${this._isConnected}`);
-      // 100ms 지연 후 하드웨어로 데이터 전송
       setTimeout(() => {
-        log.info(`🚀 [시리얼 전송 실행] payload=${data}`);
         this.port.write(data, (err) => {
           if (err) {
             return log.error(`❌ TX_FAIL ${err.message} | payload=${data}`);
           }
-          // 성공 시 단일 라인으로 페이로드를 기록
-          log.info(`✅ [서버→하드웨어] TX 성공: ${data}`);
+          // CLI에 색상이 적용된 송신 로그 출력
+          log.send(`📤 [시리얼→하드웨어] 송신: ${data}`);
         });
       }, 100);
     } else {
-      log.error(`❌ TX_SKIP Port not open | payload=${data} | port=${this.port ? this.port.path : 'null'} | connected=${this._isConnected}`);
+      log.error(`❌ TX_SKIP Port not open | payload=${data}`);
     }
   }
 

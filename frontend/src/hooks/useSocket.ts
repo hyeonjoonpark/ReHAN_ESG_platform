@@ -125,6 +125,15 @@ export const useSocket = (): UseSocketReturn => {
       console.log('✅ 서버 연결 확인 응답 수신:', data);
     });
     
+    // 데이터 로그 이벤트 수신 처리
+    socketRef.current.on('data_log', (logData) => {
+      console.log('📊 데이터 로그 수신:', logData);
+      // 로그 데이터를 전역 상태로 관리하거나 콜백으로 전달
+      if (window.dataLogCallback) {
+        window.dataLogCallback(logData);
+      }
+    });
+    
     // 투입구 준비 완료 이벤트 수신 처리
     socketRef.current.on('hopper_ready', (data) => {
       console.log('✅ 투입구 준비 완료 이벤트 수신:', data);

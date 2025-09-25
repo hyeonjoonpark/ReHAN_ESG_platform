@@ -62,28 +62,32 @@ class SocketHandler {
    */
   sendCommand(reason, command, dedupKey, dedupMs = 1500) {
     try {
-      log.info(`🔧 [명령 전송 시도] reason=${reason}, command=${JSON.stringify(command)}, dedupKey=${dedupKey}`);
-      
       if (!this.serialHandler || !this.serialHandler.isConnected()) {
-        return log.error(`❌ CMD_SKIP serial_disconnected | reason=${reason} | cmd=${JSON.stringify(command)}`);
+        return log.error(`❌ CMD_SKIP serial_disconnected | reason=${reason}`);
       }
       
       if (dedupKey) {
         const now = Date.now();
         const last = this._lastCmdTs[dedupKey] || 0;
         if (now - last < dedupMs) {
-          return log.debug(`⏭️ CMD_DEDUP key=${dedupKey} within ${dedupMs}ms | reason=${reason}`);
+          return; // 디듀프된 명령은 조용히 무시
         }
         this._lastCmdTs[dedupKey] = now;
-        log.info(`✅ 디듀프 통과: key=${dedupKey}, last=${last}, now=${now}`);
       }
       
-      // 100ms 지연 후 하드웨어로 명령 전송
-      log.info(`⏰ 100ms 후 명령 전송 예정: ${JSON.stringify(command)}`);
       setTimeout(() => {
-        log.info(`🚀 [명령 전송 실행] reason=${reason}, command=${JSON.stringify(command)}`);
         this.serialHandler.send(JSON.stringify(command));
-        log.info(`✅ [서버→하드웨어] TX_CMD reason=${reason} cmd=${JSON.stringify(command)}`);
+        
+        // 데이터 송신 로그를 클라이언트에게 전송
+        this.io.emit('data_log', {
+          type: 'send',
+          data: JSON.stringify(command),
+          source: `서버→하드웨어 (${reason})`,
+          timestamp: new Date().toISOString()
+        });
+        
+        // CLI에 색상이 적용된 송신 로그 출력
+        log.send(`📤 [서버→하드웨어] 송신: ${JSON.stringify(command)} (${reason})`);
       }, 100);
     } catch (e) {
       log.error(`❌ CMD_ERROR reason=${reason} err=${e?.message || e}`);
@@ -98,41 +102,47 @@ class SocketHandler {
     this.serialHandler = serialHandler;
 
     this.serialHandler.on('hardware_event', ({ type, data }) => {
-      log.info(`🔧 [하드웨어 이벤트 수신] type: ${type}, data: ${JSON.stringify(data)}`);
       this.notifyHardwareStatus(type, data);
+      
+      // 데이터 수신 로그를 클라이언트에게 전송
+      this.io.emit('data_log', {
+        type: 'receive',
+        data: JSON.stringify({ type, data }),
+        source: `하드웨어→서버 (${type})`,
+        timestamp: new Date().toISOString()
+      });
+      
+      // CLI에 색상이 적용된 수신 로그 출력
+      log.receive(`📥 [하드웨어→서버] 수신: ${JSON.stringify({ type, data })}`);
       
       // 띠분리 완료 신호 수신 시 투입구 오픈 명령 전송
       if (type === 'belt_separator_complete') {
-        log.info('✅ 띠분리 완료 신호 수신, 투입구 오픈 데이터 전송 시작');
         const openGateCommand = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
         this.sendCommand('belt_separator_complete:open_gate', openGateCommand, 'hopper_open');
-        log.info('✅ 투입구 오픈 명령 전송 완료');
       }
       
       // 투입 완료 데이터 수신 시 정상 상태 데이터 전송
       if (type === 'input_pet_detected') {
-        log.info('투입 완료 데이터 수신, 정상 상태 데이터 전송');
         const normalStateCommand = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
         this.sendCommand('input_pet_detected:normal_state', normalStateCommand, 'status_ok');
       }
       
       // 그라인더 정방향 감지 시 그라인더 정방향 작동 데이터 전송
       if (type === 'grinder_foword_detected') {
-        log.info('그라인더 정방향 감지, 그라인더 정방향 작동 데이터 전송');
+        log.info(`🔍 grinder_foword_detected 이벤트 수신됨 - 명령 전송 시작`);
         const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
         this.sendCommand('grinder_foword_detected:grinder_forward', grinderForwardCommand, 'grinder_foword');
+        log.info(`🔍 grinder_foword_detected 명령 전송 완료`);
       }
       
       // 그라인더 종료 감지 시 그라인더 정지 데이터 전송
       if (type === 'grinder_end_detected') {
-        log.info('그라인더 종료 감지, 그라인더 정지 데이터 전송');
         const grinderStopCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":1};
         this.sendCommand('grinder_end_detected:grinder_stop', grinderStopCommand, 'grinder_stop');
       }
       
       // 에러 페트 감지 시 에러 상태 데이터 전송
       if (type === 'err_pet_detected') {
-        log.info('에러 페트 감지, 에러 상태 데이터 전송');
         const errorCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":1,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
         this.sendCommand('err_pet_detected:status_error', errorCommand, 'status_error');
         this.broadcastToAll('hardware_status', { type: 'resource_error', data: {}, timestamp: new Date().toISOString() });
