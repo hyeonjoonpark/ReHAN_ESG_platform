@@ -126,38 +126,7 @@ class SocketHandler {
         const openGateCommand = {"motor_stop":0,"hopper_open":1,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
         this.sendCommand('belt_separator_complete:open_gate', openGateCommand, 'hopper_open');
       }
-      
-      // 투입 완료 데이터 수신 시 정상 상태 데이터 전송
-      if (type === 'input_pet_detected') {
-        const normalStateCommand = {"motor_stop":0,"hopper_open":0,"status_ok":1,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-        this.sendCommand('input_pet_detected:normal_state', normalStateCommand, 'status_ok');
-      }
-      
-      // 그라인더 정방향 감지 시 그라인더 정방향 작동 데이터 전송
-      if (type === 'grinder_foword_detected') {
-        log.info(`🔍 grinder_foword_detected 이벤트 수신됨 - 명령 전송 시작`);
-        const grinderForwardCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":1,"grinder_reverse":0,"grinder_stop":0};
-        this.sendCommand('grinder_foword_detected:grinder_forward', grinderForwardCommand, 'grinder_foword');
-        log.info(`🔍 grinder_foword_detected 명령 전송 완료`);
-      }
-      
-      // 그라인더 종료 감지 시 그라인더 정지 데이터 전송
-      if (type === 'grinder_end_detected') {
-        const grinderStopCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":0,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":1};
-        this.sendCommand('grinder_end_detected:grinder_stop', grinderStopCommand, 'grinder_stop');
-      }
-      
-      // 에러 페트 감지 시 에러 상태 데이터 전송
-      if (type === 'err_pet_detected') {
-        const errorCommand = {"motor_stop":0,"hopper_open":0,"status_ok":0,"status_error":1,"grinder_on":0,"grinder_off":0,"grinder_foword":0,"grinder_reverse":0,"grinder_stop":0};
-        this.sendCommand('err_pet_detected:status_error', errorCommand, 'status_error');
-        this.broadcastToAll('hardware_status', { type: 'resource_error', data: {}, timestamp: new Date().toISOString() });
-      }
     });
-
-    // 모든 하드웨어 이벤트는 위의 hardware_event 핸들러에서 통합 처리됨
-
-    // 추가 투입 및 종료 처리 로직은 기존 로직을 유지하며 필요 시 추가 구현
 
     log.info('🔗 시리얼 핸들러가 소켓 핸들러에 연결되었습니다.');
   }
