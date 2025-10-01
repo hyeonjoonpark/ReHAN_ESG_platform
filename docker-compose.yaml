@@ -7,15 +7,15 @@ services:
       mysql:
         condition: service_healthy
     environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: petmon
-      DB_USER: root
-      DB_PASSWORD: srv123!
-      JWT_SECRET: pEtMon_rEhAN_esG_PLatFoRM_Authorization_Secret_KEY
-      SERIAL_PORT: /dev/ttyUSB0
-      ENABLE_HARDWARE: true
-      NODE_ENV: production
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      SERIAL_PORT: ${SERIAL_PORT}
+      ENABLE_HARDWARE: ${ENABLE_HARDWARE}
+      NODE_ENV: ${NODE_ENV}
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -33,8 +33,8 @@ services:
       timeout: 5s
       retries: 5
     environment:
-      MYSQL_ROOT_PASSWORD: srv123!
-      MYSQL_DATABASE: petmon
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=caching_sha2_password --init-connect="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
@@ -51,9 +51,9 @@ services:
     depends_on:
       - backend
     environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
-      NEXT_PUBLIC_SOCKET_URL: http://localhost:3001
+      NODE_ENV: ${NODE_ENV}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
       NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     ports:
       - "3000:3000"
