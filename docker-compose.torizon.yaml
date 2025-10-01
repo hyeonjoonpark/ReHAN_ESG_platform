@@ -35,8 +35,8 @@ services:
     restart: unless-stopped
     # USB 시리얼 디바이스 마운트
     # 하드웨어가 없으면 주석 처리하거나 ENABLE_HARDWARE=false 설정
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
     # 시리얼 포트 접근을 위한 권한
     cap_add:
       - SYS_RAWIO
