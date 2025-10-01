@@ -1,22 +1,45 @@
 # Torizon OS용 하드웨어 설정 오버라이드
 # docker-compose.torizon.yaml과 함께 사용
+# ⚠️ 주의: 실제 하드웨어가 연결되어 있을 때만 사용하세요!
 
 services:
   backend:
     environment:
       ENABLE_HARDWARE: "true"
       SERIAL_PORT: /dev/ttyUSB0
+    
+    # 디바이스가 실제로 존재하는 경우에만 마운트
+    # 사용 가능한 포트 확인: ls -l /dev/tty*
     devices:
-      # USB to Serial 어댑터
+      # USB to Serial 어댑터 (가장 일반적)
       - "/dev/ttyUSB0:/dev/ttyUSB0:rw"
+      
+      # 또는 USB CDC 디바이스
+      # - "/dev/ttyACM0:/dev/ttyACM0:rw"
+      
       # 또는 Verdin/Apalis 온보드 UART
       # - "/dev/ttymxc0:/dev/ttymxc0:rw"
       # - "/dev/ttymxc1:/dev/ttymxc1:rw"
+      # - "/dev/ttymxc2:/dev/ttymxc2:rw"
+    
     cap_add:
       - SYS_RAWIO
-    # 하드웨어 접근을 위한 추가 권한 (필요한 경우만)
+    
+    # 하드웨어 접근을 위한 추가 권한 (필요한 경우만 활성화)
     # privileged: true
 
-# 사용 방법:
-# docker compose -f docker-compose.torizon.yaml -f docker-compose.hardware-torizon.yaml up -d --build
+# ===========================================
+# 사용 방법
+# ===========================================
+
+# 하드웨어 있을 때:
+#   docker compose -f docker-compose.torizon.yaml -f docker-compose.hardware-torizon.yaml up -d --build
+
+# 하드웨어 없을 때:
+#   docker compose -f docker-compose.torizon.yaml up -d --build
+
+# 시리얼 포트 확인:
+#   ls -l /dev/tty*
+#   ls -l /dev/ttyUSB*
+#   ls -l /dev/ttymxc*
 
