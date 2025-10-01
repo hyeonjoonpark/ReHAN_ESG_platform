@@ -1,6 +1,8 @@
 services:
   backend:
-    image: rehan-backend:arm64
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: petmon_backend
     network_mode: host
     depends_on:
@@ -46,7 +48,9 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: rehan-frontend:arm64
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: petmon_frontend
     network_mode: host
     depends_on:
