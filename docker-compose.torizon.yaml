@@ -54,7 +54,7 @@ services:
       start_period: 30s
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME:-rehan_esg_platform}
+      MYSQL_DATABASE: ${DB_NAME}
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
     command: >
@@ -83,8 +83,7 @@ services:
       NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
       NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     ports:
-      - "80:3000"      # HTTP
-      - "443:3000"     # HTTPS (nginx에서 처리)
+      - "3000:3000"      # HTTP
     restart: unless-stopped
     networks:
       - petmon_network
