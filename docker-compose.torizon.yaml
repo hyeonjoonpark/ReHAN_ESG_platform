@@ -1,0 +1,123 @@
+# Torizon OS용 Docker Compose 설정 파일
+# ReHAN ESG Platform - PETMON 키오스크
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: petmon_backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # 데이터베이스 설정
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      
+      # JWT 설정
+      JWT_SECRET: ${JWT_SECRET}
+      
+      # 하드웨어 설정
+      SERIAL_PORT: ${SERIAL_PORT}
+      ENABLE_HARDWARE: ${ENABLE_HARDWARE}
+      
+      # 환경 설정
+      NODE_ENV: ${NODE_ENV}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    # USB 시리얼 디바이스 마운트
+    # 하드웨어가 없으면 주석 처리하거나 ENABLE_HARDWARE=false 설정
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    # 시리얼 포트 접근을 위한 권한
+    cap_add:
+      - SYS_RAWIO
+    networks:
+      - petmon_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: petmon_mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-rehan_esg_platform}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=caching_sha2_password
+      --init-connect="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - petmon_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: petmon_frontend
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+    ports:
+      - "80:3000"      # HTTP
+      - "443:3000"     # HTTPS (nginx에서 처리)
+    restart: unless-stopped
+    networks:
+      - petmon_network
+    # SSL 인증서가 있는 경우 마운트
+    # volumes:
+    #   - ./ssl:/etc/nginx/ssl:ro
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  petmon_network:
+    driver: bridge
+
+# 사용 방법:
+# 
+# 1. 빌드 및 실행:
+#    docker compose -f docker-compose.torizon.yaml up -d --build
+#
+# 2. 로그 확인:
+#    docker compose -f docker-compose.torizon.yaml logs -f
+#
+# 3. 중지:
+#    docker compose -f docker-compose.torizon.yaml down
+#
+# 4. 재시작:
+#    docker compose -f docker-compose.torizon.yaml restart
+#
+# 5. 특정 서비스만 재시작:
+#    docker compose -f docker-compose.torizon.yaml restart backend
+#
+# 환경 변수 설정:
+# .env 파일을 생성하거나 명령줄에서 설정:
+#   ENABLE_HARDWARE=false docker compose -f docker-compose.torizon.yaml up -d
+

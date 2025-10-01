@@ -1,0 +1,22 @@
+# Torizon OS용 하드웨어 설정 오버라이드
+# docker-compose.torizon.yaml과 함께 사용
+
+services:
+  backend:
+    environment:
+      ENABLE_HARDWARE: "true"
+      SERIAL_PORT: /dev/ttyUSB0
+    devices:
+      # USB to Serial 어댑터
+      - "/dev/ttyUSB0:/dev/ttyUSB0:rw"
+      # 또는 Verdin/Apalis 온보드 UART
+      # - "/dev/ttymxc0:/dev/ttymxc0:rw"
+      # - "/dev/ttymxc1:/dev/ttymxc1:rw"
+    cap_add:
+      - SYS_RAWIO
+    # 하드웨어 접근을 위한 추가 권한 (필요한 경우만)
+    # privileged: true
+
+# 사용 방법:
+# docker compose -f docker-compose.torizon.yaml -f docker-compose.hardware-torizon.yaml up -d --build
+
