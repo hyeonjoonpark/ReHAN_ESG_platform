@@ -1,10 +1,26 @@
-FROM node:20.14.0 AS base
+# Ubuntu 22.04 베이스 이미지
+FROM ubuntu:22.04 AS base
 
+# 타임존 설정
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Seoul
+
+# 시스템 업데이트 및 Node.js 20.x 설치
+RUN apt-get update && \
+    apt-get install -y curl gnupg ca-certificates tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest && \
+    rm -rf /var/lib/apt/lists/*
+
+# Dependencies 단계
 FROM base AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --production
 
+# Builder 단계
 FROM base AS builder
 WORKDIR /app
 COPY package*.json ./
@@ -32,6 +48,7 @@ RUN echo "=== 빌드 전 파일 구조 확인 ===" && \
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build -- --no-lint
 
+# Runner 단계
 FROM base AS runner
 WORKDIR /app
 
@@ -45,6 +62,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/package.json ./
+
+# Node.js와 시스템 정보 출력
+RUN echo "=== 환경 정보 ===" && \
+    cat /etc/os-release && \
+    node --version && \
+    npm --version
 
 # 포트 3000 노출
 EXPOSE 3000
