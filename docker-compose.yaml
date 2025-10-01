@@ -16,8 +16,6 @@ services:
       SERIAL_PORT: /dev/ttyUSB0
       ENABLE_HARDWARE: true
       NODE_ENV: production
-    env_file:
-      - ./backend/.env
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -56,6 +54,7 @@ services:
       NODE_ENV: production
       NEXT_PUBLIC_BACKEND_URL: http://localhost:3001
       NEXT_PUBLIC_SOCKET_URL: http://localhost:3001
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
     ports:
       - "3000:3000"
     restart: unless-stopped
