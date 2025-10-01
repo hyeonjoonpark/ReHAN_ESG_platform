@@ -1,7 +1,6 @@
 services:
   backend:
-    build:
-      context: ./backend
+    image: rehan-backend:arm64
     container_name: petmon_backend
     network_mode: host
     depends_on:
@@ -47,8 +46,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
+    image: rehan-frontend:arm64
     container_name: petmon_frontend
     network_mode: host
     depends_on:
