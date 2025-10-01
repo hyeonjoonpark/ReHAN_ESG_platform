@@ -3,6 +3,7 @@ import { KeypadSizeType } from "@/types/KeypadSizeType";
 import { useState } from "react";
 import axios from "axios";
 import AlertModal from "@/components/AlertModal";
+import { getBackendUrl } from "@/utils/getBackendUrl";
 
 interface RegisterProps {
   onBack: () => void;
@@ -51,7 +52,7 @@ export default function Register({ onBack }: RegisterProps) {
     }
 
     try {
-      const baseURL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
+      const baseURL = await getBackendUrl();
       console.log("API 호출 URL:", `${baseURL}/api/v1/signup`);
       
       const res = await axios.post(
