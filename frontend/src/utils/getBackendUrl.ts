@@ -22,12 +22,7 @@ export const getCurrentHostIP = async (): Promise<string> => {
       return hostname;
     }
 
-    // localhost인 경우 현재 페이지의 포트 정보로 추정
-    const port = window.location.port;
-    if (port && port !== '80' && port !== '443') {
-      return `localhost:${port}`;
-    }
-
+    // localhost인 경우 항상 localhost 반환 (포트 정보 제거)
     return 'localhost';
   } catch (error) {
     console.warn('IP 자동 감지 실패:', error);
